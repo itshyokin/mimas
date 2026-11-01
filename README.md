@@ -31,11 +31,12 @@ also has `map-preview.png`, a picture of the exported map.
 
 ## The editor
 
-- **Online:** `https://itshyokin.github.io/mimas/editor.html` (once GitHub
-  Pages is on, see below). Works on tablets; Project → Push sends your
-  changes to GitHub, which then builds a new ROM.
-- **On a PC:** double-click `Start Map Editor.bat`, or `npm install` then
-  `npm run dev`.
+- **On a PC:** double-click `Start Map Editor.bat` (needs Node.js), or
+  `npm install` then `npm run dev`. Saves go straight into the project
+  folder; commit and push them (GitHub Desktop is fine) and GitHub builds a
+  new ROM.
+- The repo is private, so there's no online/tablet editor for now. A public
+  GBA Studio page that saves into this private repo is planned for later.
 
 Everything from Saturn is still there (maps, Database, World). The full
 guide to those tools is in [docs/saturn/README.md](docs/saturn/README.md).
@@ -108,12 +109,6 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 Next up: GBA maps painted with your GBA Studio tiles (ground and cliff
 layers, autotiled), then events and talking, map transfers, NPCs, menus and
 battles. See [NOTES.md](NOTES.md).
-
-## Turning on the online editor (once)
-
-GitHub → this repo → **Settings → Pages** → *Source: GitHub Actions*. The
-"Publish to GitHub Pages" workflow then publishes the editor and Saturn's 3D
-playtest on every push.
 
 ## Building the ROM yourself
 

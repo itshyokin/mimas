@@ -24,7 +24,9 @@ Flaming fists, Rapier, Claws; RPG Maker passability stays as an override; GBA St
 - `tools/make_bases.py`: draws the mannequins into `public/gba/bases/`.
 - `game/src/main.cpp`: grid movement, collision, camera, layers, walk / run frames.
 - `.github/workflows/build.yml`: devkitpro/devkitarm container, Butano 21.9.0, export, make, release.
-- `.github/workflows/pages.yml`: the editor on GitHub Pages (needs Settings → Pages → GitHub Actions).
+- No GitHub Pages: the repo stays private (owner's choice, Nov 1). Editing is on the PC (Start Map Editor.bat).
+  Later: a public GBA Studio page (separate public repo, no art) that loads / saves the private repo through the
+  GitHub API with a token kept in the tablet's browser.
 
 ## How we work
 - Numbered updates; each: build, test, update README.md and NOTES.md, commit, push to `main`.

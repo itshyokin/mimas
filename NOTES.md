@@ -21,6 +21,10 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
 - [ ] Menus (START), then battles with back-sprites (the poses from GBA Studio) and front sprites.
 - [ ] Move Saturn's Database over piece by piece: items, characters, enemies, heroes as GBA data.
 
+## Later
+- [ ] Public GBA Studio page for tablet painting while the repo stays private (studio-only build in a public repo,
+      saving into itshyokin/mimas through the GitHub API with a fine-grained token).
+
 ## Ideas
 - Water animation in the ROM (the frames are already painted in GBA Studio).
 - Day / night palette tint and the moon cycle using the GBA's real-time clock.
