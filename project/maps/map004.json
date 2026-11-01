@@ -1,0 +1,507 @@
+{
+  "name": "house1",
+  "width": 18,
+  "height": 18,
+  "environment": "indoor",
+  "border": {
+    "kind": "none",
+    "seed": 289
+  },
+  "wind": {
+    "strength": 0
+  },
+  "cliffTile": "d",
+  "terrain": [
+    "ffffffffffffffffff",
+    "ffffffffffffffffff",
+    "ffffffffffffffffff",
+    "ffffffffffffffffff",
+    "fffaaaaaaaaaffffff",
+    "fffaaaaaaaaaffffff",
+    "ffffffffaaaaffffff",
+    "ffffffffaaaaffffff",
+    "ffffffffaaaaffffff",
+    "ffffaaaaaaaaaaffff",
+    "ffffaaaaaaaaaaffff",
+    "ffffaaaiiiiaaaffff",
+    "ffffaaaibbiaaaffff",
+    "ffffaaaiiiiaaaffff",
+    "ffffaaaaaaaaaaffff",
+    "ffffaaaaaaaaaaffff",
+    "ffffffffaaffffffff",
+    "ffffffffaaffffffff"
+  ],
+  "heights": [
+    "5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5",
+    "5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5",
+    "5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5",
+    "5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5",
+    "5 5 5 3 3 3 3 3 3 3 3 3 5 5 5 5 5 5",
+    "5 5 5 3 3 3 3 3 3 3 3 3 5 5 5 5 5 5",
+    "5 5 5 5 5 5 5 5 3 3 3 3 5 5 5 5 5 5",
+    "5 5 5 5 5 5 5 5 3 3 3 3 5 5 5 5 5 5",
+    "5 5 5 5 5 5 5 5 3 3 3 3 5 5 5 5 5 5",
+    "5 5 5 5 0 0 0 0 0 0 0 0 0 0 5 5 5 5",
+    "5 5 5 5 0 0 0 0 0 0 0 0 0 0 5 5 5 5",
+    "5 5 5 5 0 0 0 0 0 0 0 0 0 0 5 5 5 5",
+    "5 5 5 5 0 0 0 0 1 1 0 0 0 0 5 5 5 5",
+    "5 5 5 5 0 0 0 0 0 0 0 0 0 0 5 5 5 5",
+    "5 5 5 5 0 0 0 0 0 0 0 0 0 0 5 5 5 5",
+    "5 5 5 5 0 0 0 0 0 0 0 0 0 0 5 5 5 5",
+    "5 5 5 5 5 5 5 5 0 0 5 5 5 5 5 5 5 5",
+    "5 5 5 5 5 5 5 5 0 0 5 5 5 5 5 5 5 5"
+  ],
+  "passage": [
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "...........c......",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    "..................",
+    ".................."
+  ],
+  "lights": [],
+  "events": [
+    {
+      "id": 1,
+      "name": "To map001",
+      "x": 8,
+      "z": 17,
+      "w": 2,
+      "h": 1,
+      "pages": [
+        {
+          "trigger": "touch",
+          "commands": [
+            {
+              "cmd": "transfer",
+              "map": "map001",
+              "x": 5,
+              "z": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Tori",
+      "x": 8,
+      "z": 11,
+      "pages": [
+        {
+          "character": "tori",
+          "dir": "down",
+          "facePlayer": true,
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "Why are there no veggie options at the Inn in Reach City?",
+              "speaker": "Tori",
+              "bubble": "speech"
+            },
+            {
+              "cmd": "text",
+              "text": "Don't they know not everyone eats meat!",
+              "speaker": "Tori",
+              "bubble": "speech"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Event 003",
+      "x": 13,
+      "z": 8,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "sound",
+              "sound": "stepMetal"
+            },
+            {
+              "cmd": "text",
+              "text": "The door is locked.",
+              "bubble": "plain"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Event 003",
+      "x": 10,
+      "z": 3,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "sound",
+              "sound": "stepMetal"
+            },
+            {
+              "cmd": "text",
+              "text": "The door is locked.",
+              "bubble": "plain"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Event 003",
+      "x": 8,
+      "z": 3,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "sound",
+              "sound": "stepMetal"
+            },
+            {
+              "cmd": "text",
+              "text": "The door is locked.",
+              "bubble": "plain"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Event 003",
+      "x": 6,
+      "z": 3,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "sound",
+              "sound": "stepMetal"
+            },
+            {
+              "cmd": "text",
+              "text": "The door is locked.",
+              "bubble": "plain"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Event 003",
+      "x": 4,
+      "z": 3,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "sound",
+              "sound": "stepMetal"
+            },
+            {
+              "cmd": "text",
+              "text": "The door is locked.",
+              "bubble": "plain"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Campfire",
+      "x": 8,
+      "z": 12,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "The fire crackles warmly. Rest for a while?"
+            },
+            {
+              "cmd": "choice",
+              "options": [
+                "Rest until morning",
+                "Leave"
+              ],
+              "cancel": 1,
+              "branches": [
+                [
+                  {
+                    "cmd": "fadeOut",
+                    "seconds": 1
+                  },
+                  {
+                    "cmd": "setTime",
+                    "hour": 8,
+                    "instant": true
+                  },
+                  {
+                    "cmd": "wait",
+                    "seconds": 0.6
+                  },
+                  {
+                    "cmd": "fadeIn",
+                    "seconds": 1.2
+                  },
+                  {
+                    "cmd": "text",
+                    "text": "You wake rested. The sun is up."
+                  },
+                  {
+                    "cmd": "fullRest"
+                  },
+                  {
+                    "cmd": "setSwitch",
+                    "switch": "rested",
+                    "value": true
+                  },
+                  {
+                    "cmd": "quest",
+                    "quest": "first_night",
+                    "op": "objective",
+                    "objective": "rest"
+                  }
+                ],
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "rested"
+          },
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "The embers still glow from last night. Wait here until dark?"
+            },
+            {
+              "cmd": "choice",
+              "options": [
+                "Wait for nightfall",
+                "Leave"
+              ],
+              "cancel": 1,
+              "branches": [
+                [
+                  {
+                    "cmd": "fadeOut",
+                    "seconds": 1
+                  },
+                  {
+                    "cmd": "setTime",
+                    "hour": 21.5,
+                    "instant": true
+                  },
+                  {
+                    "cmd": "wait",
+                    "seconds": 0.6
+                  },
+                  {
+                    "cmd": "fadeIn",
+                    "seconds": 1.2
+                  },
+                  {
+                    "cmd": "fullRest"
+                  },
+                  {
+                    "cmd": "text",
+                    "text": "Night falls. The fireflies are out."
+                  },
+                  {
+                    "cmd": "setSwitch",
+                    "switch": "rested",
+                    "value": false
+                  }
+                ],
+                []
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Campfire",
+      "x": 9,
+      "z": 12,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "The fire crackles warmly. Rest for a while?"
+            },
+            {
+              "cmd": "choice",
+              "options": [
+                "Rest until morning",
+                "Leave"
+              ],
+              "cancel": 1,
+              "branches": [
+                [
+                  {
+                    "cmd": "fadeOut",
+                    "seconds": 1
+                  },
+                  {
+                    "cmd": "setTime",
+                    "hour": 8,
+                    "instant": true
+                  },
+                  {
+                    "cmd": "wait",
+                    "seconds": 0.6
+                  },
+                  {
+                    "cmd": "fadeIn",
+                    "seconds": 1.2
+                  },
+                  {
+                    "cmd": "text",
+                    "text": "You wake rested. The sun is up."
+                  },
+                  {
+                    "cmd": "fullRest"
+                  },
+                  {
+                    "cmd": "setSwitch",
+                    "switch": "rested",
+                    "value": true
+                  },
+                  {
+                    "cmd": "quest",
+                    "quest": "first_night",
+                    "op": "objective",
+                    "objective": "rest"
+                  }
+                ],
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "rested"
+          },
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "The embers still glow from last night. Wait here until dark?"
+            },
+            {
+              "cmd": "choice",
+              "options": [
+                "Wait for nightfall",
+                "Leave"
+              ],
+              "cancel": 1,
+              "branches": [
+                [
+                  {
+                    "cmd": "fadeOut",
+                    "seconds": 1
+                  },
+                  {
+                    "cmd": "setTime",
+                    "hour": 21.5,
+                    "instant": true
+                  },
+                  {
+                    "cmd": "wait",
+                    "seconds": 0.6
+                  },
+                  {
+                    "cmd": "fadeIn",
+                    "seconds": 1.2
+                  },
+                  {
+                    "cmd": "fullRest"
+                  },
+                  {
+                    "cmd": "text",
+                    "text": "Night falls. The fireflies are out."
+                  },
+                  {
+                    "cmd": "setSwitch",
+                    "switch": "rested",
+                    "value": false
+                  }
+                ],
+                []
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "props": [
+    {"type":"crate","x":4.5,"z":10},
+    {"type":"crate","x":5.5,"z":10},
+    {"type":"crate","x":6.5,"z":10},
+    {"type":"crate","x":4.5,"z":11},
+    {"type":"crate","x":5.5,"z":11},
+    {"type":"crate","x":10.5,"z":16},
+    {"type":"crate","x":11.5,"z":16},
+    {"type":"crate","x":12.5,"z":16},
+    {"type":"crate","x":13.5,"z":16},
+    {"type":"crate","x":11.5,"z":15},
+    {"type":"crate","x":12.5,"z":15},
+    {"type":"crate","x":13.5,"z":15},
+    {"type":"wall_door","x":13.5,"z":9},
+    {"type":"lpcr_ladder_1","x":11.5,"z":9},
+    {"type":"wall_door","x":4.5,"z":4},
+    {"type":"wall_door","x":6.5,"z":4},
+    {"type":"wall_door","x":8.5,"z":4},
+    {"type":"wall_door","x":10.5,"z":4},
+    {"type":"wall_lantern","x":3.5,"z":4},
+    {"type":"wall_lantern","x":11.5,"z":4},
+    {"type":"campfire","x":9,"z":13}
+  ]
+}

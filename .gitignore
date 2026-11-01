@@ -1,0 +1,18 @@
+# Butano is downloaded at build time
+butano/
+
+# Made by tools/export.py
+build/
+game/graphics/world_ground.*
+game/graphics/world_over.*
+game/graphics/world_palette.*
+game/graphics/hero.*
+game/include/mimas_map.h
+
+# Made by make
+game/build/
+game/*.gba
+game/*.elf
+game/*.map
+Mimas.gba
+__pycache__/

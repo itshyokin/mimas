@@ -1,0 +1,82 @@
+{
+  "name": "New Map",
+  "width": 24,
+  "height": 18,
+  "border": {
+    "kind": "none",
+    "seed": 820
+  },
+  "music": "builtin:field",
+  "battleMap": "battle_forest",
+  "ambience": "builtin:forest",
+  "ambienceNight": "builtin:night",
+  "scene3d": {
+    "src": "assets/maps/map010_3d.glb",
+    "scale": 2
+  },
+  "heightMode": "3d",
+  "terrain": [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................"
+  ],
+  "lights": [],
+  "events": [
+    {
+      "id": 1,
+      "name": "Chest",
+      "x": 7,
+      "z": 14,
+      "pages": [
+        {
+          "sprite": "chest",
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "giveItem",
+              "item": "potion",
+              "count": 1
+            },
+            {
+              "cmd": "setSwitch",
+              "switch": "chest_map010_1",
+              "value": true
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "chest_map010_1",
+            "is": true
+          },
+          "sprite": "chest_open",
+          "trigger": "action",
+          "solid": true,
+          "commands": []
+        }
+      ],
+      "pos3": {
+        "x": 7.24,
+        "y": 0.36,
+        "z": 14.8
+      }
+    }
+  ],
+  "props": []
+}

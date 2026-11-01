@@ -1,0 +1,1285 @@
+{
+  "props": [
+    {
+      "id": "boulder_cracked",
+      "name": "Cracked boulder (breakable)",
+      "w": 1.375,
+      "h": 1.125,
+      "block": [
+        -0.1875
+      ],
+      "filter": "point",
+      "image": "assets/props/boulder_cracked.png"
+    },
+    {
+      "id": "wall_brazier",
+      "name": "Wall brazier",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "wall": true,
+      "flame": {
+        "x": 0.03,
+        "y": 1.12,
+        "w": 0.8,
+        "h": 1,
+        "embers": true
+      },
+      "burns": 8,
+      "light": {
+        "x": 0,
+        "y": 0.7,
+        "color": "#ff9a45",
+        "intensity": 2.8,
+        "radius": 8.5,
+        "schedule": "nightBoost",
+        "flicker": "fire"
+      },
+      "image": "assets/props/wall_brazier.png"
+    },
+    {
+      "id": "chest_open",
+      "name": "Chest (open)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "image": "assets/props/chest_open.png"
+    },
+    {
+      "id": "cave_mouth",
+      "name": "Cave mouth (on wall)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "wall": true,
+      "image": "assets/props/cave_mouth.png"
+    },
+    {
+      "id": "wall_door",
+      "name": "Door (on wall)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "wall": true,
+      "image": "assets/props/wall_door.png"
+    },
+    {
+      "id": "lpcr_12_panel_door_b_21",
+      "name": "12 Panel Door B 21",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "credits": [
+        {
+          "item": "12-Panel Door, 15-Panel Door",
+          "authors": [
+            "Lanea Zimmerman (Sharm)",
+            "Eliza Wyatt (DeathsDarling)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-animated-doors",
+            "https://github.com/ElizaWy/LPC"
+          ]
+        }
+      ],
+      "image": "assets/props/lpcr_12_panel_door_b_21.png"
+    },
+    {
+      "id": "sparkle",
+      "name": "Item sparkle",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "image": "assets/props/sparkle.png"
+    },
+    {
+      "id": "square_hole",
+      "name": "Square opening (on wall)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "wall": true,
+      "image": "assets/props/square_hole.png"
+    },
+    {
+      "id": "wall_torch",
+      "name": "Wall torch",
+      "w": 1,
+      "h": 2,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "wall": true,
+      "flame": {
+        "x": 0.1,
+        "y": 1,
+        "w": 0.45,
+        "h": 0.65,
+        "embers": true
+      },
+      "burns": 1,
+      "startsOut": true,
+      "light": {
+        "x": 0.1,
+        "y": 1.2,
+        "color": "#ffb35c",
+        "intensity": 2.2,
+        "radius": 7,
+        "schedule": "nightBoost",
+        "flicker": "fire"
+      },
+      "image": "assets/props/wall_torch.png"
+    },
+    {
+      "id": "stump",
+      "name": "Tree stump",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "shape": "crossX",
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "castShadow": false,
+      "image": "assets/props/stump.png"
+    },
+    {
+      "id": "ore_iron",
+      "name": "Iron vein (mineable)",
+      "w": 2,
+      "h": 2,
+      "foot": {
+        "w": 2,
+        "d": 1,
+        "solid": [
+          "##"
+        ]
+      },
+      "block": [
+        -0.5,
+        0.5
+      ],
+      "filter": "point",
+      "mineable": true,
+      "hits": 4,
+      "regrows": true,
+      "stump": "rubble",
+      "drops": [
+        {
+          "item": "iron_ore",
+          "count": 2
+        },
+        {
+          "item": "stone",
+          "count": 1
+        },
+        {
+          "item": "iron_ore",
+          "count": 1,
+          "chance": 40
+        }
+      ],
+      "image": "assets/props/ore_iron.png"
+    },
+    {
+      "id": "anvil",
+      "name": "Anvil (forge)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "forge": true,
+      "image": "assets/props/anvil.png"
+    },
+    {
+      "id": "lpcr_ladder_1",
+      "stretch": true,
+      "name": "Ladder 1",
+      "w": 1,
+      "h": 2,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "collide": "flat",
+      "block": [],
+      "filter": "point",
+      "credits": [
+        {
+          "item": "Ladder",
+          "authors": [
+            "Lanea Zimmerman (Sharm)",
+            "Eliza Wyatt (DeathsDarling)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-modified-base-tiles",
+            "https://github.com/ElizaWy/LPC"
+          ]
+        }
+      ],
+      "wall": true,
+      "image": "assets/props/lpcr_ladder_1.png"
+    },
+    {
+      "id": "wall_lantern",
+      "name": "Wall lantern",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "wall": true,
+      "flame": {
+        "x": 0.16,
+        "y": 0.72,
+        "w": 0.16,
+        "h": 0.28
+      },
+      "light": {
+        "x": 0.16,
+        "y": 0.9,
+        "color": "#ffcf7a",
+        "intensity": 1.8,
+        "radius": 6.5,
+        "schedule": "nightBoost",
+        "flicker": "candle"
+      },
+      "image": "assets/props/wall_lantern.png"
+    },
+    {
+      "id": "crystal",
+      "name": "Crystal switch",
+      "w": 1,
+      "h": 2,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "respawn": true,
+      "light": {
+        "x": 0,
+        "y": 1,
+        "color": "#88e1e1",
+        "intensity": 4,
+        "radius": 4,
+        "schedule": "nightBoost",
+        "flicker": "pulse"
+      },
+      "image": "assets/props/crystal.png"
+    },
+    {
+      "id": "torch",
+      "name": "Torch",
+      "w": 1,
+      "h": 2,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "flame": {
+        "x": 0,
+        "y": 1.2,
+        "w": 0.5,
+        "h": 0.75,
+        "embers": true
+      },
+      "light": {
+        "x": 0,
+        "y": 1.35,
+        "color": "#ffb35c",
+        "intensity": 2.2,
+        "radius": 7,
+        "schedule": "nightBoost",
+        "flicker": "fire"
+      },
+      "image": "assets/props/torch.png"
+    },
+    {
+      "id": "snowy_pine",
+      "name": "Snowy pine",
+      "w": 3,
+      "h": 3,
+      "foot": {
+        "w": 3,
+        "d": 1,
+        "solid": [
+          ".#."
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "sway": 0.6,
+      "season": "off",
+      "image": "assets/props/snowy_pine.png"
+    },
+    {
+      "id": "chest",
+      "name": "Chest",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "collide": "flat",
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "image": "assets/props/chest.png"
+    },
+    {
+      "id": "sign",
+      "name": "Signpost",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "collide": "flat",
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "image": "assets/props/sign.png"
+    },
+    {
+      "id": "bush",
+      "name": "Bush",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "shape": "thicket",
+      "block": [],
+      "filter": "point",
+      "sway": 0.5,
+      "image": "assets/props/bush.png"
+    },
+    {
+      "id": "bridge_rope_h",
+      "name": "Rope bridge (east–west)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "frontOfTiles": false,
+      "image": "assets/props/bridge_rope_h.png"
+    },
+    {
+      "id": "bridge_rope_v",
+      "name": "Rope bridge (north–south)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "frontOfTiles": false,
+      "image": "assets/props/bridge_rope_v.png"
+    },
+    {
+      "id": "bridge_stone_h",
+      "name": "Stone bridge (east–west)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "frontOfTiles": false,
+      "image": "assets/props/bridge_stone_h.png"
+    },
+    {
+      "id": "bridge_stone_v",
+      "name": "Stone bridge (north–south)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "frontOfTiles": false,
+      "image": "assets/props/bridge_stone_v.png"
+    },
+    {
+      "id": "dock",
+      "name": "Dock / wooden platform",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "frontOfTiles": false,
+      "image": "assets/props/dock.png"
+    },
+    {
+      "id": "platform_stone",
+      "name": "Stone platform",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "frontOfTiles": false,
+      "image": "assets/props/platform_stone.png"
+    },
+    {
+      "id": "bridge_wood_h",
+      "name": "Wooden bridge (east–west)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "frontOfTiles": false,
+      "deck": {
+        "style": "wood",
+        "art": true
+      },
+      "image": "assets/props/bridge_wood_h.png"
+    },
+    {
+      "id": "bridge_wood_v",
+      "name": "Wooden bridge (north–south)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "frontOfTiles": false,
+      "deck": {
+        "style": "wood",
+        "art": true
+      },
+      "image": "assets/props/bridge_wood_v.png"
+    },
+    {
+      "id": "vines",
+      "name": "Vines (cuttable)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "shape": "crossStar",
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "castShadow": false,
+      "sway": 0.6,
+      "wall": true,
+      "noTilt": true,
+      "cuttable": true,
+      "regrows": true,
+      "image": "assets/props/vines.png"
+    },
+    {
+      "id": "log_seat",
+      "name": "Log seat",
+      "w": 2,
+      "h": 1,
+      "foot": {
+        "w": 2,
+        "d": 1,
+        "solid": [
+          "##"
+        ]
+      },
+      "collide": "flat",
+      "block": [
+        -0.5,
+        0.5
+      ],
+      "filter": "point",
+      "image": "assets/props/log_seat.png"
+    },
+    {
+      "id": "tallgrass",
+      "name": "tallgrass",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "*"
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "sway": 0.5,
+      "rustle": true,
+      "walkSound": "audio/footsteps/0_step_grass3.ogg",
+      "image": "assets/props/tallgrass.png"
+    },
+    {
+      "id": "tent_blue",
+      "name": "Tent (blue)",
+      "w": 4,
+      "h": 3,
+      "foot": {
+        "w": 4,
+        "d": 1,
+        "solid": [
+          "####"
+        ]
+      },
+      "block": [
+        -1.5,
+        -0.5,
+        0.5,
+        1.5
+      ],
+      "filter": "point",
+      "image": "assets/props/tent_blue.png"
+    },
+    {
+      "id": "firewood",
+      "name": "Firewood stack",
+      "w": 2,
+      "h": 2,
+      "foot": {
+        "w": 2,
+        "d": 1,
+        "solid": [
+          "##"
+        ]
+      },
+      "collide": "flat",
+      "block": [
+        -0.5,
+        0.5
+      ],
+      "filter": "point",
+      "image": "assets/props/firewood.png"
+    },
+    {
+      "id": "lantern_post",
+      "name": "Lantern post",
+      "w": 1,
+      "h": 2,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "flame": {
+        "x": 0.2,
+        "y": 1.1,
+        "w": 0.2,
+        "h": 0.2,
+        "embers": true
+      },
+      "light": {
+        "x": 0.2,
+        "y": 1.2,
+        "color": "#ffcf7a",
+        "intensity": 1.8,
+        "radius": 6.5,
+        "schedule": "night",
+        "flicker": "candle"
+      },
+      "image": "assets/props/lantern_post.png"
+    },
+    {
+      "id": "campfire",
+      "name": "Campfire",
+      "w": 3,
+      "h": 2,
+      "foot": {
+        "w": 3,
+        "d": 1,
+        "solid": [
+          ".#."
+        ]
+      },
+      "collide": "flat",
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "castShadow": false,
+      "respawn": true,
+      "flame": {
+        "x": 0,
+        "y": 0.5,
+        "w": 1,
+        "h": 1.5,
+        "embers": true
+      },
+      "light": {
+        "x": 0,
+        "y": 0.7,
+        "color": "#ff9a45",
+        "intensity": 3,
+        "radius": 9,
+        "schedule": "nightBoost",
+        "flicker": "fire",
+        "shadows": true
+      },
+      "image": "assets/props/campfire.png"
+    },
+    {
+      "id": "crate",
+      "name": "Crate (breakable)",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "shape": "solid",
+      "collide": "flat",
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "cuttable": true,
+      "stump": "logs",
+      "image": "assets/props/crate.png"
+    },
+    {
+      "id": "jack",
+      "name": "Jack",
+      "w": 2,
+      "h": 2,
+      "foot": {
+        "w": 2,
+        "d": 1,
+        "solid": [
+          "##"
+        ]
+      },
+      "block": [
+        -0.5,
+        0.5
+      ],
+      "filter": "point",
+      "glowColor": "#ffca0a",
+      "light": {
+        "x": 0.1,
+        "y": 0.7,
+        "color": "#d4901c",
+        "intensity": 1,
+        "radius": 7,
+        "schedule": "night",
+        "flicker": "candle",
+        "shadows": true
+      },
+      "image": "assets/props/jack.png",
+      "glow": "assets/props/jack_glow.png"
+    },
+    {
+      "id": "bedroll",
+      "name": "Bedroll",
+      "w": 1,
+      "h": 2,
+      "foot": {
+        "w": 1,
+        "d": 2,
+        "solid": [
+          ".",
+          "*"
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "ground": true,
+      "image": "assets/props/bedroll.png"
+    },
+    {
+      "id": "tree1",
+      "name": "tree1",
+      "w": 2,
+      "h": 2,
+      "foot": {
+        "w": 2,
+        "d": 2,
+        "solid": [
+          "##",
+          "##"
+        ]
+      },
+      "block": [
+        -0.5,
+        0.5
+      ],
+      "filter": "point",
+      "image": "assets/props/tree1.png"
+    },
+    {
+      "id": "flowers",
+      "name": "Flowers",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "sway": 1.2,
+      "frontOfTiles": false,
+      "season": "bare",
+      "image": "assets/props/flowers.png"
+    },
+    {
+      "id": "sapling",
+      "name": "Sapling (cuttable)",
+      "w": 1,
+      "h": 2,
+      "foot": {
+        "w": 1,
+        "d": 2,
+        "solid": [
+          "*",
+          "#"
+        ]
+      },
+      "collide": "flat",
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "sway": 1.1,
+      "frontOfTiles": false,
+      "ground": true,
+      "layer": 23,
+      "cuttable": true,
+      "stump": "stump",
+      "drops": [
+        {
+          "item": "firewood",
+          "count": 2
+        }
+      ],
+      "image": "assets/props/sapling.png"
+    },
+    {
+      "id": "oak",
+      "name": "Oak tree",
+      "w": 2,
+      "h": 2,
+      "foot": {
+        "w": 2,
+        "d": 2,
+        "solid": [
+          "**",
+          "##"
+        ]
+      },
+      "block": [
+        -0.5,
+        0.5
+      ],
+      "filter": "point",
+      "sway": 1,
+      "image": "assets/props/oak.png"
+    },
+    {
+      "id": "pine",
+      "name": "Pine tree",
+      "w": 2,
+      "h": 2,
+      "foot": {
+        "w": 2,
+        "d": 2,
+        "solid": [
+          "**",
+          "##"
+        ]
+      },
+      "block": [
+        -0.5,
+        0.5
+      ],
+      "filter": "point",
+      "sway": 1,
+      "rustle": false,
+      "frontOfTiles": false,
+      "layer": 24,
+      "season": "leaves",
+      "image": "assets/props/pine.png"
+    },
+    {
+      "id": "rock",
+      "name": "Rock",
+      "w": 2,
+      "h": 2,
+      "foot": {
+        "w": 2,
+        "d": 2,
+        "solid": [
+          "##",
+          "##"
+        ]
+      },
+      "collide": "flat",
+      "block": [
+        -0.5,
+        0.5
+      ],
+      "filter": "point",
+      "frontOfTiles": false,
+      "image": "assets/props/rock.png"
+    },
+    {
+      "id": "pebble",
+      "name": "Pebble",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "image": "assets/props/pebble.png"
+    },
+    {
+      "id": "tall_grass",
+      "name": "Tall grass",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "*"
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "castShadow": false,
+      "sway": 0.5,
+      "rustle": true,
+      "frontOfTiles": false,
+      "layer": 20,
+      "image": "assets/props/tall_grass.png"
+    },
+    {
+      "id": "fence_post",
+      "name": "Fence post",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "image": "assets/props/fence_post.png"
+    },
+    {
+      "id": "fence",
+      "name": "Wooden fence",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "image": "assets/props/fence.png"
+    },
+    {
+      "id": "fence_gate",
+      "name": "Fence gate",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "#"
+        ]
+      },
+      "block": [
+        0
+      ],
+      "filter": "point",
+      "image": "assets/props/fence_gate.png"
+    },
+    {
+      "id": "steps_brown",
+      "name": "Steps Brown",
+      "w": 1,
+      "h": 1,
+      "foot": {
+        "w": 1,
+        "d": 1,
+        "solid": [
+          "."
+        ]
+      },
+      "block": [],
+      "filter": "point",
+      "frontOfTiles": false,
+      "ground": true,
+      "image": "assets/props/steps_brown.png"
+    }
+  ],
+  "tiles": [
+    {
+      "key": "▲",
+      "id": "rock",
+      "name": "Rock (cliffs, mountains)",
+      "span": 1,
+      "filter": "point",
+      "skin": true,
+      "image": "assets/tiles/rock.png"
+    },
+    {
+      "key": "❄",
+      "id": "snow",
+      "name": "Snow",
+      "span": 1,
+      "filter": "point",
+      "skin": true,
+      "image": "assets/tiles/snow.png"
+    },
+    {
+      "key": ".",
+      "id": "grass",
+      "name": "Grass",
+      "span": 1,
+      "filter": "point",
+      "skin": true,
+      "flat": true,
+      "image": "assets/tiles/grass.png"
+    },
+    {
+      "key": ":",
+      "id": "sand",
+      "name": "Sand",
+      "span": 1,
+      "filter": "point",
+      "skin": true,
+      "image": "assets/tiles/sand.png"
+    },
+    {
+      "key": "▦",
+      "id": "stone",
+      "name": "Stone paving",
+      "span": 1,
+      "filter": "point",
+      "skin": true,
+      "image": "assets/tiles/stone.png"
+    },
+    {
+      "key": "▒",
+      "id": "dirt",
+      "name": "Dirt",
+      "span": 1,
+      "filter": "point",
+      "skin": true,
+      "image": "assets/tiles/dirt.png"
+    },
+    {
+      "key": "=",
+      "id": "path",
+      "name": "Path",
+      "span": 1,
+      "filter": "point",
+      "skin": true,
+      "flat": true,
+      "image": "assets/tiles/path.png"
+    },
+    {
+      "key": "~",
+      "id": "water",
+      "name": "Lake bed",
+      "span": 1,
+      "filter": "point",
+      "kind": "animated",
+      "flat": true,
+      "fps": 1.5,
+      "skin": true,
+      "blocks": true,
+      "image": "assets/tiles/water.png"
+    },
+    {
+      "key": "b",
+      "id": "water_edged",
+      "name": "Water Edged",
+      "span": 1,
+      "filter": "point",
+      "kind": "wall",
+      "flat": true,
+      "frames": 1,
+      "blocks": true,
+      "image": "assets/tiles/water_edged.png"
+    },
+    {
+      "key": "a",
+      "id": "grass_cliff",
+      "name": "Grass Cliff",
+      "span": 1,
+      "filter": "point",
+      "kind": "wall",
+      "flat": true,
+      "blocks": true,
+      "image": "assets/tiles/grass_cliff.png"
+    },
+    {
+      "key": "d",
+      "id": "steps_brown",
+      "name": "Steps Brown",
+      "span": 1,
+      "filter": "point",
+      "image": "assets/tiles/steps_brown.png"
+    },
+    {
+      "key": "c",
+      "id": "grass_cliff_upper",
+      "name": "Grass Cliff - Upper",
+      "span": 1,
+      "filter": "point",
+      "kind": "wall",
+      "flat": true,
+      "blocks": true,
+      "image": "assets/tiles/grass_cliff_upper.png",
+      "edges": "assets/tiles/grass_cliff_upper_edges.png"
+    }
+  ],
+  "tileCliffs": {
+    "=": "▲",
+    ".": "▲"
+  },
+  "tileBlend": {
+    ".": {
+      "width": 0.22,
+      "roughness": 0.95,
+      "edge": "dither"
+    },
+    ":": {
+      "width": 0.35,
+      "roughness": 0.95
+    }
+  },
+  "tileRoads": {
+    "▦": true,
+    "~": true
+  },
+  "tileSteps": {
+    "▲": "stone",
+    "~": "water"
+  }
+}

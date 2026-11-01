@@ -1,0 +1,1135 @@
+{
+  "name": "Forest Crossing",
+  "width": 32,
+  "height": 24,
+  "border": {
+    "kind": "forest",
+    "seed": 11
+  },
+  "music": "assets/audio/monolithwoods.wav",
+  "battleMusic": "builtin:battle",
+  "ambience": "assets/audio/forest_birds_day.wav",
+  "ambienceNight": "builtin:night",
+  "uniqueWeather": true,
+  "weather": {
+    "kind": "none"
+  },
+  "atmosphere": {
+    "haze": 0.3,
+    "rays": 0.3,
+    "mistWhen": "morning",
+    "clouds": 1
+  },
+  "terrain": [
+    "..............==..........======",
+    "..............==...........=====",
+    "..............==..........======",
+    "..............==.........=======",
+    "..............===.........==....",
+    "...............==..........=....",
+    "...............==...............",
+    ".....=.===..==.==...............",
+    "...:::::.......==...............",
+    "..::~~~~::.....==...............",
+    "..:~~~~~~::....==...............",
+    ".::~~~~~~~:....============.....",
+    ".:~~~~~~~~:....==......=====....",
+    ".:~~~~~~~::....==.....======....",
+    ".::~~~~~::.....==......=====....",
+    "..::~~~::......==...............",
+    "...:::::.......==...............",
+    "...............==...............",
+    "..............==................",
+    "..............==................",
+    ".............==.................",
+    ".............==.................",
+    ".............==.................",
+    ".............==................."
+  ],
+  "heights": [
+    "6 6 6 6 6 6 6 6 6 6 6 6 6 6 0 0 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6",
+    "6 6 2 2 2 2 2 2 2 2 2 2 6 6 0 0 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6",
+    "6 6 2 2 1 1 1 1 1 1 2 2 2 6 0 0 6 6 6 2 2 2 2 2 2 2 2 2 6 6 6 6",
+    "6 2 2 1 1 0 0 0 0 1 1 2 2 6 0 0 6 6 2 2 0 0 2 2 2 2 2 2 2 2 2 6",
+    "6 2 1 1 0 0 0 0 0 1 1 1 2 2 0 0 0 2 2 0 0 0 2 2 2 2 2 2 2 2 2 6",
+    "6 1 1 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 2 2 2 2 2 2 2 2 2 6",
+    "6 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 2 2 2 2 2 2 6",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 6",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 6",
+    "0 0 0 0 -2 -2 -2 -2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 -2 -2 -2 -2 -2 -2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 -2 -2 -2 -2 -2 -2 -2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 -2 -2 -2 -2 -2 -2 -2 -2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 -2 -2 -2 -2 -2 -2 -2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 -2 -2 -2 -2 -2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 -2 -2 -2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+    "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+  ],
+  "water": [
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . 0 0 0 0 . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . 0 0 0 0 0 0 . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . 0 0 0 0 0 0 0 . . . . . . . . . . . . . . . . . . . . . .",
+    ". . 0 0 0 0 0 0 0 0 . . . . . . . . . . . . . . . . . . . . . .",
+    ". . 0 0 0 0 0 0 0 . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . 0 0 0 0 0 . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . 0 0 0 . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+    ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ."
+  ],
+  "ramps": [
+    {
+      "x": 24,
+      "z": 7,
+      "style": "stairs"
+    },
+    {
+      "x": 24,
+      "z": 8,
+      "style": "stairs"
+    }
+  ],
+  "lights": [
+    {
+      "type": "area",
+      "x": 5,
+      "z": 4,
+      "shape": "ellipse",
+      "w": 8,
+      "h": 6,
+      "feather": 2.5,
+      "color": "#7d9cc8",
+      "intensity": 0.72,
+      "schedule": "always"
+    },
+    {
+      "type": "area",
+      "x": 9,
+      "z": 16.5,
+      "shape": "ellipse",
+      "w": 3,
+      "h": 3,
+      "feather": 1.2,
+      "color": "#ffcf8a",
+      "intensity": 1.35,
+      "schedule": "night"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "name": "Intro",
+      "x": -1,
+      "z": -1,
+      "pages": [
+        {
+          "trigger": "auto",
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "Welcome to the engine test map."
+            },
+            {
+              "cmd": "text",
+              "text": "Walk up to people and things, then press Enter (A on a controller).\nOn a phone, just tap them."
+            },
+            {
+              "cmd": "quest",
+              "quest": "first_night",
+              "op": "start"
+            },
+            {
+              "cmd": "setSwitch",
+              "switch": "intro_done",
+              "value": true
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "intro_done"
+          },
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Signpost",
+      "x": 17,
+      "z": 10,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "speaker": "Signpost",
+              "text": "North: the old road.\nEast: Ember Clearing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Mira",
+      "x": 6,
+      "z": 7,
+      "pages": [
+        {
+          "character": "mira",
+          "dir": "down",
+          "facePlayer": true,
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "quest",
+              "quest": "first_night",
+              "op": "objective",
+              "objective": "meet_mira"
+            },
+            {
+              "cmd": "text",
+              "speaker": "Mira",
+              "text": "Oh! A traveller. Not many come out this way after dusk."
+            },
+            {
+              "cmd": "text",
+              "speaker": "Mira",
+              "text": "If you're staying, the campfire up the path is warm. Rest there whenever you like."
+            },
+            {
+              "cmd": "text",
+              "speaker": "Mira",
+              "text": "Here, take this. It's an old Leaf Ring: wear it and press 4 to cut through vines."
+            },
+            {
+              "cmd": "giveItem",
+              "item": "leaf_ring",
+              "count": 1
+            },
+            {
+              "cmd": "text",
+              "speaker": "Mira",
+              "text": "Something glints in the brush to the west, behind the vines."
+            },
+            {
+              "cmd": "text",
+              "speaker": "Mira",
+              "text": "One more thing. Slimes keep getting into my supplies.\nIf you're handy with that sword, could you clear out three of them?"
+            },
+            {
+              "cmd": "quest",
+              "quest": "slime_trouble",
+              "op": "start"
+            },
+            {
+              "cmd": "setVar",
+              "var": "mira_talks",
+              "op": "set",
+              "value": 1
+            },
+            {
+              "cmd": "setSwitch",
+              "switch": "met_mira",
+              "value": true
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "met_mira"
+          },
+          "character": "mira",
+          "dir": "left",
+          "facePlayer": true,
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "setVar",
+              "var": "mira_talks",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "cmd": "if",
+              "condition": {
+                "quest": "slime_trouble",
+                "is": "ready"
+              },
+              "then": [
+                {
+                  "cmd": "text",
+                  "speaker": "Mira",
+                  "text": "You got them? Thank you! My bread might survive the week now."
+                },
+                {
+                  "cmd": "text",
+                  "speaker": "Mira",
+                  "text": "Here, it isn't much, but take these."
+                },
+                {
+                  "cmd": "quest",
+                  "quest": "slime_trouble",
+                  "op": "complete"
+                }
+              ],
+              "else": []
+            },
+            {
+              "cmd": "text",
+              "speaker": "Mira",
+              "text": "Back again? That's visit number \\v[mira_talks]."
+            },
+            {
+              "cmd": "text",
+              "speaker": "Mira",
+              "text": "Something on your mind?"
+            },
+            {
+              "cmd": "choice",
+              "options": [
+                "Which way is the fire?",
+                "Got anything to trade?",
+                "Just saying hi."
+              ],
+              "cancel": 2,
+              "branches": [
+                [
+                  {
+                    "cmd": "text",
+                    "speaker": "Mira",
+                    "text": "Follow the path north, then turn east at the old sign."
+                  }
+                ],
+                [
+                  {
+                    "cmd": "text",
+                    "speaker": "Mira",
+                    "text": "A little. Have a look."
+                  },
+                  {
+                    "cmd": "shop",
+                    "name": "Mira's pack",
+                    "goods": [
+                      {
+                        "item": "potion"
+                      },
+                      {
+                        "item": "ether"
+                      },
+                      {
+                        "item": "tonic"
+                      },
+                      {
+                        "item": "bread"
+                      },
+                      {
+                        "item": "tide_ring"
+                      },
+                      {
+                        "item": "round_shield"
+                      }
+                    ]
+                  }
+                ],
+                [
+                  {
+                    "cmd": "text",
+                    "speaker": "Mira",
+                    "text": "Hi yourself."
+                  }
+                ]
+              ]
+            },
+            {
+              "cmd": "if",
+              "condition": {
+                "switch": "rested"
+              },
+              "then": [
+                {
+                  "cmd": "text",
+                  "speaker": "Mira",
+                  "text": "You look well rested, at least."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Campfire",
+      "x": 25,
+      "z": 13,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "The fire crackles warmly. Rest for a while?"
+            },
+            {
+              "cmd": "choice",
+              "options": [
+                "Rest until morning",
+                "Leave"
+              ],
+              "cancel": 1,
+              "branches": [
+                [
+                  {
+                    "cmd": "fadeOut",
+                    "seconds": 1
+                  },
+                  {
+                    "cmd": "setTime",
+                    "hour": 8,
+                    "instant": true
+                  },
+                  {
+                    "cmd": "wait",
+                    "seconds": 0.6
+                  },
+                  {
+                    "cmd": "fadeIn",
+                    "seconds": 1.2
+                  },
+                  {
+                    "cmd": "text",
+                    "text": "You wake rested. The sun is up."
+                  },
+                  {
+                    "cmd": "fullRest"
+                  },
+                  {
+                    "cmd": "setSwitch",
+                    "switch": "rested",
+                    "value": true
+                  },
+                  {
+                    "cmd": "quest",
+                    "quest": "first_night",
+                    "op": "objective",
+                    "objective": "rest"
+                  }
+                ],
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "rested"
+          },
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "The embers still glow from last night. Wait here until dark?"
+            },
+            {
+              "cmd": "choice",
+              "options": [
+                "Wait for nightfall",
+                "Leave"
+              ],
+              "cancel": 1,
+              "branches": [
+                [
+                  {
+                    "cmd": "fadeOut",
+                    "seconds": 1
+                  },
+                  {
+                    "cmd": "setTime",
+                    "hour": 21.5,
+                    "instant": true
+                  },
+                  {
+                    "cmd": "wait",
+                    "seconds": 0.6
+                  },
+                  {
+                    "cmd": "fadeIn",
+                    "seconds": 1.2
+                  },
+                  {
+                    "cmd": "fullRest"
+                  },
+                  {
+                    "cmd": "text",
+                    "text": "Night falls. The fireflies are out."
+                  },
+                  {
+                    "cmd": "setSwitch",
+                    "switch": "rested",
+                    "value": false
+                  }
+                ],
+                []
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "South road",
+      "x": 13,
+      "z": 23,
+      "pages": [
+        {
+          "trigger": "touch",
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "The road south isn't built yet.\n(Map transfers come in a later step.)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Chest",
+      "x": 17,
+      "z": 18,
+      "pages": [
+        {
+          "sprite": "chest",
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "giveItem",
+              "item": "sun_ring",
+              "count": 1
+            },
+            {
+              "cmd": "text",
+              "text": "Wear it from the menu (Esc → Equipment), then press 4 to light the way. It uses a little MP while it shines."
+            },
+            {
+              "cmd": "setSwitch",
+              "switch": "chest_map001_6",
+              "value": true
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "chest_map001_6",
+            "is": true
+          },
+          "sprite": "chest_open",
+          "trigger": "action",
+          "solid": true,
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Item",
+      "x": 12,
+      "z": 19,
+      "pages": [
+        {
+          "sprite": "sparkle",
+          "trigger": "action",
+          "commands": [
+            {
+              "cmd": "giveItem",
+              "item": "potion",
+              "count": 1
+            },
+            {
+              "cmd": "gold",
+              "op": "add",
+              "value": 25
+            },
+            {
+              "cmd": "setSwitch",
+              "switch": "pickup_map001_7",
+              "value": true
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "pickup_map001_7",
+            "is": true
+          },
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Hidden chest",
+      "x": 2,
+      "z": 19,
+      "pages": [
+        {
+          "sprite": "chest",
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "giveItem",
+              "item": "ether",
+              "count": 2
+            },
+            {
+              "cmd": "gold",
+              "op": "add",
+              "value": 40
+            },
+            {
+              "cmd": "setSwitch",
+              "switch": "chest_map001_8",
+              "value": true
+            }
+          ]
+        },
+        {
+          "condition": {
+            "switch": "chest_map001_8",
+            "is": true
+          },
+          "sprite": "chest_open",
+          "trigger": "action",
+          "solid": true,
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Slime",
+      "x": 3,
+      "z": 21,
+      "pages": [
+        {
+          "enemy": "slime",
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Slime",
+      "x": 8,
+      "z": 21,
+      "pages": [
+        {
+          "enemy": "slime",
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Slime",
+      "x": 25,
+      "z": 2,
+      "pages": [
+        {
+          "enemy": "slime",
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Ember slime",
+      "x": 5,
+      "z": 22,
+      "pages": [
+        {
+          "enemy": "ember_slime",
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Bandit",
+      "x": 25,
+      "z": 22,
+      "pages": [
+        {
+          "enemy": "bandit",
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Bandit",
+      "x": 24,
+      "z": 19,
+      "pages": [
+        {
+          "enemy": "bandit",
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Bandit archer",
+      "x": 21,
+      "z": 22,
+      "pages": [
+        {
+          "enemy": "bandit_archer",
+          "trigger": "none",
+          "commands": []
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "To map002",
+      "x": 0,
+      "z": 0,
+      "w": 32,
+      "h": 1,
+      "pages": [
+        {
+          "trigger": "touch",
+          "commands": [
+            {
+              "cmd": "transfer",
+              "map": "map002",
+              "x": 22,
+              "z": 48
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "To map002",
+      "x": 29,
+      "z": 2,
+      "pages": [
+        {
+          "trigger": "touch",
+          "commands": [
+            {
+              "cmd": "transfer",
+              "map": "map003",
+              "x": 11,
+              "z": 48
+            }
+          ],
+          "respawn": true
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "To map002",
+      "x": 5,
+      "z": 6,
+      "pages": [
+        {
+          "trigger": "touch",
+          "commands": [
+            {
+              "cmd": "transfer",
+              "map": "map004",
+              "x": 8,
+              "z": 16
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Katrina",
+      "x": 25,
+      "z": 11,
+      "pages": [
+        {
+          "trigger": "action",
+          "solid": true,
+          "commands": [
+            {
+              "cmd": "text",
+              "text": "Ready to get moving?",
+              "speaker": "Katrina"
+            },
+            {
+              "cmd": "party",
+              "op": "add",
+              "hero": "hero_2"
+            },
+            {
+              "cmd": "setSwitch",
+              "switch": "katrina_party_1",
+              "value": true
+            }
+          ],
+          "character": "katrina",
+          "facePlayer": true
+        },
+        {
+          "trigger": "action",
+          "commands": [],
+          "facePlayer": true,
+          "condition": {
+            "switch": "katrina_party_1",
+            "is": true
+          }
+        }
+      ]
+    }
+  ],
+  "buildings": [
+    {"w":4,"d":3,"height":2.5,"wall":"plaster","roof":"thatch","roofStyle":"gable","windows":"few","doors":[{"side":"front","at":1}],"x":4,"z":3}
+  ],
+  "props": [
+    {"type":"flowers","x":19.39,"z":13.44},
+    {"type":"campfire","x":25.5,"z":14},
+    {"type":"crate","x":26.5,"z":12},
+    {"type":"crate","x":23.5,"z":15},
+    {"type":"crate","x":22.5,"z":15},
+    {"type":"crate","x":22.5,"z":14},
+    {"type":"bush","x":20.5,"z":24},
+    {"type":"bush","x":20.5,"z":23},
+    {"type":"bush","x":20.5,"z":22},
+    {"type":"bush","x":20.5,"z":21},
+    {"type":"bush","x":20.5,"z":20},
+    {"type":"bush","x":20.5,"z":19},
+    {"type":"bush","x":20.5,"z":18},
+    {"type":"bush","x":21.5,"z":18},
+    {"type":"bush","x":22.5,"z":18},
+    {"type":"bush","x":23.5,"z":18},
+    {"type":"bush","x":24.5,"z":18},
+    {"type":"bush","x":25.5,"z":18},
+    {"type":"bush","x":26.5,"z":18},
+    {"type":"bush","x":27.5,"z":18},
+    {"type":"bush","x":28.5,"z":18},
+    {"type":"bush","x":29.5,"z":18},
+    {"type":"bush","x":31.5,"z":18},
+    {"type":"bush","x":31.5,"z":19},
+    {"type":"bush","x":31.5,"z":20},
+    {"type":"bush","x":31.5,"z":21},
+    {"type":"bush","x":31.5,"z":22},
+    {"type":"bush","x":31.5,"z":23},
+    {"type":"bush","x":31.5,"z":24},
+    {"type":"bush","x":30.5,"z":24},
+    {"type":"bush","x":29.5,"z":24},
+    {"type":"bush","x":28.5,"z":24},
+    {"type":"bush","x":27.5,"z":24},
+    {"type":"bush","x":26.5,"z":24},
+    {"type":"bush","x":24.5,"z":24},
+    {"type":"bush","x":23.5,"z":24},
+    {"type":"bush","x":22.5,"z":24},
+    {"type":"bush","x":21.5,"z":24},
+    {"type":"bush","x":25.5,"z":24},
+    {"type":"bush","x":7.5,"z":18},
+    {"type":"bush","x":8.5,"z":18},
+    {"type":"bush","x":9.5,"z":18},
+    {"type":"bush","x":10.5,"z":18},
+    {"type":"bush","x":10.5,"z":19},
+    {"type":"bush","x":10.5,"z":20},
+    {"type":"bush","x":10.5,"z":21},
+    {"type":"bush","x":10.5,"z":22},
+    {"type":"bush","x":10.5,"z":23},
+    {"type":"bush","x":10.5,"z":24},
+    {"type":"bush","x":5.5,"z":18},
+    {"type":"bush","x":4.5,"z":18},
+    {"type":"bush","x":3.5,"z":18},
+    {"type":"bush","x":2.5,"z":18},
+    {"type":"bush","x":1.5,"z":18},
+    {"type":"bush","x":0.5,"z":18},
+    {"type":"pine","x":13,"z":2},
+    {"type":"pine","x":11,"z":1},
+    {"type":"pine","x":18,"z":3},
+    {"type":"pine","x":18,"z":5},
+    {"type":"pine","x":17,"z":4},
+    {"type":"pine","x":13,"z":6},
+    {"type":"pine","x":6,"z":2},
+    {"type":"pine","x":2,"z":1},
+    {"type":"pine","x":1,"z":8},
+    {"type":"pine","x":1,"z":11},
+    {"type":"pine","x":2,"z":16},
+    {"type":"pine","x":1,"z":17},
+    {"type":"pine","x":24,"z":3},
+    {"type":"pine","x":30,"z":7},
+    {"type":"pine","x":29,"z":8},
+    {"type":"pine","x":31,"z":11},
+    {"type":"pine","x":30,"z":14},
+    {"type":"pine","x":31,"z":16},
+    {"type":"pine","x":27,"z":17},
+    {"type":"pine","x":20,"z":14},
+    {"type":"pine","x":22,"z":17},
+    {"type":"pine","x":21,"z":10},
+    {"type":"pine","x":13,"z":15},
+    {"type":"pine","x":12,"z":11},
+    {"type":"tuft","x":12.09,"z":4.15,"s":1.03},
+    {"type":"tuft","x":9.55,"z":5.39,"s":0.91},
+    {"type":"tuft","x":10.77,"z":3.7,"s":0.89},
+    {"type":"tuft","x":10.33,"z":4.62,"s":1.03},
+    {"type":"tuft","x":11.21,"z":2.16,"s":0.93},
+    {"type":"tuft","x":10.96,"z":1.95,"s":0.87},
+    {"type":"tuft","x":8.54,"z":4.14,"s":0.94},
+    {"type":"tuft","x":9.69,"z":2.11,"s":0.92},
+    {"type":"tuft","x":9.06,"z":4.47,"s":0.94},
+    {"type":"tuft","x":9.24,"z":1.96,"s":1.14},
+    {"type":"tuft","x":2.79,"z":2.14,"s":1.04},
+    {"type":"tuft","x":3.39,"z":4.03},
+    {"type":"tuft","x":4.49,"z":3.27,"s":1.03},
+    {"type":"tuft","x":2.41,"z":4.76,"s":0.91},
+    {"type":"tuft","x":1.85,"z":5.21,"s":0.99},
+    {"type":"tuft","x":2.76,"z":5.3,"s":1.1},
+    {"type":"tuft","x":2.69,"z":6.43,"s":1.07},
+    {"type":"tuft","x":0.83,"z":4.12,"s":0.87},
+    {"type":"tuft","x":0.45,"z":10,"s":0.89},
+    {"type":"tuft","x":1.16,"z":19.64,"s":0.89},
+    {"type":"tuft","x":2,"z":20.61,"s":0.94},
+    {"type":"tuft","x":0.89,"z":20.23,"s":0.95},
+    {"type":"tuft","x":2.14,"z":19.61,"s":0.9},
+    {"type":"tuft","x":4.64,"z":19.94,"s":0.96},
+    {"type":"tuft","x":5.5,"z":22.42},
+    {"type":"tuft","x":6.28,"z":20.98,"s":0.99},
+    {"type":"tuft","x":5.46,"z":21.93,"s":1.01},
+    {"type":"tuft","x":6.7,"z":21.67,"s":0.98},
+    {"type":"tuft","x":5.35,"z":20.45,"s":0.98},
+    {"type":"tuft","x":7.26,"z":21.25,"s":1.07},
+    {"type":"tuft","x":6.86,"z":22.06,"s":1.11},
+    {"type":"tuft","x":7.34,"z":23.23,"s":1.13},
+    {"type":"tuft","x":5.17,"z":23.36},
+    {"type":"tuft","x":4.97,"z":22.54},
+    {"type":"tuft","x":4.67,"z":23.61,"s":0.91},
+    {"type":"tuft","x":7.39,"z":22.46,"s":1.04},
+    {"type":"tuft","x":8.11,"z":21.45,"s":0.85},
+    {"type":"tuft","x":7.79,"z":19.9,"s":0.87},
+    {"type":"tuft","x":9.61,"z":17.62,"s":1.01},
+    {"type":"tuft","x":12.27,"z":18.95,"s":0.89},
+    {"type":"tuft","x":12.39,"z":16.71,"s":0.87},
+    {"type":"tuft","x":11.38,"z":16.07,"s":1.03},
+    {"type":"tuft","x":13.46,"z":17.52,"s":0.98},
+    {"type":"tuft","x":12.52,"z":17.74,"s":1.08},
+    {"type":"tuft","x":12.35,"z":15.26,"s":0.97},
+    {"type":"tuft","x":13.34,"z":14.2},
+    {"type":"tuft","x":14.18,"z":17.03,"s":1.04},
+    {"type":"tuft","x":14.12,"z":13.7,"s":1.15},
+    {"type":"tuft","x":14.02,"z":12.9,"s":1.11},
+    {"type":"tuft","x":13.03,"z":13.54,"s":1.12},
+    {"type":"tuft","x":12.87,"z":12.31,"s":0.86},
+    {"type":"tuft","x":12.48,"z":13.48,"s":0.99},
+    {"type":"tuft","x":12.77,"z":10.65,"s":1.15},
+    {"type":"tuft","x":13.13,"z":11,"s":0.93},
+    {"type":"tuft","x":12.1,"z":9.85,"s":0.87},
+    {"type":"tuft","x":13.27,"z":8.51,"s":1.13},
+    {"type":"tuft","x":10.87,"z":8.8,"s":0.88},
+    {"type":"tuft","x":11.31,"z":8.74,"s":0.9},
+    {"type":"tuft","x":11.65,"z":7.35,"s":1.12},
+    {"type":"tuft","x":12.82,"z":8.62,"s":0.91},
+    {"type":"tuft","x":11.33,"z":6.37,"s":0.89},
+    {"type":"tuft","x":12.65,"z":7.79,"s":0.98},
+    {"type":"tuft","x":12.73,"z":6.4,"s":0.87},
+    {"type":"tuft","x":10.97,"z":5.01,"s":1.12},
+    {"type":"tuft","x":9.54,"z":6.57,"s":0.93},
+    {"type":"tuft","x":20.98,"z":3.37,"s":0.88},
+    {"type":"tuft","x":21,"z":4.3,"s":0.97},
+    {"type":"tuft","x":22.31,"z":4.12,"s":1.08},
+    {"type":"tuft","x":20.78,"z":6.22,"s":1.14},
+    {"type":"tuft","x":19.89,"z":4.54,"s":1.1},
+    {"type":"tuft","x":20.44,"z":5.89,"s":0.86},
+    {"type":"tuft","x":20.03,"z":7.17,"s":1.09},
+    {"type":"tuft","x":19.49,"z":6.3,"s":1.02},
+    {"type":"tuft","x":20.31,"z":8,"s":0.97},
+    {"type":"tuft","x":18.53,"z":6.08,"s":0.94},
+    {"type":"tuft","x":18.85,"z":7.11,"s":1.15},
+    {"type":"tuft","x":22.22,"z":7.35,"s":0.93},
+    {"type":"tuft","x":19.54,"z":8.43,"s":1.07},
+    {"type":"tuft","x":23.12,"z":9,"s":0.93},
+    {"type":"tuft","x":21.45,"z":9.03,"s":0.9},
+    {"type":"tuft","x":21.59,"z":8.83,"s":0.93},
+    {"type":"tuft","x":22.44,"z":10,"s":0.95},
+    {"type":"tuft","x":26.48,"z":8.25,"s":1.1},
+    {"type":"tuft","x":25.52,"z":11.2,"s":0.89},
+    {"type":"tuft","x":26.27,"z":10.99,"s":0.97},
+    {"type":"tuft","x":25.36,"z":10.64,"s":1.12},
+    {"type":"tuft","x":27.28,"z":11.63,"s":1.06},
+    {"type":"tuft","x":27.44,"z":9.24,"s":0.93},
+    {"type":"tuft","x":26.08,"z":9.7,"s":1.05},
+    {"type":"tuft","x":31.51,"z":9.39,"s":0.88},
+    {"type":"tuft","x":29.32,"z":12.61,"s":1.14},
+    {"type":"tuft","x":29.09,"z":11.46,"s":1.13},
+    {"type":"tuft","x":30.15,"z":11,"s":1.11},
+    {"type":"tuft","x":30.02,"z":11.48,"s":1.08},
+    {"type":"tuft","x":31.82,"z":13.98,"s":0.85},
+    {"type":"tuft","x":30.32,"z":13.8,"s":1.12},
+    {"type":"tuft","x":30.76,"z":16.44,"s":0.86},
+    {"type":"tuft","x":29.82,"z":15.68},
+    {"type":"tuft","x":30.91,"z":18.02,"s":1.02},
+    {"type":"tuft","x":29.34,"z":16.52,"s":0.94},
+    {"type":"tuft","x":29.51,"z":20.12,"s":1.08},
+    {"type":"tuft","x":28.86,"z":20.04,"s":1.03},
+    {"type":"tuft","x":30.29,"z":20.42,"s":0.89},
+    {"type":"tuft","x":26.93,"z":19.71,"s":1.08},
+    {"type":"tuft","x":28.56,"z":21.2,"s":0.9},
+    {"type":"tuft","x":28.16,"z":19.26,"s":1.07},
+    {"type":"tuft","x":27.63,"z":20.76,"s":0.91},
+    {"type":"tuft","x":27.47,"z":19.4,"s":1.12},
+    {"type":"tuft","x":26.72,"z":20.76},
+    {"type":"tuft","x":27.85,"z":21.44,"s":1.04},
+    {"type":"tuft","x":25.44,"z":21.06,"s":1.04},
+    {"type":"tuft","x":24.13,"z":21.75,"s":0.95},
+    {"type":"tuft","x":26.06,"z":21.03,"s":1.01},
+    {"type":"tuft","x":23.8,"z":19,"s":1.05},
+    {"type":"tuft","x":25.14,"z":20.45,"s":1.1},
+    {"type":"tuft","x":22.94,"z":19.61,"s":1.13},
+    {"type":"tuft","x":23.86,"z":17.74,"s":0.92},
+    {"type":"tuft","x":21.67,"z":19.81,"s":0.89},
+    {"type":"tuft","x":21.27,"z":17.93,"s":1.13},
+    {"type":"tuft","x":19.81,"z":18.02,"s":1.07},
+    {"type":"tuft","x":21.51,"z":20.89,"s":0.95},
+    {"type":"tuft","x":19.63,"z":21.83,"s":1.06},
+    {"type":"tuft","x":21.58,"z":21.3,"s":0.92},
+    {"type":"tuft","x":21.05,"z":22.48,"s":0.94},
+    {"type":"tuft","x":19.72,"z":22.87,"s":0.99},
+    {"type":"tuft","x":23.21,"z":22.81,"s":1.04},
+    {"type":"tuft","x":24.85,"z":22.68,"s":1.08},
+    {"type":"tuft","x":24.07,"z":23.9,"s":1.02},
+    {"type":"tuft","x":25.34,"z":23.38,"s":1.09},
+    {"type":"tuft","x":28.73,"z":23.49,"s":1.13},
+    {"type":"tuft","x":27.09,"z":22.81,"s":1.07},
+    {"type":"tuft","x":28.1,"z":22.19,"s":1.03},
+    {"type":"tuft","x":30.25,"z":23.17,"s":0.86},
+    {"type":"tuft","x":18.96,"z":14.96,"s":0.97},
+    {"type":"tuft","x":17.95,"z":15.01,"s":1.09},
+    {"type":"tuft","x":19.27,"z":15.18,"s":0.9},
+    {"type":"tuft","x":18.75,"z":16.58,"s":0.95},
+    {"type":"tuft","x":20.51,"z":16.22,"s":0.88},
+    {"type":"tuft","x":18.1,"z":19.42,"s":1.04},
+    {"type":"tuft","x":19.79,"z":17.92,"s":0.92},
+    {"type":"tuft","x":18.23,"z":17.89,"s":1.08},
+    {"type":"tuft","x":19.05,"z":19.52,"s":0.86},
+    {"type":"tuft","x":19.8,"z":20.52,"s":1.02},
+    {"type":"tuft","x":17.18,"z":18.6,"s":1.03},
+    {"type":"tuft","x":18.9,"z":20.23,"s":1.08},
+    {"type":"tuft","x":18.68,"z":22.38,"s":0.95},
+    {"type":"tuft","x":17.91,"z":20.11,"s":1.03},
+    {"type":"tuft","x":17.4,"z":21.06,"s":1.12},
+    {"type":"tuft","x":15.83,"z":21.99,"s":1.01},
+    {"type":"tuft","x":15.99,"z":22.4,"s":1.09},
+    {"type":"tuft","x":16.21,"z":22.65,"s":1.14},
+    {"type":"tuft","x":17.21,"z":23.74,"s":1.11},
+    {"type":"tuft","x":26.4,"z":3.84,"s":0.96},
+    {"type":"tuft","x":24,"z":2.68,"s":0.91},
+    {"type":"tuft","x":23.75,"z":2.97,"s":1.05},
+    {"type":"tuft","x":22.49,"z":2.09,"s":0.99},
+    {"type":"tuft","x":22.06,"z":3.84,"s":1.14},
+    {"type":"tuft","x":24.19,"z":0.9,"s":1.08},
+    {"type":"tuft","x":23.39,"z":3.36},
+    {"type":"tuft","x":22.16,"z":0.48,"s":0.95},
+    {"type":"tuft","x":21.24,"z":1.49,"s":1.09},
+    {"type":"tuft","x":21.06,"z":2.07,"s":1.14},
+    {"type":"tuft","x":20.37,"z":0.45,"s":1.12},
+    {"type":"tuft","x":21.31,"z":0.62,"s":1.08},
+    {"type":"tuft","x":11.89,"z":23.66,"s":1.12},
+    {"type":"tuft","x":11.1,"z":21.72,"s":1.14},
+    {"type":"flowers","x":11.33,"z":4.64,"s":1.04},
+    {"type":"flowers","x":11.7,"z":3.61,"s":0.92},
+    {"type":"flowers","x":1.29,"z":3.88,"s":1.02},
+    {"type":"flowers","x":0.63,"z":5.11,"s":0.94},
+    {"type":"flowers","x":11.85,"z":10.66,"s":1.03},
+    {"type":"flowers","x":11.99,"z":11.49,"s":1.07},
+    {"type":"flowers","x":6.74,"z":19.73,"s":1.03},
+    {"type":"flowers","x":4.98,"z":21.37},
+    {"type":"flowers","x":8.61,"z":22.08,"s":0.88},
+    {"type":"flowers","x":9.34,"z":22.66,"s":0.91},
+    {"type":"flowers","x":9.73,"z":21.16,"s":1.1},
+    {"type":"flowers","x":2.16,"z":23.14,"s":1.1},
+    {"type":"flowers","x":23.38,"z":20.12,"s":1.04},
+    {"type":"flowers","x":24.21,"z":20.26,"s":1.09},
+    {"type":"flowers","x":22.94,"z":20.13,"s":0.89},
+    {"type":"flowers","x":20.06,"z":15.52},
+    {"type":"flowers","x":19.65,"z":14.96,"s":0.99},
+    {"type":"flowers","x":19.56,"z":16.45,"s":1.12},
+    {"type":"flowers","x":17.73,"z":16.42,"s":0.92},
+    {"type":"flowers","x":17.99,"z":19.12,"s":0.94},
+    {"type":"flowers","x":18.31,"z":18.19,"s":1.02},
+    {"type":"flowers","x":16.85,"z":19.6,"s":0.85},
+    {"type":"flowers","x":29.19,"z":10.08,"s":0.87},
+    {"type":"flowers","x":28.02,"z":9.55,"s":0.89},
+    {"type":"flowers","x":21.66,"z":7.87,"s":1.03},
+    {"type":"flowers","x":20.79,"z":4.53,"s":1.04},
+    {"type":"flowers","x":23.02,"z":4.27,"s":0.87},
+    {"type":"flowers","x":18.25,"z":8.26,"s":0.98},
+    {"type":"sign","x":17.5,"z":11},
+    {"type":"vines","x":6.5,"z":18},
+    {"type":"vines","x":3.5,"z":19},
+    {"type":"vines","x":3.5,"z":20},
+    {"type":"vines","x":2.5,"z":21},
+    {"type":"vines","x":1.5,"z":21},
+    {"type":"vines","x":0.5,"z":21},
+    {"type":"vines","x":3.5,"z":21},
+    {"type":"vines","x":25.5,"z":6},
+    {"type":"cave_mouth","x":29.5,"z":3},
+    {"type":"bush","x":27.5,"z":4},
+    {"type":"bush","x":27.5,"z":3},
+    {"type":"bush","x":26.5,"z":5},
+    {"type":"bush","x":25.5,"z":7},
+    {"type":"bush","x":26.5,"z":7},
+    {"type":"bush","x":25.5,"z":5},
+    {"type":"rock","x":19.5,"z":10},
+    {"type":"rock","x":18.5,"z":10},
+    {"type":"rock","x":11.5,"z":17},
+    {"type":"ore_iron","x":8,"z":20},
+    {"type":"ore_iron","x":1,"z":23},
+    {"type":"ore_iron","x":3,"z":24},
+    {"type":"anvil","x":27.5,"z":14}
+  ]
+}
