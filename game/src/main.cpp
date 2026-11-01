@@ -74,6 +74,29 @@ namespace
         return dh >= -1 && dh <= 1;
     }
 
+    // Ledges: stepping onto one in its direction hops over it, two cells, landing beyond it.
+    [[nodiscard]] bool can_hop(int fx, int fy, int dir)
+    {
+        int tx = fx + DX[dir], ty = fy + DY[dir];
+
+        if(! inside(tx, ty))
+        {
+            return false;
+        }
+
+        uint8_t c = mimas::map::collision[cell_index(tx, ty)];
+        bool ledge = (dir == DOWN && (c & mimas::map::ledge_s)) || (dir == RIGHT && (c & mimas::map::ledge_e)) ||
+                     (dir == LEFT && (c & mimas::map::ledge_w));
+
+        if(! ledge)
+        {
+            return false;
+        }
+
+        int lx = tx + DX[dir], ly = ty + DY[dir];
+        return inside(lx, ly) && ! (mimas::map::collision[cell_index(lx, ly)] & mimas::map::solid);
+    }
+
     // World coordinates: the background's centre is (0, 0).
     [[nodiscard]] int world_x(int px)
     {
@@ -161,6 +184,7 @@ int main()
     banner.show();
 
     int moving = 0;      // pixels left to walk into the next cell
+    int hop = 0;         // total length of a ledge hop in progress (0 = walking)
     int steps = 0;       // tiles walked: alternates the left and right foot
     bool running = false;
     int bump = 0;        // short pause after walking into a wall
@@ -182,7 +206,15 @@ int main()
                 int tx = cell_x + DX[want];
                 int ty = cell_y + DY[want];
 
-                if(can_step(cell_x, cell_y, tx, ty))
+                if(can_hop(cell_x, cell_y, want))
+                {
+                    cell_x = tx + DX[want];
+                    cell_y = ty + DY[want];
+                    moving = hop = CELL * 2;
+                    ++steps;
+                    running = false;
+                }
+                else if(can_step(cell_x, cell_y, tx, ty))
                 {
                     cell_x = tx;
                     cell_y = ty;
@@ -204,7 +236,7 @@ int main()
 
         if(moving > 0)
         {
-            int speed = running ? 2 : 1;
+            int speed = (running || hop) ? 2 : 1;
             speed = bn::min(speed, moving);
             moving -= speed;
             px += DX[facing] * speed;
@@ -223,7 +255,21 @@ int main()
         hero.set_horizontal_flip(facing == RIGHT);
 
         // The 16x32 sprite's feet sit at the bottom of its cell.
-        hero.set_position(world_x(px + CELL / 2), world_y(py));
+        // A hop arcs up to 8 pixels over the ledge.
+        int lift = 0;
+
+        if(hop)
+        {
+            int done = hop - moving;
+            lift = (done * (hop - done) * 8 * 4) / (hop * hop);
+
+            if(moving == 0)
+            {
+                hop = 0;
+            }
+        }
+
+        hero.set_position(world_x(px + CELL / 2), world_y(py) - lift);
 
         int cam_x = clamp_camera(world_x(px + CELL / 2), mimas::map::width * CELL, mimas::map::bg_width, HALF_W);
         int cam_y = clamp_camera(world_y(py + CELL / 2), mimas::map::height * CELL, mimas::map::bg_height, HALF_H);

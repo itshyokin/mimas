@@ -14,12 +14,13 @@ import './gbaStudio.css';
 import { checkbox, confirmModal, field, h, numberInput, openModal, select, textInput, toast } from './dom';
 import type { EditorStore } from './store';
 import { SAMPLE_SHAPE, pieceAt, pieceCell } from '../gba/autotile';
+import { MapEditor } from './GbaMapEditor';
 import {
   CELL, SPRITE_KINDS, TILE_TYPES, defaultGbaData, gbaColor, hexToRgb, tileSize,
-  type GbaData, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
+  type GbaData, type GbaMap, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
 } from '../gba/types';
 
-type Tab = 'tiles' | 'sprites' | 'palettes';
+type Tab = 'maps' | 'tiles' | 'sprites' | 'palettes';
 type Tool = 'pencil' | 'erase' | 'fill' | 'pick' | 'line' | 'rect';
 type Item = { kind: 'tile'; t: GbaTile } | { kind: 'sprite'; s: GbaSprite };
 
@@ -117,7 +118,10 @@ class Studio {
   images = new Map<string, HTMLCanvasElement>();
   dirtyImages = new Set<string>();
   dirtyJson = false;
-  tab: Tab = 'sprites';
+  maps = new Map<string, GbaMap>();
+  dirtyMaps = new Set<string>();
+  tab: Tab = 'maps';
+  mapEditor!: MapEditor;
   sel: { tiles?: string; sprites?: string; palettes?: string } = {};
   tool: Tool = 'pencil';
   color = 1;                 // 0 = transparent, 1..15 = palette slot
@@ -143,7 +147,7 @@ class Studio {
   stroke: { start: [number, number]; last: [number, number]; erase: boolean; before: ImageData } | null = null;
   hover: [number, number] | null = null;
   onKey = (e: KeyboardEvent) => this.key(e);
-  onResize = () => { if (!this.zoom) this.drawDisplay(); };
+  onResize = () => { if (this.tab === 'maps') { if (!this.mapEditor.zoom) this.mapEditor.draw(); } else if (!this.zoom) this.drawDisplay(); };
 
   constructor(private store: EditorStore) {}
 
@@ -161,6 +165,27 @@ class Studio {
       try { this.images.set(p, await blobToCanvas(await project.readFile(p))); } catch { /* made below */ }
     }));
     for (const t of this.data.tiles) this.ensureTileImage(t);
+    await Promise.all((this.data.maps ?? []).map(async (id) => {
+      try { this.maps.set(id, JSON.parse(await (await project.readFile(`data/gbamaps/${id}.json`)).text()) as GbaMap); } catch { /* missing file: dropped from the list on save */ }
+    }));
+    this.data.maps = (this.data.maps ?? []).filter((id) => this.maps.has(id));
+    const studio = this;
+    this.mapEditor = new MapEditor({
+      tiles: () => studio.data.tiles,
+      tileImage: (t) => studio.ensureTileImage(t),
+      maps: this.maps,
+      mapIds: () => studio.data.maps ?? [],
+      addMapId: (id) => { studio.data.maps = [...(studio.data.maps ?? []), id]; },
+      removeMapId: (id) => { studio.data.maps = (studio.data.maps ?? []).filter((m) => m !== id); },
+      startMap: () => studio.data.startMap,
+      setStartMap: (id) => { studio.data.startMap = id; },
+      touchMap: (id) => { studio.dirtyMaps.add(id); studio.renderStatus(); },
+      touchData: () => studio.touch(),
+      get listEl() { return studio.listEl; },
+      get centerEl() { return studio.centerEl; },
+      get sideEl() { return studio.sideEl; },
+      goToTiles: () => { studio.tab = 'tiles'; studio.render(); },
+    });
     for (const s of this.data.sprites) await this.ensureSpriteImage(s);
     this.sel.tiles = this.data.tiles[0]?.id;
     this.sel.sprites = this.data.sprites[0]?.id;
@@ -209,6 +234,11 @@ class Studio {
         if (c) await project.writeFile(p, await canvasBlob(c));
         this.dirtyImages.delete(p);
       }
+      for (const id of [...this.dirtyMaps]) {
+        const m = this.maps.get(id);
+        if (m) await project.write(`gbamaps/${id}.json`, JSON.stringify(m) + '\n');
+        this.dirtyMaps.delete(id);
+      }
       await project.write('gba.json', JSON.stringify(this.data, null, 2) + '\n');
       this.dirtyJson = false;
       this.renderStatus();
@@ -220,7 +250,7 @@ class Studio {
     }
   }
 
-  get dirty(): boolean { return this.dirtyJson || this.dirtyImages.size > 0; }
+  get dirty(): boolean { return this.dirtyJson || this.dirtyImages.size > 0 || this.dirtyMaps.size > 0; }
 
   /* ----------------------------------------------------------------- shell */
 
@@ -230,10 +260,10 @@ class Studio {
     this.sideEl = h('div', { class: 'gs-side' });
     this.statusEl = h('span', { class: 'gs-status', role: 'status' });
     const tabs = h('div', { class: 'gs-tabs', role: 'tablist' },
-      ...(['tiles', 'sprites', 'palettes'] as Tab[]).map((t) => h('button', {
+      ...(['maps', 'tiles', 'sprites', 'palettes'] as Tab[]).map((t) => h('button', {
         type: 'button', role: 'tab', class: 'gs-tab', 'data-tab': t,
         onclick: () => { this.tab = t; this.render(); },
-      }, t === 'tiles' ? 'Tiles' : t === 'sprites' ? 'Sprites' : 'Palettes')));
+      }, t === 'maps' ? 'Maps' : t === 'tiles' ? 'Tiles' : t === 'sprites' ? 'Sprites' : 'Palettes')));
     this.root = h('div', { class: 'gba-studio', role: 'dialog', 'aria-label': 'GBA Studio' },
       h('header', { class: 'gs-head' },
         h('span', { class: 'brand-mark' }, 'GBA Studio'),
@@ -279,6 +309,7 @@ class Studio {
   render(): void {
     this.root.querySelectorAll<HTMLElement>('.gs-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === this.tab)));
     clearInterval(this.previewTimer);
+    if (this.tab === 'maps') { this.mapEditor.render(); this.renderStatus(); return; }
     this.renderList();
     if (this.tab === 'palettes') this.renderPalettes();
     else this.renderPainter();
@@ -1139,6 +1170,7 @@ class Studio {
     const typing = e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.stopPropagation(); void this.save(); return; }
     if (typing) return;
+    if (this.tab === 'maps') { if (this.mapEditor.key(e)) e.preventDefault(); if (e.key !== 'Escape') { e.stopPropagation(); return; } }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.stopPropagation(); if (e.shiftKey) this.doRedo(); else this.doUndo(); return; }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); e.stopPropagation(); this.doRedo(); return; }
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.close(); return; }

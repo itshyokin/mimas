@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 1, 2026, after Update 2)
+# Handoff: where Mimas stands (Nov 1, 2026, after Update 3)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -16,6 +16,10 @@ Flaming fists, Rapier, Claws; RPG Maker passability stays as an override; GBA St
 ## Code map
 - `src/gba/types.ts`: gba.json types, tile types (layouts, labels, behaviour), sprite kinds, palettes, GBA color snap.
 - `src/gba/autotile.ts`: 13-piece picking (`pieceAt`) and the preview shape.
+- `src/gba/mapRender.ts`: draws a GBA map and computes its collision. Must match `build_gba_map` in tools/export.py
+  (same layer order and rules); collision bits SOLID 1, LEDGE_S 4, LEDGE_E 8, LEDGE_W 16, WATER 32, GRASS 64.
+- `src/editor/GbaMapEditor.ts`: the Maps tab (layers, tools, tile picker, tiers, ledge pieces, Show blocked).
+- `tools/make_starter.py`: the starter tile set and the Starter Meadow sample map.
 - `src/editor/GbaStudio.ts` + `gbaStudio.css`: the studio (opened from the toolbar in main.ts). Saves through the
   editor's Project API: `write('gba.json')`, `writeFile('gba/tiles|sprites/<id>.png')` (allowed in vite.config.ts and
   tools/editor-server.mjs).

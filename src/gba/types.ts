@@ -54,6 +54,65 @@ export interface GbaData {
   sprites: GbaSprite[];
   /** The sprite the player walks around as in the ROM. */
   player?: string;
+  /** GBA maps, by id (each in public/data/gbamaps/<id>.json). */
+  maps?: string[];
+  /** The map the ROM starts on (a GBA map id). Without it the ROM uses the Saturn map in mimas.json. */
+  startMap?: string;
+}
+
+/** Something placed on the objects layer. `t` is an index into the map's tile list (+1). */
+export interface GbaPlacement {
+  t: number;
+  x: number;
+  y: number;
+  /** Which piece of a ledge (0-4: south left / middle / right, east, west). */
+  p?: number;
+}
+
+/**
+ * A GBA map. Grid values are indexes into `tiles` plus one (0 = nothing).
+ * Layers, bottom to top: ground, terrain (paths and water, corners picked
+ * automatically), cliffs (a ring per tier: `level` k means tiers 1..k), objects.
+ */
+export interface GbaMap {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  tiles: string[];
+  ground: number[][];
+  terrain: number[][];
+  cliff: number[][];
+  level: number[][];
+  objects: GbaPlacement[];
+  /** RPG Maker-style overrides per cell: '.' none, 'O' walkable, 'X' blocked. */
+  pass: string[];
+  start?: [number, number];
+}
+
+export const MAX_TIER = 4;
+
+export function blankMap(id: string, name: string, w: number, h: number, ground?: string): GbaMap {
+  const grid = (v = 0) => Array.from({ length: h }, () => Array<number>(w).fill(v));
+  return {
+    id, name, width: w, height: h, tiles: ground ? [ground] : [],
+    ground: grid(ground ? 1 : 0), terrain: grid(), cliff: grid(), level: grid(), objects: [],
+    pass: Array.from({ length: h }, () => '.'.repeat(w)), start: [Math.floor(w / 2), Math.floor(h / 2)],
+  };
+}
+
+/** Resize every layer (new cells are empty, or the given ground). */
+export function resizeMap(m: GbaMap, w: number, h: number, fillGround = 0): void {
+  const fit = (g: number[][], fill = 0) => Array.from({ length: h }, (_, y) => Array.from({ length: w }, (_, x) => g[y]?.[x] ?? fill));
+  m.ground = fit(m.ground, fillGround);
+  m.terrain = fit(m.terrain);
+  m.cliff = fit(m.cliff);
+  m.level = fit(m.level);
+  m.pass = Array.from({ length: h }, (_, y) => Array.from({ length: w }, (_, x) => m.pass[y]?.[x] ?? '.').join(''));
+  m.objects = m.objects.filter((o) => o.x < w && o.y < h);
+  m.width = w;
+  m.height = h;
+  if (m.start && (m.start[0] >= w || m.start[1] >= h)) m.start = [Math.min(m.start[0], w - 1), Math.min(m.start[1], h - 1)];
 }
 
 /* ------------------------------------------------------------------ tile types */

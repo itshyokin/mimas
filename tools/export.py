@@ -39,6 +39,11 @@ BACKDROP = (16, 24, 16)
 # Bits in the collision grid
 SOLID = 1
 BRIDGE = 2
+LEDGE_S = 4    # hop down going south
+LEDGE_E = 8    # hop going east
+LEDGE_W = 16   # hop going west
+WATER = 32     # for Surf, later
+GRASS = 64     # tall grass, for random battles later
 
 
 def load_json(path):
@@ -299,6 +304,151 @@ def build_map(cfg, mp, assets):
     return ground, over, coll, hgrid
 
 
+# ----------------------------------------------------------------------------- GBA Studio maps
+
+# Must match src/gba/types.ts (TILE_TYPES) and src/gba/autotile.ts.
+TYPE_SIZE = {'ground': (1, 1), 'decor': (1, 1), 'path': (5, 3), 'water': (5, 3), 'cliff': (5, 3), 'ledge': (5, 1),
+             'stairs': (1, 1), 'ladder': (1, 1), 'tallgrass': (2, 1), 'object': (2, 2), 'door': (1, 1)}
+PIECE_CELL = {'tl': (0, 0), 't': (1, 0), 'tr': (2, 0), 'itl': (3, 0), 'itr': (4, 0),
+              'l': (0, 1), 'c': (1, 1), 'r': (2, 1), 'ibl': (3, 1), 'ibr': (4, 1),
+              'bl': (0, 2), 'b': (1, 2), 'br': (2, 2)}
+
+
+def piece_at(inside, x, y):
+    if not inside(x, y):
+        return None
+    n, s, w, e = inside(x, y - 1), inside(x, y + 1), inside(x - 1, y), inside(x + 1, y)
+    if not n and not w: return 'tl'
+    if not n and not e: return 'tr'
+    if not s and not w: return 'bl'
+    if not s and not e: return 'br'
+    if not n: return 't'
+    if not s: return 'b'
+    if not w: return 'l'
+    if not e: return 'r'
+    if not inside(x - 1, y - 1): return 'itl'
+    if not inside(x + 1, y - 1): return 'itr'
+    if not inside(x - 1, y + 1): return 'ibl'
+    if not inside(x + 1, y + 1): return 'ibr'
+    return 'c'
+
+
+def build_gba_map(gba, mp):
+    W, H = mp['width'], mp['height']
+    defs = {t['id']: t for t in gba.get('tiles', [])}
+    names = mp.get('tiles', [])
+    images = {}
+
+    def tile(i):
+        """Tile definition and picture for a grid value (index + 1)."""
+        if not i or i > len(names):
+            return None, None
+        tid = names[i - 1]
+        t = defs.get(tid)
+        if not t:
+            return None, None
+        if tid not in images:
+            images[tid] = project_image(t['image'])
+        return t, images[tid]
+
+    def cell(img, cx, cy):
+        return img.crop((cx * CELL, cy * CELL, cx * CELL + CELL, cy * CELL + CELL))
+
+    def grid(name, default=0):
+        g = mp.get(name) or []
+        return lambda x, y: (g[y][x] if 0 <= y < len(g) and 0 <= x < len(g[y]) else default)
+
+    ground_g, terrain_g, cliff_g, level_g = grid('ground'), grid('terrain'), grid('cliff'), grid('level')
+    ground = Image.new('RGBA', (W * CELL, H * CELL), BACKDROP + (255,))
+    over = Image.new('RGBA', (W * CELL, H * CELL), (0, 0, 0, 0))
+    coll = [[0] * W for _ in range(H)]
+    inb = lambda x, y: 0 <= x < W and 0 <= y < H
+
+    # 1. ground
+    for y in range(H):
+        for x in range(W):
+            t, img = tile(ground_g(x, y))
+            if img is not None:
+                ground.alpha_composite(cell(img, 0, 0), (x * CELL, y * CELL))
+
+    # 2. paths and water (13-piece sets, corners picked from the neighbours)
+    for y in range(H):
+        for x in range(W):
+            v = terrain_g(x, y)
+            t, img = tile(v)
+            if img is None:
+                continue
+            p = piece_at(lambda a, b: inb(a, b) and terrain_g(a, b) == v, x, y)
+            ground.alpha_composite(cell(img, *PIECE_CELL[p]), (x * CELL, y * CELL))
+            if t['type'] == 'water':
+                coll[y][x] |= SOLID | WATER
+
+    # 3. cliffs: tier k is every cell at level k or higher; its ring is drawn and blocks
+    top = max((level_g(x, y) for y in range(H) for x in range(W)), default=0)
+    for k in range(1, top + 1):
+        inside = lambda a, b: inb(a, b) and cliff_g(a, b) and level_g(a, b) >= k
+        for y in range(H):
+            for x in range(W):
+                p = piece_at(inside, x, y)
+                if p is None or p == 'c':
+                    continue
+                t, img = tile(cliff_g(x, y))
+                if img is not None:
+                    ground.alpha_composite(cell(img, *PIECE_CELL[p]), (x * CELL, y * CELL))
+                coll[y][x] |= SOLID
+
+    # 4. objects
+    for o in mp.get('objects', []):
+        t, img = tile(o.get('t', 0))
+        if img is None:
+            continue
+        x0, y0, ty = o.get('x', 0), o.get('y', 0), t['type']
+        if ty == 'object':
+            w, h = t.get('w', 2), t.get('h', 2)
+            for j in range(h):
+                for i in range(w):
+                    x, y = x0 + i, y0 + j
+                    if not inb(x, y):
+                        continue
+                    piece = cell(img, i, j)
+                    if j == h - 1:
+                        ground.alpha_composite(piece, (x * CELL, y * CELL))
+                        coll[y][x] |= SOLID
+                    else:
+                        over.alpha_composite(piece, (x * CELL, y * CELL))
+            continue
+        if not inb(x0, y0):
+            continue
+        px, py = x0 * CELL, y0 * CELL
+        if ty == 'ledge':
+            p = max(0, min(4, o.get('p', 1)))
+            ground.alpha_composite(cell(img, p, 0), (px, py))
+            coll[y0][x0] |= SOLID | (LEDGE_S if p < 3 else LEDGE_E if p == 3 else LEDGE_W)
+        elif ty == 'tallgrass':
+            ground.alpha_composite(cell(img, 0, 0), (px, py))
+            coll[y0][x0] |= GRASS
+        elif ty in ('stairs', 'ladder'):
+            ground.alpha_composite(cell(img, 0, 0), (px, py))
+            coll[y0][x0] &= ~SOLID
+        elif ty == 'decor' and t.get('pass') == '*':
+            over.alpha_composite(cell(img, 0, 0), (px, py))
+        else:
+            ground.alpha_composite(cell(img, 0, 0), (px, py))
+            if ty == 'decor' and t.get('pass', 'X') == 'X':
+                coll[y0][x0] |= SOLID
+
+    # 5. passability overrides (RPG Maker style)
+    for y, row in enumerate(mp.get('pass', [])[:H]):
+        for x, ch in enumerate(row[:W]):
+            if ch == 'O':
+                coll[y][x] &= ~SOLID
+            elif ch == 'X':
+                coll[y][x] |= SOLID
+
+    hgrid = [[0] * W for _ in range(H)]
+    return ground, over, coll, hgrid
+
+
 # ----------------------------------------------------------------------------- palettes
 
 def nearest(c, pal):
@@ -310,10 +460,18 @@ def to_banked(ground, over, max_banks=15):
     opaque = [(r, g, b) for im in (ground, over) for (r, g, b, a) in im.getdata() if a]
     sample = Image.new('RGB', (len(opaque), 1))
     sample.putdata(opaque)
-    for k in (96, 80, 64, 48, 40, 32, 24):
-        q = sample.quantize(colors=k, method=Image.Quantize.MEDIANCUT)
-        qp = q.getpalette()[:k * 3]
-        gpal = [tuple(qp[i:i + 3]) for i in range(0, len(qp), 3)]
+    unique = sorted(set(opaque))
+    for k in (None, 96, 80, 64, 48, 40, 32, 24):
+        if k is None:
+            # First try the exact colors (tiles painted in GBA Studio already fit the GBA).
+            if len(unique) > 240:
+                continue
+            gpal = unique
+            k = len(unique)
+        else:
+            q = sample.quantize(colors=k, method=Image.Quantize.MEDIANCUT)
+            qp = q.getpalette()[:k * 3]
+            gpal = [tuple(qp[i:i + 3]) for i in range(0, len(qp), 3)]
         cache = {}
 
         def gi(c):
@@ -510,13 +668,27 @@ def write_json(path, obj):
 
 def main():
     cfg = load_json(os.path.join(DATA, 'mimas.json'))
-    map_id = sys.argv[1] if len(sys.argv) > 1 else cfg['map']
-    mp = load_json(os.path.join(DATA, 'maps', map_id + '.json'))
-    assets = load_json(os.path.join(DATA, 'assets.json'))
-    W, H = mp['width'], mp['height']
-    print(f'Exporting "{mp.get("name", map_id)}" ({W} x {H})')
-
-    ground, over, coll, hgrid = build_map(cfg, mp, assets)
+    try:
+        gba = load_json(os.path.join(DATA, 'gba.json'))
+    except (OSError, ValueError):
+        gba = {}
+    # The ROM's map: a GBA Studio map when one is set as the start map, otherwise the Saturn map in mimas.json.
+    gba_map = sys.argv[1][4:] if len(sys.argv) > 1 and sys.argv[1].startswith('gba:') else (None if len(sys.argv) > 1 else gba.get('startMap'))
+    if gba_map:
+        map_id = gba_map
+        mp = load_json(os.path.join(DATA, 'gbamaps', map_id + '.json'))
+        W, H = mp['width'], mp['height']
+        print(f'Exporting GBA map "{mp.get("name", map_id)}" ({W} x {H})')
+        ground, over, coll, hgrid = build_gba_map(gba, mp)
+        if mp.get('start'):
+            cfg = dict(cfg, start=mp['start'], dir=mp.get('dir', 'down'))
+    else:
+        map_id = sys.argv[1] if len(sys.argv) > 1 else cfg['map']
+        mp = load_json(os.path.join(DATA, 'maps', map_id + '.json'))
+        assets = load_json(os.path.join(DATA, 'assets.json'))
+        W, H = mp['width'], mp['height']
+        print(f'Exporting "{mp.get("name", map_id)}" ({W} x {H})')
+        ground, over, coll, hgrid = build_map(cfg, mp, assets)
 
     bw = max(256, math.ceil(W * CELL / 256) * 256)
     bh = max(256, math.ceil(H * CELL / 256) * 256)
@@ -554,7 +726,7 @@ def main():
     flat_coll = [coll[z][x] for z in range(H) for x in range(W)]
     flat_h = [hgrid[z][x] for z in range(H) for x in range(W)]
     with open(os.path.join(INC, 'mimas_map.h'), 'w') as f:
-        f.write('// Generated by tools/export.py from public/data/maps/' + map_id + '.json - do not edit.\n')
+        f.write('// Generated by tools/export.py from public/data/' + ('gbamaps/' if gba_map else 'maps/') + map_id + '.json - do not edit.\n')
         f.write('#ifndef MIMAS_MAP_H\n#define MIMAS_MAP_H\n\n#include <cstdint>\n\nnamespace mimas::map\n{\n')
         f.write(f'constexpr int width = {W};\nconstexpr int height = {H};\n')
         f.write(f'constexpr int bg_width = {bw};\nconstexpr int bg_height = {bh};\n')
@@ -562,7 +734,9 @@ def main():
         f.write(f'constexpr int start_dir = {dirs.get(cfg.get("dir", "down"), 0)};\n')
         f.write(f'constexpr int hero_frames = {HERO_COLS};\n')
         f.write(f'constexpr const char* name = "{name}";\n')
-        f.write(f'constexpr uint8_t solid = {SOLID};\nconstexpr uint8_t bridge = {BRIDGE};\n\n')
+        f.write(f'constexpr uint8_t solid = {SOLID};\nconstexpr uint8_t bridge = {BRIDGE};\n')
+        f.write(f'constexpr uint8_t ledge_s = {LEDGE_S};\nconstexpr uint8_t ledge_e = {LEDGE_E};\nconstexpr uint8_t ledge_w = {LEDGE_W};\n')
+        f.write(f'constexpr uint8_t water = {WATER};\nconstexpr uint8_t grass = {GRASS};\n\n')
         f.write(c_array('collision', 'uint8_t', flat_coll, W))
         f.write(c_array('heights', 'int8_t', flat_h, W))
         f.write('}\n\n#endif\n')

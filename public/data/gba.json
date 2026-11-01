@@ -86,7 +86,90 @@
       ]
     }
   ],
-  "tiles": [],
+  "tiles": [
+    {
+      "id": "grass",
+      "name": "Grass",
+      "type": "ground",
+      "palette": "grass",
+      "image": "gba/tiles/grass.png"
+    },
+    {
+      "id": "dirt_path",
+      "name": "Dirt path",
+      "type": "path",
+      "palette": "grass",
+      "image": "gba/tiles/dirt_path.png"
+    },
+    {
+      "id": "pond",
+      "name": "Pond",
+      "type": "water",
+      "palette": "water",
+      "image": "gba/tiles/pond.png",
+      "frames": 2
+    },
+    {
+      "id": "rock_cliff",
+      "name": "Rock cliff",
+      "type": "cliff",
+      "palette": "rock",
+      "image": "gba/tiles/rock_cliff.png"
+    },
+    {
+      "id": "grass_ledge",
+      "name": "Grass ledge",
+      "type": "ledge",
+      "palette": "grass",
+      "image": "gba/tiles/grass_ledge.png"
+    },
+    {
+      "id": "stone_stairs",
+      "name": "Stone stairs",
+      "type": "stairs",
+      "palette": "rock",
+      "image": "gba/tiles/stone_stairs.png"
+    },
+    {
+      "id": "wood_ladder",
+      "name": "Ladder",
+      "type": "ladder",
+      "palette": "rock",
+      "image": "gba/tiles/wood_ladder.png"
+    },
+    {
+      "id": "tall_grass",
+      "name": "Tall grass",
+      "type": "tallgrass",
+      "palette": "grass",
+      "image": "gba/tiles/tall_grass.png"
+    },
+    {
+      "id": "pine",
+      "name": "Pine tree",
+      "type": "object",
+      "palette": "grass",
+      "image": "gba/tiles/pine.png",
+      "w": 2,
+      "h": 2
+    },
+    {
+      "id": "flowers",
+      "name": "Flowers",
+      "type": "decor",
+      "palette": "grass",
+      "image": "gba/tiles/flowers.png",
+      "pass": "O"
+    },
+    {
+      "id": "signpost",
+      "name": "Signpost",
+      "type": "decor",
+      "palette": "grass",
+      "image": "gba/tiles/signpost.png",
+      "pass": "X"
+    }
+  ],
   "sprites": [
     {
       "id": "player",
@@ -103,5 +186,9 @@
       "image": "gba/sprites/player_back.png"
     }
   ],
-  "player": "player"
+  "player": "player",
+  "maps": [
+    "starter_meadow"
+  ],
+  "startMap": "starter_meadow"
 }

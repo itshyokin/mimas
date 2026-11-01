@@ -44,7 +44,30 @@ guide to those tools is in [docs/saturn/README.md](docs/saturn/README.md).
 ### GBA Studio
 
 The **GBA Studio** button in the toolbar opens a full-screen workspace with
-three tabs.
+four tabs: Maps, Tiles, Sprites and Palettes.
+
+**Maps.** Paint GBA maps with your tiles, layer by layer:
+
+| Layer | What you paint |
+|---|---|
+| Ground | The base: grass, sand, floors |
+| Paths & water | Paths and ponds; edges and corners are picked for you |
+| Cliffs | The *area* of a raised plateau, by tier. The ring of cliff edges is drawn around it and the top stays walkable. Paint tier 2 inside tier 1 for a higher level, or right up to its edge for a taller cliff |
+| Objects | Trees (click where the trunk goes), ledges (pick the piece: south left/middle/right, east, west), stairs and ladders (a way through cliffs), signs, flowers, tall grass, doors |
+| Passability | RPG Maker-style overrides: O walkable, ✕ blocked |
+| Start | Where the player begins (the dashed box is the GBA screen) |
+
+Tools: Paint, Erase (or right-click), Fill, Rectangle (great for tall grass
+patches and ledge rows), undo / redo, zoom. **Show blocked** tints every
+cell the player can't walk on, exactly as the ROM sees it (red blocked, blue
+water, orange arrows for ledges). Tick **The ROM starts on this map** to play
+it; each map is saved in `public/data/gbamaps/`.
+
+A starter set of tiles (grass, dirt path, pond, rock cliff, ledges, stairs,
+ladder, tall grass, flowers, signpost, and a pine tree from your own pine
+art) and a sample map, **Starter Meadow**, come ready to use. They're ordinary
+GBA Studio tiles: repaint them and every map using them follows.
+`python3 tools/make_starter.py --force` redraws the originals.
 
 **Sprites.** Characters start from a plain gray mannequin to paint over.
 - *Overworld character (16×32)*: rows for down, up and left (right is the left
@@ -97,18 +120,21 @@ The mannequins are also in `public/gba/bases/`, with red-bordered versions
 Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 `public/gba/tiles/` and `public/gba/sprites/`.
 
-## What the ROM does (v0.2)
+## What the ROM does (v0.3)
 
-- Exports one map (`public/data/mimas.json` → `"map"`), currently **Monolith Woods - Monolith**:
-  ground tiles, cliffs and ledges from heights, water, bridges, pines (tops over
-  the player), tufts, the sign and the crystal.
+- Plays the GBA map marked **The ROM starts on this map** (now **Starter
+  Meadow**), built from your tiles with their exact colors: ground, paths and
+  water with joined corners, cliff tiers, objects, tree tops drawn over the
+  player.
+- Walls, water, cliff edges, tree trunks and signs block; stairs and ladders
+  get you through cliffs; **ledges** hop you down (and block the way back up).
 - The player is your GBA Studio sprite, walking Pokémon-style (a foot forward
-  each tile, alternating) and running with B.
-- The map name shows on arrival.
+  each tile, alternating) and running with B. The map name shows on arrival.
+- With no GBA map set, it plays the Saturn map in `public/data/mimas.json`
+  instead (the old Monolith Woods export).
 
-Next up: GBA maps painted with your GBA Studio tiles (ground and cliff
-layers, autotiled), then events and talking, map transfers, NPCs, menus and
-battles. See [NOTES.md](NOTES.md).
+Next up: events and talking (signs, NPCs), doors and map transfers, Surf,
+menus and battles. See [NOTES.md](NOTES.md).
 
 ## Building the ROM yourself
 

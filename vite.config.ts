@@ -71,7 +71,7 @@ function editorApi(): Plugin {
           }
           if (req.method === 'POST' && url.pathname === '/__editor/save') {
             const file = url.searchParams.get('file') ?? '';
-            if (!/^(database|assets|gba|mimas|maps\/[A-Za-z0-9_-]+)\.json$/.test(file)) return send(res, 400, { error: 'Invalid file name' });
+            if (!/^(database|assets|gba|mimas|(?:gba)?maps\/[A-Za-z0-9_-]+)\.json$/.test(file)) return send(res, 400, { error: 'Invalid file name' });
             const body = await readBody(req);
             JSON.parse(body); // refuse anything that isn't valid JSON
             const target = path.join(DATA_DIR, file);
