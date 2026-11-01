@@ -24,7 +24,7 @@ jobs:
           apt-get install -y -q python3 python3-pil
 
       - name: Get Butano
-        run: git clone --depth 1 --branch 9.5.0 https://github.com/GValiente/butano.git butano
+        run: git clone --depth 1 --branch 21.9.0 https://github.com/GValiente/butano.git butano
 
       - name: Export the map
         run: python3 tools/export.py

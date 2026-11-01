@@ -66,7 +66,7 @@ To build yourself: install [devkitPro](https://devkitpro.org/wiki/Getting_Starte
 with the GBA tools and Python 3 with Pillow, then:
 
 ```
-git clone --depth 1 --branch 9.5.0 https://github.com/GValiente/butano.git butano
+git clone --depth 1 --branch 21.9.0 https://github.com/GValiente/butano.git butano
 python3 tools/export.py
 make -C game -j8
 ```
