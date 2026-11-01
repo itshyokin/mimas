@@ -1,0 +1,223 @@
+<title>Sprite Character Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: a workbench. Left, the stage (big walking preview, turnaround, sheet); right, the wardrobe
+   (body type, part categories, part tiles, colours). Stacks to one column on narrow screens.
+   Same palette as the engine's editor: night navy with an ember accent. */
+:root {
+  --bg: #0b0e16;
+  --surface: #121624;
+  --surface-2: #181d2e;
+  --raised: #1f2538;
+  --ink: #ece6d6;
+  --muted: #9aa0b5;
+  --faint: #6b7189;
+  --line: rgba(236, 230, 214, 0.1);
+  --line-strong: rgba(236, 230, 214, 0.22);
+  --ember: #ffb04a;
+  --ember-ink: #2a1606;
+  --ember-soft: rgba(255, 176, 74, 0.14);
+  --sky: #7fd3ff;
+  --danger: #ff7b6b;
+  --ok: #8fd18a;
+  --f-display: "Silkscreen", ui-monospace, "Courier New", monospace;
+  --f-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 10px;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-body); }
+* { box-sizing: border-box; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.app { min-height: 100%; display: grid; grid-template-rows: auto 1fr; }
+
+/* Top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+.brand { font-family: var(--f-display); font-size: 13px; letter-spacing: 0.06em; color: var(--ember); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.brand i { display: inline-block; width: 10px; height: 10px; background: var(--ember); box-shadow: 3px 3px 0 var(--ember-ink), 0 0 0 1px var(--ember); }
+.name-field { flex: 1 1 200px; min-width: 0; }
+.name-field input { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--bg); font-size: 16px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { min-height: 40px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--raised); display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.btn:hover { border-color: var(--ember); }
+.btn.primary { background: var(--ember); color: var(--ember-ink); border-color: var(--ember); font-weight: 700; }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--danger); border-color: rgba(255, 123, 107, 0.45); background: transparent; }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+.btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ember-ink); display: none; }
+.btn.primary.dirty .dot { display: inline-block; }
+.btn .count { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+
+/* Studio */
+.studio { display: grid; grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.3fr); gap: 0; min-height: 0; }
+.stage { padding: 16px; border-right: 1px solid var(--line); display: grid; gap: 14px; align-content: start; }
+.stage-view { position: relative; border-radius: var(--r); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); aspect-ratio: 4 / 3.4; max-height: 52vh; width: 100%; }
+.stage-view canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.stage-tag { position: absolute; left: 10px; bottom: 8px; font: 11px var(--f-mono); color: var(--ink); background: rgba(11, 14, 22, 0.66); padding: 3px 7px; border-radius: 5px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+.seg button { min-width: 44px; min-height: 40px; padding: 6px 10px; background: transparent; border: 0; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"], .seg button[aria-checked="true"] { background: var(--ember-soft); color: var(--ember); }
+.turn { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.turn figure { margin: 0; display: grid; gap: 4px; justify-items: center; }
+.turn canvas { width: 100%; aspect-ratio: 2 / 3; image-rendering: pixelated; border-radius: 8px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
+.turn canvas.on { box-shadow: inset 0 0 0 2px var(--ember); }
+.turn figcaption { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.sheet-box { border-radius: var(--r); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.sheet-box summary { padding: 10px 12px; cursor: pointer; color: var(--muted); font-size: 13px; }
+.sheet-box .inner { padding: 0 12px 12px; display: grid; gap: 8px; justify-items: start; }
+.sheet-box canvas { image-rendering: pixelated; max-width: 100%; background: repeating-conic-gradient(#232a3e 0% 25%, #1a2032 0% 50%) 0 0 / 16px 16px; border-radius: 6px; }
+.meta { font: 12px var(--f-mono); color: var(--muted); }
+
+.wardrobe { padding: 16px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.bodies { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.bodies button { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--r); border: 1px solid var(--line-strong); background: var(--surface); text-align: left; min-height: 56px; }
+.bodies button canvas { width: 28px; height: 42px; image-rendering: pixelated; }
+.bodies button b { font-family: var(--f-display); font-weight: 400; font-size: 12px; letter-spacing: 0.04em; }
+.bodies button[aria-checked="true"] { border-color: var(--ember); background: var(--ember-soft); }
+.cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.cats button { flex: none; min-height: 40px; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--muted); }
+.cats button .pick { color: var(--faint); font-size: 12px; margin-left: 4px; }
+.cats button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 700; }
+.cats button[aria-selected="true"] .pick { color: #555a6e; }
+.panel { background: var(--surface); border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--line); padding: 12px; display: grid; gap: 10px; }
+.panel h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.panel h2 small { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--faint); }
+.parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.tile { display: grid; gap: 4px; padding: 6px 6px 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); text-align: center; position: relative; }
+.tile canvas { width: 100%; aspect-ratio: 2 / 3; image-rendering: pixelated; border-radius: 6px; background: #1a2032; }
+.tile span { font-size: 12.5px; line-height: 1.2; overflow-wrap: anywhere; }
+.tile[aria-pressed="true"] { border-color: var(--ember); box-shadow: 0 0 0 1px var(--ember); background: var(--ember-soft); }
+.tile .mine { position: absolute; top: 9px; right: 9px; font: 10px var(--f-mono); background: var(--sky); color: #06202e; border-radius: 4px; padding: 1px 5px; }
+.tile.none canvas { background: repeating-linear-gradient(135deg, #1a2032 0 6px, #161b2a 6px 12px); }
+.colors { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sw { width: 36px; height: 36px; border-radius: 8px; border: 2px solid transparent; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35); }
+.sw[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ember); }
+.custom { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 8px; border: 1px solid var(--line-strong); min-height: 40px; }
+.custom input { width: 32px; height: 30px; border: 0; padding: 0; background: none; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.empty { padding: 14px; border: 1px dashed var(--line-strong); border-radius: 9px; color: var(--muted); font-size: 13px; }
+
+/* Side sheets (characters, library) */
+.scrim { position: fixed; inset: 0; background: rgba(4, 6, 12, 0.6); z-index: 20; display: flex; justify-content: flex-end; }
+.side { width: min(640px, 100%); height: 100%; background: var(--surface); border-left: 1px solid var(--line-strong); display: grid; grid-template-rows: auto 1fr; padding-top: env(safe-area-inset-top, 0px); }
+.side-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.side-head h1 { margin: 0; font: 400 15px var(--f-display); letter-spacing: 0.05em; color: var(--ember); }
+.side-body { overflow-y: auto; padding: 16px; display: grid; gap: 16px; align-content: start; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+.chip.cloud { color: var(--ok); border-color: rgba(143, 209, 138, 0.35); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.field { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.field select, .field input[type=text] { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--ink); min-height: 40px; }
+.list { display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--line); }
+.item canvas { width: 56px; height: 84px; image-rendering: pixelated; border-radius: 6px; background: #1a2032; }
+.item .info { display: grid; gap: 6px; min-width: 0; }
+.item .info input { width: 100%; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); }
+.item .info .sub { font-size: 12px; color: var(--muted); }
+.item .info .row select { padding: 5px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); min-height: 34px; font-size: 13px; }
+.item .btns { display: flex; flex-direction: column; gap: 6px; }
+.item .btns .btn { min-height: 34px; padding: 5px 10px; font-size: 13px; }
+.group-title { margin: 6px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); }
+.rules { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 4px; }
+.rules code, .hint code { font-family: var(--f-mono); font-size: 12px; color: var(--ink); background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+.swatch-inline { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.4); }
+.progress { font: 12px var(--f-mono); color: var(--sky); }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 9px; font-weight: 700; font-size: 14px; z-index: 40; max-width: calc(100% - 32px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+.toast.bad { background: var(--danger); color: #2a0703; }
+
+@media (max-width: 900px) {
+  .studio { grid-template-columns: 1fr; }
+  .stage { border-right: 0; border-bottom: 1px solid var(--line); }
+  .stage-view { aspect-ratio: 16 / 10; max-height: 34vh; }
+  .turn { max-width: 420px; width: 100%; justify-self: center; }
+}
+@media (max-width: 520px) {
+  .bar { padding: 10px 16px; }
+  .bodies button { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 6px; }
+  .bodies button b { font-size: 10px; }
+  .item { grid-template-columns: 48px minmax(0, 1fr); }
+  .item .btns { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand"><i aria-hidden="true"></i>Character Builder</div>
+    <label class="name-field"><span class="sr">Character name</span><input id="charName" type="text" autocomplete="off" spellcheck="false"></label>
+    <div class="actions">
+      <button class="btn" id="btnRandom" type="button">Randomize</button>
+      <button class="btn" id="btnNew" type="button">New</button>
+      <button class="btn primary" id="btnSave" type="button"><span class="dot" aria-hidden="true"></span>Save</button>
+      <button class="btn" id="btnExport" type="button">Export PNG</button>
+      <button class="btn ghost" id="btnChars" type="button">Characters <span class="count" id="charCount"></span></button>
+      <button class="btn ghost" id="btnLib" type="button">Parts library</button>
+    </div>
+  </header>
+
+  <main class="studio">
+    <section class="stage" aria-label="Preview">
+      <div class="stage-view"><canvas id="preview" aria-label="Your character, walking"></canvas><span class="stage-tag" id="stageTag"></span></div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Facing" id="dirs">
+          <button type="button" data-row="0" aria-label="Face down">↓</button><button type="button" data-row="1" aria-label="Face left">←</button><button type="button" data-row="2" aria-label="Face right">→</button><button type="button" data-row="3" aria-label="Face up">↑</button>
+        </div>
+        <div class="seg" role="group" aria-label="Motion">
+          <button type="button" id="btnWalk" aria-pressed="true">Walk</button><button type="button" id="btnStand" aria-pressed="false">Stand</button>
+        </div>
+        <div class="seg" role="group" aria-label="Background" id="bgs">
+          <button type="button" data-bg="grass">Grass</button><button type="button" data-bg="stone">Stone</button><button type="button" data-bg="check">Clear</button>
+        </div>
+      </div>
+      <div class="turn" id="turn"></div>
+      <details class="sheet-box" id="sheetBox">
+        <summary>Full sheet (what Export PNG saves)</summary>
+        <div class="inner"><canvas id="sheet"></canvas><span class="meta" id="sheetMeta"></span></div>
+      </details>
+    </section>
+
+    <section class="wardrobe" aria-label="Wardrobe">
+      <div class="bodies" role="radiogroup" aria-label="Body type" id="bodies"></div>
+      <nav class="cats" role="tablist" aria-label="Part" id="cats"></nav>
+      <div class="panel">
+        <h2><span id="catTitle">Hair</span><small id="catNote"></small></h2>
+        <div class="parts" id="parts"></div>
+      </div>
+      <div class="panel" id="colorPanel">
+        <h2><span>Colour</span><small id="colorNote">Greys in a part take this colour</small></h2>
+        <div class="colors" id="colors"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="scrim" id="charsSheet" hidden>
+  <div class="side" role="dialog" aria-modal="true" aria-labelledby="charsTitle">
+    <div class="side-head"><h1 id="charsTitle">Characters</h1><div class="row"><button class="btn" type="button" id="btnExportAll">Export all (.zip)</button><button class="btn ghost" type="button" data-close>Close</button></div></div>
+    <div class="side-body" id="charsBody"></div>
+  </div>
+</div>
+
+<div class="scrim" id="libSheet" hidden>
+  <div class="side" role="dialog" aria-modal="true" aria-labelledby="libTitle">
+    <div class="side-head"><h1 id="libTitle">Parts library</h1><button class="btn ghost" type="button" data-close>Close</button></div>
+    <div class="side-body" id="libBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<input type="file" id="filePng" accept="image/png" multiple hidden>
+<input type="file" id="fileZip" accept=".zip,application/zip" hidden>
+
+<!--SCRIPTS-->

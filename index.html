@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mimas</title>
+<script>
+  // Errors before the editor or game has started show on screen too (tablets have no developer tools).
+  addEventListener('error', function (e) {
+    if (!(e instanceof ErrorEvent) || window.__errorBar) return;
+    var d = document.getElementById('early-error') || document.body.appendChild(Object.assign(document.createElement('pre'), { id: 'early-error' }));
+    d.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:2147483647;padding:10px;border-radius:8px;background:#3a0d12;color:#ffe3e3;border:1px solid #ff6b6b;font:13px system-ui;white-space:pre-wrap';
+    d.textContent += 'Something went wrong (send this to Claude): ' + e.message + ' (' + String(e.filename).split('/').pop() + ':' + e.lineno + ') ' + navigator.userAgent + '\n';
+  });
+</script>
+</head>
+<body>
+  <canvas id="view" tabindex="0" aria-label="Game view"></canvas>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

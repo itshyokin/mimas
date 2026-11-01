@@ -1,0 +1,7192 @@
+{
+  "title": "Titamas",
+  "startMap": "map010",
+  "start": {
+    "x": 7.71,
+    "z": 2.94,
+    "dir": "up",
+    "y": 0.34
+  },
+  "startHour": 8,
+  "stats": {
+    "regen": {
+      "sp": 100
+    },
+    "cost": {
+      "run": 0,
+      "climb": 0,
+      "swim": 0,
+      "jump": 0
+    },
+    "recoverPercent": 0,
+    "regenDelay": 0,
+    "drownDamage": 0
+  },
+  "player": "hero",
+  "characters": {
+    "hero": {
+      "name": "Jordan",
+      "palette": {
+        "hair": "#b5532a",
+        "hairLight": "#dc7c42",
+        "hairDark": "#93421f",
+        "skin": "#f0c39a",
+        "skinShade": "#cf9b72",
+        "eye": "#221a2a",
+        "tunic": "#2d5b8c",
+        "tunicShade": "#1f4166",
+        "tunicLight": "#4580ba",
+        "belt": "#6b4325",
+        "buckle": "#e2b84a",
+        "pants": "#4b4a5e",
+        "pantsShade": "#3a394b",
+        "boot": "#33261f",
+        "cape": "#9c2f2f",
+        "capeShade": "#721f24"
+      },
+      "sheet": "assets/characters/hero.png",
+      "anim": {
+        "frame": 64,
+        "dirs": [
+          "up",
+          "left",
+          "down",
+          "right"
+        ],
+        "anims": {
+          "walk": {
+            "row": 0,
+            "frames": 9,
+            "dirs": 4,
+            "cycle": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "ms": 100
+          },
+          "idle": {
+            "row": 4,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 380
+          },
+          "run": {
+            "row": 8,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "jump": {
+            "row": 12,
+            "frames": 5,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              1
+            ],
+            "ms": 120
+          },
+          "climb": {
+            "row": 16,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 120
+          },
+          "combat_idle": {
+            "row": 17,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 300
+          },
+          "slash": {
+            "row": 21,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "backslash": {
+            "row": 25,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "halfslash": {
+            "row": 29,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "thrust": {
+            "row": 33,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "shoot": {
+            "row": 37,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "spellcast": {
+            "row": 41,
+            "frames": 7,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ms": 90
+          },
+          "hurt": {
+            "row": 45,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 110
+          }
+        }
+      },
+      "credits": [
+        {
+          "item": "Trimmed Beard",
+          "authors": [
+            "ElizaWy"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Hair",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+          ]
+        },
+        {
+          "item": "Leather Belt Alt",
+          "authors": [
+            "Johannes Sjölund (wulax)",
+            "Matthew Krohn (makrohn)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-combat-armor-for-women"
+          ]
+        },
+        {
+          "item": "Body Color",
+          "authors": [
+            "bluecarrot16",
+            "Evert",
+            "TheraHedwig",
+            "Benjamin K. Smith (BenCreating)",
+            "MuffinElZangano",
+            "Durrani",
+            "Pierre Vigier (pvigier)",
+            "Eliza Wyatt (ElizaWy)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-ladies",
+            "https://opengameart.org/content/lpc-teen-unisex-base-clothes",
+            "https://opengameart.org/content/lpc-jump-expanded",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://opengameart.org/content/lpc-be-seated",
+            "https://gitlab.com/vagabondgame/lpc-characters",
+            "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+            "https://opengameart.org/content/lpc-jump-expanded"
+          ]
+        },
+        {
+          "item": "Longsleeve 2 Buttoned",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "http://opengameart.org/content/lpc-revised-character-basics",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Plain",
+          "authors": [
+            "JaidynReiman",
+            "Manuel Riecke (MrBeast)",
+            "Joe White"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ponytail-and-plain-hairstyles",
+            "https://opengameart.org/content/lpc-expanded-hair"
+          ]
+        },
+        {
+          "item": "Human Male",
+          "authors": [
+            "bluecarrot16",
+            "Benjamin K. Smith (BenCreating)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-character-bases"
+          ]
+        },
+        {
+          "item": "Cuffed Pants",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-pants"
+          ]
+        },
+        {
+          "item": "Basic Shoes",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "http://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        },
+        {
+          "item": "Basic Shoes",
+          "authors": [
+            "JaidynReiman",
+            "Joe White",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "http://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        },
+        {
+          "item": "Cuffed Longsleeves Overlay",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "http://opengameart.org/content/lpc-revised-character-basics",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        }
+      ]
+    },
+    "mira": {
+      "name": "Devin",
+      "palette": {
+        "hair": "#3b2a4a",
+        "hairLight": "#5a4470",
+        "hairDark": "#2a1d36",
+        "skin": "#d9a27a",
+        "skinShade": "#b8825c",
+        "eye": "#1d1a24",
+        "tunic": "#4f7a3a",
+        "tunicShade": "#3a5c2a",
+        "tunicLight": "#6b9a4e",
+        "belt": "#5a3820",
+        "buckle": "#c9c2b0",
+        "pants": "#5b4a3a",
+        "pantsShade": "#46382b",
+        "boot": "#2e2420",
+        "cape": "#c99a2e",
+        "capeShade": "#9a7420"
+      },
+      "sheet": "assets/characters/mira.png",
+      "anim": {
+        "frame": 64,
+        "dirs": [
+          "up",
+          "left",
+          "down",
+          "right"
+        ],
+        "anims": {
+          "walk": {
+            "row": 0,
+            "frames": 9,
+            "dirs": 4,
+            "cycle": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "ms": 100
+          },
+          "idle": {
+            "row": 4,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 380
+          },
+          "run": {
+            "row": 8,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "jump": {
+            "row": 12,
+            "frames": 5,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              1
+            ],
+            "ms": 120
+          },
+          "climb": {
+            "row": 16,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 120
+          },
+          "combat_idle": {
+            "row": 17,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 300
+          },
+          "slash": {
+            "row": 21,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "backslash": {
+            "row": 25,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "halfslash": {
+            "row": 29,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "thrust": {
+            "row": 33,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "shoot": {
+            "row": 37,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "spellcast": {
+            "row": 41,
+            "frames": 7,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ms": 90
+          },
+          "hurt": {
+            "row": 45,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 110
+          }
+        }
+      },
+      "credits": [
+        {
+          "item": "Armour",
+          "authors": [
+            "Michael Whitlock (bigbeargames)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "http://opengameart.org/content/lpc-clothing-updates"
+          ]
+        },
+        {
+          "item": "Medium Beard",
+          "authors": [
+            "ElizaWy"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Hair",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+          ]
+        },
+        {
+          "item": "Body Color",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman",
+            "Benjamin K. Smith (BenCreating)",
+            "Evert",
+            "Eliza Wyatt (ElizaWy)",
+            "TheraHedwig",
+            "MuffinElZangano",
+            "Durrani",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+            "https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://opengameart.org/content/lpc-be-seated",
+            "https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads",
+            "https://opengameart.org/content/lpc-jump-expanded",
+            "https://opengameart.org/content/lpc-character-bases"
+          ]
+        },
+        {
+          "item": "Sleeveless laced",
+          "authors": [
+            "bluecarrot16",
+            "Matthew Krohn (makrohn)",
+            "JaidynReiman",
+            "Marcel van de Steeg (MadMarcel)",
+            "Nila122",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-female-orcogregoblintroll-base-walkcycle",
+            "https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more",
+            "https://opengameart.org/content/more-lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-pirates"
+          ]
+        },
+        {
+          "item": "Page",
+          "authors": [
+            "Page",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-expanded-hair"
+          ]
+        },
+        {
+          "item": "Human Male",
+          "authors": [
+            "bluecarrot16",
+            "Benjamin K. Smith (BenCreating)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-character-bases"
+          ]
+        },
+        {
+          "item": "Pants",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman",
+            "ElizaWy",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "GPL 3.0",
+            "CC-BY-SA 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-expanded-pants"
+          ]
+        },
+        {
+          "item": "Obi Knot Right",
+          "authors": [
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0+",
+            "CC-BY 3.0+",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-kimono-relm"
+          ]
+        },
+        {
+          "item": "Folded Rim Boots",
+          "authors": [
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0+",
+            "CC-BY 3.0+",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-kimono-relm",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        }
+      ]
+    },
+    "bandit": {
+      "name": "Bandit",
+      "palette": {
+        "hair": "#2a2228",
+        "hairLight": "#40343c",
+        "hairDark": "#1a1418",
+        "skin": "#d9a27a",
+        "skinShade": "#b8825c",
+        "eye": "#1d1a24",
+        "tunic": "#6a2a24",
+        "tunicShade": "#4a1c18",
+        "tunicLight": "#8a3a30",
+        "belt": "#3a2a1a",
+        "buckle": "#8a8a90",
+        "pants": "#3a3430",
+        "pantsShade": "#2a2420",
+        "boot": "#1e1814",
+        "cape": "#3a3a40",
+        "capeShade": "#26262c"
+      },
+      "sheet": "assets/characters/bandit.png",
+      "anim": {
+        "frame": 64,
+        "dirs": [
+          "up",
+          "left",
+          "down",
+          "right"
+        ],
+        "anims": {
+          "walk": {
+            "row": 0,
+            "frames": 9,
+            "dirs": 4,
+            "cycle": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "ms": 100
+          },
+          "idle": {
+            "row": 4,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 380
+          },
+          "run": {
+            "row": 8,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "jump": {
+            "row": 12,
+            "frames": 5,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              1
+            ],
+            "ms": 120
+          },
+          "climb": {
+            "row": 16,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 120
+          },
+          "combat_idle": {
+            "row": 17,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 300
+          },
+          "slash": {
+            "row": 21,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "backslash": {
+            "row": 25,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "halfslash": {
+            "row": 29,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "thrust": {
+            "row": 33,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "shoot": {
+            "row": 37,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "spellcast": {
+            "row": 41,
+            "frames": 7,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ms": 90
+          },
+          "hurt": {
+            "row": 45,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 110
+          }
+        }
+      },
+      "credits": [
+        {
+          "item": "Leather",
+          "authors": [
+            "Johannes Sjölund (wulax)",
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-expanded-armor"
+          ]
+        },
+        {
+          "item": "Leather",
+          "authors": [
+            "Michael Whitlock (bigbeargames)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-combat-armor-for-women",
+            "https://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-expanded-armor"
+          ]
+        },
+        {
+          "item": "Armour",
+          "authors": [
+            "Michael Whitlock (bigbeargames)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-combat-armor-for-women",
+            "http://opengameart.org/content/lpc-clothing-updates"
+          ]
+        },
+        {
+          "item": "Bandana",
+          "authors": [
+            "Matthew Krohn (makrohn)",
+            "JaidynReiman",
+            "Marcel van de Steeg (MadMarcel)",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-female-orcogregoblintroll-base-walkcycle",
+            "https://github.com/makrohn/Universal-LPC-spritesheet/commit/f50007cb47c235d8896cafae7a613f0b6a9a09a8?short_path=02b86d4#diff-02b86d45789a3e3e8e79519c7d17d15c9e6ecc9b4ddecb1bcd8dfbbaef430b75",
+            "https://opengameart.org/content/lpc-expanded-hats-facial-helmets"
+          ]
+        },
+        {
+          "item": "Body Color",
+          "authors": [
+            "bluecarrot16",
+            "Evert",
+            "TheraHedwig",
+            "Benjamin K. Smith (BenCreating)",
+            "MuffinElZangano",
+            "Durrani",
+            "Pierre Vigier (pvigier)",
+            "Eliza Wyatt (ElizaWy)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-ladies",
+            "https://opengameart.org/content/lpc-teen-unisex-base-clothes",
+            "https://opengameart.org/content/lpc-jump-expanded",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://opengameart.org/content/lpc-be-seated",
+            "https://gitlab.com/vagabondgame/lpc-characters",
+            "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+            "https://opengameart.org/content/lpc-jump-expanded"
+          ]
+        },
+        {
+          "item": "Longsleeve",
+          "authors": [
+            "bluecarrot16",
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-teen-unisex-base-clothes",
+            "http://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        },
+        {
+          "item": "Rolling Eyes",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Rolling Eyes",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Rolling Eyes",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Rolling Eyes",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Eyepatch 2 Left",
+          "authors": [
+            "ElizaWy"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head%20Accessories",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+          ]
+        },
+        {
+          "item": "Buzzcut",
+          "authors": [
+            "ElizaWy"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-hair"
+          ]
+        },
+        {
+          "item": "Human Female",
+          "authors": [
+            "bluecarrot16",
+            "Benjamin K. Smith (BenCreating)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/",
+            "https://opengameart.org/content/lpc-character-bases"
+          ]
+        },
+        {
+          "item": "Kerchief",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/more-lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-pirates",
+            "https://opengameart.org/content/lpc-expanded-hats-facial-helmets"
+          ]
+        },
+        {
+          "item": "Cuffed Pants",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-pants"
+          ]
+        },
+        {
+          "item": "Obi Knot Left",
+          "authors": [
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0+",
+            "CC-BY 3.0+",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-kimono-relm"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        }
+      ]
+    },
+    "bandit_archer": {
+      "name": "Bandit archer",
+      "palette": {
+        "hair": "#5a3a20",
+        "hairLight": "#7a5430",
+        "hairDark": "#3a2414",
+        "skin": "#e0b08a",
+        "skinShade": "#c08e68",
+        "eye": "#1d1a24",
+        "tunic": "#3a5a2a",
+        "tunicShade": "#2a421e",
+        "tunicLight": "#4e7a38",
+        "belt": "#4a3420",
+        "buckle": "#c9a24a",
+        "pants": "#4a4030",
+        "pantsShade": "#362e22",
+        "boot": "#2a2018",
+        "cape": "#2e4a26",
+        "capeShade": "#1e321a"
+      },
+      "sheet": "assets/characters/bandit_archer.png",
+      "anim": {
+        "frame": 64,
+        "dirs": [
+          "up",
+          "left",
+          "down",
+          "right"
+        ],
+        "anims": {
+          "walk": {
+            "row": 0,
+            "frames": 9,
+            "dirs": 4,
+            "cycle": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "ms": 100
+          },
+          "idle": {
+            "row": 4,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 380
+          },
+          "run": {
+            "row": 8,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "jump": {
+            "row": 12,
+            "frames": 5,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              1
+            ],
+            "ms": 120
+          },
+          "climb": {
+            "row": 16,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 120
+          },
+          "combat_idle": {
+            "row": 17,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 300
+          },
+          "slash": {
+            "row": 21,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "backslash": {
+            "row": 25,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "halfslash": {
+            "row": 29,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "thrust": {
+            "row": 33,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "shoot": {
+            "row": 37,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "spellcast": {
+            "row": 41,
+            "frames": 7,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ms": 90
+          },
+          "hurt": {
+            "row": 45,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 110
+          }
+        }
+      },
+      "credits": [
+        {
+          "item": "Leather",
+          "authors": [
+            "Johannes Sjölund (wulax)",
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-expanded-armor"
+          ]
+        },
+        {
+          "item": "Leather",
+          "authors": [
+            "Michael Whitlock (bigbeargames)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-combat-armor-for-women",
+            "https://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-expanded-armor"
+          ]
+        },
+        {
+          "item": "Bandana",
+          "authors": [
+            "Matthew Krohn (makrohn)",
+            "JaidynReiman",
+            "Marcel van de Steeg (MadMarcel)",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-female-orcogregoblintroll-base-walkcycle",
+            "https://github.com/makrohn/Universal-LPC-spritesheet/commit/f50007cb47c235d8896cafae7a613f0b6a9a09a8?short_path=02b86d4#diff-02b86d45789a3e3e8e79519c7d17d15c9e6ecc9b4ddecb1bcd8dfbbaef430b75",
+            "https://opengameart.org/content/lpc-expanded-hats-facial-helmets"
+          ]
+        },
+        {
+          "item": "Body Color",
+          "authors": [
+            "Benjamin K. Smith (BenCreating)",
+            "bluecarrot16",
+            "TheraHedwig",
+            "Evert",
+            "MuffinElZangano",
+            "Durrani",
+            "Pierre Vigier (pvigier)",
+            "ElizaWy",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-ladies",
+            "https://opengameart.org/content/lpc-7-womens-shirts",
+            "https://opengameart.org/content/lpc-jump-expanded",
+            "https://opengameart.org/content/lpc-be-seated",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://gitlab.com/vagabondgame/lpc-characters",
+            "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+            "https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle"
+          ]
+        },
+        {
+          "item": "Longsleeve",
+          "authors": [
+            "bluecarrot16",
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-7-womens-shirts",
+            "http://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        },
+        {
+          "item": "Eyepatch Ambidextrous",
+          "authors": [
+            "bluecarrot16"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-pirates",
+            "https://opengameart.org/content/lpc-expanded-hats-facial-helmets"
+          ]
+        },
+        {
+          "item": "Bangs bun",
+          "authors": [
+            "ElizaWy",
+            "bluecarrot16"
+          ],
+          "licenses": [
+            "CC0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-hair",
+            "https://github.com/ElizaWy/LPC/blob/main/Characters/Hair",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+          ]
+        },
+        {
+          "item": "Human Male",
+          "authors": [
+            "bluecarrot16",
+            "Benjamin K. Smith (BenCreating)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-character-bases"
+          ]
+        },
+        {
+          "item": "Cuffed Pants",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-pants"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        }
+      ]
+    },
+    "eleanor": {
+      "name": "Eleanor",
+      "sheet": "assets/characters/eleanor.png",
+      "anim": {
+        "frame": 64,
+        "dirs": [
+          "up",
+          "left",
+          "down",
+          "right"
+        ],
+        "anims": {
+          "walk": {
+            "row": 0,
+            "frames": 9,
+            "dirs": 4,
+            "cycle": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "ms": 100
+          },
+          "idle": {
+            "row": 4,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 380
+          },
+          "run": {
+            "row": 8,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "jump": {
+            "row": 12,
+            "frames": 5,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              1
+            ],
+            "ms": 120
+          },
+          "climb": {
+            "row": 16,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 120
+          },
+          "combat_idle": {
+            "row": 17,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 300
+          },
+          "slash": {
+            "row": 21,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "backslash": {
+            "row": 25,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "halfslash": {
+            "row": 29,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "thrust": {
+            "row": 33,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "shoot": {
+            "row": 37,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "spellcast": {
+            "row": 41,
+            "frames": 7,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ms": 90
+          },
+          "hurt": {
+            "row": 45,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 110
+          }
+        }
+      },
+      "credits": [
+        {
+          "item": "Body Color",
+          "authors": [
+            "Benjamin K. Smith (BenCreating)",
+            "bluecarrot16",
+            "TheraHedwig",
+            "Evert",
+            "MuffinElZangano",
+            "Durrani",
+            "Pierre Vigier (pvigier)",
+            "ElizaWy",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-ladies",
+            "https://opengameart.org/content/lpc-7-womens-shirts",
+            "https://opengameart.org/content/lpc-jump-expanded",
+            "https://opengameart.org/content/lpc-be-seated",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://gitlab.com/vagabondgame/lpc-characters",
+            "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+            "https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle"
+          ]
+        },
+        {
+          "item": "TShirt",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        },
+        {
+          "item": "Medium Elven Ears",
+          "authors": [
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0+",
+            "CC-BY 3.0+",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-new-elven-ear-variants"
+          ]
+        },
+        {
+          "item": "Angry",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Angry",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Angry",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Angry",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Sara",
+          "authors": [
+            "Stephen Challener (Redshrike)",
+            "William.Thompsonj",
+            "Mandi Paugh",
+            "bluecarrot16"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-sara",
+            "https://opengameart.org/content/lpc-hair",
+            "https://opengameart.org/content/lpc-expanded-xlong-hair"
+          ]
+        },
+        {
+          "item": "Human Male Small",
+          "authors": [
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY"
+          ],
+          "urls": []
+        },
+        {
+          "item": "Backwards Horns",
+          "authors": [
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "GPL 3.0",
+            "CC-BY-SA 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-lizard-headgear"
+          ]
+        },
+        {
+          "item": "Long Pants",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-pants"
+          ]
+        },
+        {
+          "item": "Cuffed Longsleeves Overlay",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "http://opengameart.org/content/lpc-revised-character-basics",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        },
+        {
+          "item": "Cuffs",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-pirates"
+          ]
+        },
+        {
+          "item": "Cuffs",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-pirates"
+          ]
+        }
+      ]
+    },
+    "crowley": {
+      "name": "Crowley",
+      "sheet": "assets/characters/crowley.png",
+      "anim": {
+        "frame": 64,
+        "dirs": [
+          "up",
+          "left",
+          "down",
+          "right"
+        ],
+        "anims": {
+          "walk": {
+            "row": 0,
+            "frames": 9,
+            "dirs": 4,
+            "cycle": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "ms": 100
+          },
+          "idle": {
+            "row": 4,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 380
+          },
+          "run": {
+            "row": 8,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "jump": {
+            "row": 12,
+            "frames": 5,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              1
+            ],
+            "ms": 120
+          },
+          "climb": {
+            "row": 16,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 120
+          },
+          "combat_idle": {
+            "row": 17,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 300
+          },
+          "slash": {
+            "row": 21,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "backslash": {
+            "row": 25,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "halfslash": {
+            "row": 29,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "thrust": {
+            "row": 33,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "shoot": {
+            "row": 37,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "spellcast": {
+            "row": 41,
+            "frames": 7,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ms": 90
+          },
+          "hurt": {
+            "row": 45,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 110
+          }
+        }
+      },
+      "credits": [
+        {
+          "item": "Body Color",
+          "authors": [
+            "bluecarrot16",
+            "Evert",
+            "TheraHedwig",
+            "Benjamin K. Smith (BenCreating)",
+            "MuffinElZangano",
+            "Durrani",
+            "Pierre Vigier (pvigier)",
+            "Eliza Wyatt (ElizaWy)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-ladies",
+            "https://opengameart.org/content/lpc-teen-unisex-base-clothes",
+            "https://opengameart.org/content/lpc-jump-expanded",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://opengameart.org/content/lpc-be-seated",
+            "https://gitlab.com/vagabondgame/lpc-characters",
+            "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+            "https://opengameart.org/content/lpc-jump-expanded"
+          ]
+        },
+        {
+          "item": "Natural cut Gem",
+          "authors": [
+            "bluecarrot16"
+          ],
+          "licenses": [
+            "CC0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-jewelry"
+          ]
+        },
+        {
+          "item": "Original Sleeveless",
+          "authors": [
+            "Nyom",
+            "bluecarrot16",
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-7-womens-shirts",
+            "http://opengameart.org/content/lpc-revised-character-basics",
+            "http://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-teen-androgynous-short-sleeve-shirt",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        },
+        {
+          "item": "Kimono",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0+",
+            "CC-BY 3.0+",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-kimono-relm"
+          ]
+        },
+        {
+          "item": "Kimono Sleeves",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0+",
+            "CC-BY 3.0+",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-kimono-relm"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Bob",
+          "authors": [
+            "ElizaWy",
+            "bluecarrot16"
+          ],
+          "licenses": [
+            "CC0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-hair",
+            "https://github.com/ElizaWy/LPC/blob/main/Characters/Hair",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+          ]
+        },
+        {
+          "item": "Human Female Small",
+          "authors": [
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY"
+          ],
+          "urls": []
+        },
+        {
+          "item": "Cuffed Pants",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-pants"
+          ]
+        },
+        {
+          "item": "Shadow",
+          "authors": [
+            "drjamgo@hotmail.com",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "CC0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/shadow-for-lpc-sprite"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        }
+      ]
+    },
+    "katrina": {
+      "name": "Katrina",
+      "sheet": "assets/characters/katrina.png",
+      "anim": {
+        "frame": 64,
+        "dirs": [
+          "up",
+          "left",
+          "down",
+          "right"
+        ],
+        "anims": {
+          "walk": {
+            "row": 0,
+            "frames": 9,
+            "dirs": 4,
+            "cycle": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "ms": 100
+          },
+          "idle": {
+            "row": 4,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 380
+          },
+          "run": {
+            "row": 8,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "jump": {
+            "row": 12,
+            "frames": 5,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              1
+            ],
+            "ms": 120
+          },
+          "climb": {
+            "row": 16,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 120
+          },
+          "combat_idle": {
+            "row": 17,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 300
+          },
+          "slash": {
+            "row": 21,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "backslash": {
+            "row": 25,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "halfslash": {
+            "row": 29,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "thrust": {
+            "row": 33,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "shoot": {
+            "row": 37,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "spellcast": {
+            "row": 41,
+            "frames": 7,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ms": 90
+          },
+          "hurt": {
+            "row": 45,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 110
+          }
+        }
+      },
+      "credits": [
+        {
+          "item": "Plate",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Michael Whitlock (bigbeargames)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-combat-armor-for-women",
+            "http://opengameart.org/content/lpc-clothing-updates"
+          ]
+        },
+        {
+          "item": "Body Color",
+          "authors": [
+            "Benjamin K. Smith (BenCreating)",
+            "bluecarrot16",
+            "TheraHedwig",
+            "Evert",
+            "MuffinElZangano",
+            "Durrani",
+            "Pierre Vigier (pvigier)",
+            "ElizaWy",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-ladies",
+            "https://opengameart.org/content/lpc-7-womens-shirts",
+            "https://opengameart.org/content/lpc-jump-expanded",
+            "https://opengameart.org/content/lpc-be-seated",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://gitlab.com/vagabondgame/lpc-characters",
+            "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+            "https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle"
+          ]
+        },
+        {
+          "item": "Solid",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more",
+            "https://opengameart.org/content/lpc-roman-armor",
+            "http://opengameart.org/content/lpc-clothing-updates"
+          ]
+        },
+        {
+          "item": "Solid",
+          "authors": [
+            "Nila122",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more",
+            "https://opengameart.org/content/lpc-roman-armor"
+          ]
+        },
+        {
+          "item": "Cape Trim",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more",
+            "http://opengameart.org/content/lpc-clothing-updates"
+          ]
+        },
+        {
+          "item": "Longsleeve",
+          "authors": [
+            "bluecarrot16",
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-7-womens-shirts",
+            "http://opengameart.org/content/lpc-clothing-updates",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Ponytail2",
+          "authors": [
+            "JaidynReiman",
+            "Manuel Riecke (MrBeast)",
+            "Joe White"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ponytail-and-plain-hairstyles",
+            "https://opengameart.org/content/lpc-expanded-hair"
+          ]
+        },
+        {
+          "item": "Human Female",
+          "authors": [
+            "bluecarrot16",
+            "Benjamin K. Smith (BenCreating)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/",
+            "https://opengameart.org/content/lpc-character-bases"
+          ]
+        },
+        {
+          "item": "Armour",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman",
+            "Michael Whitlock (bigbeargames)",
+            "Matthew Krohn (makrohn)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        },
+        {
+          "item": "Mantal",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-pirates"
+          ]
+        },
+        {
+          "item": "Mantal",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-pirates"
+          ]
+        }
+      ]
+    },
+    "tori": {
+      "name": "Tori",
+      "sheet": "assets/characters/tori.png",
+      "anim": {
+        "frame": 64,
+        "dirs": [
+          "up",
+          "left",
+          "down",
+          "right"
+        ],
+        "anims": {
+          "walk": {
+            "row": 0,
+            "frames": 9,
+            "dirs": 4,
+            "cycle": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "ms": 100
+          },
+          "idle": {
+            "row": 4,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 380
+          },
+          "run": {
+            "row": 8,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "jump": {
+            "row": 12,
+            "frames": 5,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              1
+            ],
+            "ms": 120
+          },
+          "climb": {
+            "row": 16,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 120
+          },
+          "combat_idle": {
+            "row": 17,
+            "frames": 2,
+            "dirs": 4,
+            "cycle": [
+              0,
+              0,
+              1
+            ],
+            "ms": 300
+          },
+          "slash": {
+            "row": 21,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "backslash": {
+            "row": 25,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "halfslash": {
+            "row": 29,
+            "frames": 6,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 80
+          },
+          "thrust": {
+            "row": 33,
+            "frames": 8,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "ms": 80
+          },
+          "shoot": {
+            "row": 37,
+            "frames": 13,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "ms": 70
+          },
+          "spellcast": {
+            "row": 41,
+            "frames": 7,
+            "dirs": 4,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ms": 90
+          },
+          "hurt": {
+            "row": 45,
+            "frames": 6,
+            "dirs": 1,
+            "cycle": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "ms": 110
+          }
+        }
+      },
+      "credits": [
+        {
+          "item": "Trimmed Beard",
+          "authors": [
+            "ElizaWy"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Hair",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+          ]
+        },
+        {
+          "item": "Body Color",
+          "authors": [
+            "bluecarrot16",
+            "JaidynReiman",
+            "Benjamin K. Smith (BenCreating)",
+            "Evert",
+            "Eliza Wyatt (ElizaWy)",
+            "TheraHedwig",
+            "MuffinElZangano",
+            "Durrani",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+            "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+            "https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle",
+            "https://opengameart.org/content/lpc-revised-character-basics",
+            "https://opengameart.org/content/lpc-be-seated",
+            "https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads",
+            "https://opengameart.org/content/lpc-jump-expanded",
+            "https://opengameart.org/content/lpc-character-bases"
+          ]
+        },
+        {
+          "item": "Chainmail",
+          "authors": [
+            "Johannes Sjölund (wulax)",
+            "Napsio (Vitruvian Studio)",
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites"
+          ]
+        },
+        {
+          "item": "Sleeveless 2 Polo",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)",
+            "Johannes Sjölund (wulax)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "http://opengameart.org/content/lpc-revised-character-basics",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-simple-shirts"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Neutral",
+          "authors": [
+            "JaidynReiman",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/ulpc-expanded-expressions"
+          ]
+        },
+        {
+          "item": "Xlong",
+          "authors": [
+            "JaidynReiman",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-xlong-hair"
+          ]
+        },
+        {
+          "item": "Human Male Gaunt",
+          "authors": [
+            "Stephen Challener (Redshrike)",
+            "bluecarrot16"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+            "https://opengameart.org/content/lpc-folk"
+          ]
+        },
+        {
+          "item": "Cuffed Pants",
+          "authors": [
+            "JaidynReiman",
+            "ElizaWy",
+            "Bluecarrot16",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-pants"
+          ]
+        },
+        {
+          "item": "Cuffed Pants",
+          "authors": [
+            "ElizaWy",
+            "JaidynReiman",
+            "Johannes Sjölund (wulax)",
+            "Stephen Challener (Redshrike)"
+          ],
+          "licenses": [
+            "OGA-BY 3.0"
+          ],
+          "urls": [
+            "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+            "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+            "https://opengameart.org/content/lpc-expanded-pants"
+          ]
+        },
+        {
+          "item": "Obi Knot Left",
+          "authors": [
+            "JaidynReiman"
+          ],
+          "licenses": [
+            "OGA-BY 3.0+",
+            "CC-BY 3.0+",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-kimono-relm"
+          ]
+        },
+        {
+          "item": "Basic Boots",
+          "authors": [
+            "JaidynReiman",
+            "bluecarrot16",
+            "Nila122"
+          ],
+          "licenses": [
+            "OGA-BY 3.0",
+            "CC-BY-SA 3.0",
+            "GPL 2.0",
+            "GPL 3.0"
+          ],
+          "urls": [
+            "https://opengameart.org/content/lpc-clothes-and-hair",
+            "https://opengameart.org/content/lpc-expanded-socks-shoes"
+          ]
+        }
+      ]
+    }
+  },
+  "items": [
+    {
+      "id": "potion",
+      "name": "Potion",
+      "description": "A bitter red tonic. Restores 30 health.",
+      "kind": "consumable",
+      "icon": "builtin:potion",
+      "price": 200,
+      "restore": {},
+      "restorePct": {
+        "hp": 30
+      }
+    },
+    {
+      "id": "potion_copy",
+      "name": "Plus Potion",
+      "description": "A bitter red tonic. Restores 60 health.",
+      "kind": "consumable",
+      "icon": "builtin:potion",
+      "price": 500,
+      "restore": {},
+      "restorePct": {
+        "hp": 60
+      }
+    },
+    {
+      "id": "potion_copy2",
+      "name": "Mega Potion",
+      "description": "A bitter red tonic. Restores 120 health.",
+      "kind": "consumable",
+      "icon": "builtin:potion",
+      "price": 1000,
+      "restore": {},
+      "restorePct": {
+        "hp": 120
+      }
+    },
+    {
+      "id": "potion_copy3",
+      "name": "Full Potion",
+      "description": "A bitter red tonic. Restores all lost health.",
+      "kind": "consumable",
+      "icon": "builtin:potion",
+      "price": 2500,
+      "restore": {},
+      "restorePct": {
+        "hp": 9999
+      }
+    },
+    {
+      "id": "ether",
+      "name": "Ether",
+      "description": "Shimmering blue. Restores 20 magic.",
+      "kind": "consumable",
+      "icon": "builtin:ether",
+      "price": 400,
+      "restore": {},
+      "restorePct": {
+        "mp": 20
+      }
+    },
+    {
+      "id": "ether_copy",
+      "name": "High Ether",
+      "description": "Shimmering blue. Restores 50 magic.",
+      "kind": "consumable",
+      "icon": "builtin:ether",
+      "price": 850,
+      "restore": {},
+      "restorePct": {
+        "mp": 50
+      }
+    },
+    {
+      "id": "ether_copy2",
+      "name": "Full Ether",
+      "description": "Shimmering blue. Restores all lost magic.",
+      "kind": "consumable",
+      "icon": "builtin:ether",
+      "price": 2000,
+      "restore": {},
+      "restorePct": {
+        "mp": 9999
+      }
+    },
+    {
+      "id": "tonic",
+      "name": "Stamina Tonic",
+      "description": "Fully restores stamina.",
+      "kind": "consumable",
+      "icon": "builtin:tonic",
+      "price": 150,
+      "restore": {},
+      "restorePct": {
+        "sp": 100
+      }
+    },
+    {
+      "id": "tonic_copy",
+      "name": "Body Cure",
+      "description": "Cures physical ailments: Burn, Poison, Chill, Paralyze, Blind, and Stagger.",
+      "kind": "consumable",
+      "icon": "builtin:herb",
+      "price": 200,
+      "restore": {},
+      "cures": [
+        "burn",
+        "poison",
+        "chill",
+        "paralyze",
+        "blind",
+        "stagger"
+      ]
+    },
+    {
+      "id": "tonic_copy2",
+      "name": "Mind Cure",
+      "description": "Cures Mental ailments: Silence, Sleep, and Confusion.",
+      "kind": "consumable",
+      "icon": "builtin:herb",
+      "price": 200,
+      "restore": {},
+      "cures": [
+        "silence",
+        "sleep",
+        "confusion"
+      ]
+    },
+    {
+      "id": "tonic_copy3",
+      "name": "Holy Water",
+      "description": "Cures Zombie. Lethal if used on most Zombie-afflicated enemies.",
+      "kind": "consumable",
+      "icon": "builtin:tonic",
+      "price": 250,
+      "restore": {},
+      "cures": [
+        "zombie"
+      ],
+      "iconTint": "#3ab8c8"
+    },
+    {
+      "id": "tonic_copy6",
+      "name": "Crit Up!",
+      "description": "Increases chance of Critical Hits in combat!",
+      "kind": "consumable",
+      "icon": "builtin:soda_can",
+      "price": 1000,
+      "restore": {},
+      "buffs": [
+        {
+          "buff": "crit",
+          "whole": true
+        }
+      ],
+      "iconTint": "#ff9a2a"
+    },
+    {
+      "id": "tonic_copy7",
+      "name": "STR Up!",
+      "description": "Temporarily increases STR of one character in combat!",
+      "kind": "consumable",
+      "icon": "builtin:soda_can",
+      "price": 1000,
+      "restore": {},
+      "buffs": [
+        {
+          "buff": "str",
+          "whole": true
+        }
+      ],
+      "iconTint": "#e8483a"
+    },
+    {
+      "id": "tonic_copy8",
+      "name": "DEX Up!",
+      "description": "Temporarily increases DEX of one character in combat!",
+      "kind": "consumable",
+      "icon": "builtin:soda_can",
+      "price": 1000,
+      "restore": {},
+      "buffs": [
+        {
+          "buff": "dex",
+          "whole": true
+        }
+      ],
+      "iconTint": "#5ac840"
+    },
+    {
+      "id": "tonic_copy9",
+      "name": "MAG Up!",
+      "description": "Temporarily increases MAG of one character in combat!",
+      "kind": "consumable",
+      "icon": "builtin:soda_can",
+      "price": 1000,
+      "restore": {},
+      "buffs": [
+        {
+          "buff": "mag",
+          "whole": true
+        }
+      ],
+      "iconTint": "#9a4ae0"
+    },
+    {
+      "id": "tonic_copy10",
+      "name": "DEF Up!",
+      "description": "Temporarily increases DEF of one character in combat!",
+      "kind": "consumable",
+      "icon": "builtin:soda_can",
+      "price": 1000,
+      "restore": {},
+      "buffs": [
+        {
+          "buff": "def",
+          "whole": true
+        }
+      ],
+      "iconTint": "#566061"
+    },
+    {
+      "id": "tonic_copy11",
+      "name": "MDF Up!",
+      "description": "Temporarily increases MDF of one character in combat!",
+      "kind": "consumable",
+      "icon": "builtin:soda_can",
+      "price": 1000,
+      "restore": {},
+      "buffs": [
+        {
+          "buff": "mdf",
+          "whole": true
+        }
+      ],
+      "iconTint": "#694b71"
+    },
+    {
+      "id": "tonic_copy12",
+      "name": "AGL Up!",
+      "description": "Temporarily increases AGL of one character in combat!",
+      "kind": "consumable",
+      "icon": "builtin:soda_can",
+      "price": 1000,
+      "restore": {},
+      "buffs": [
+        {
+          "buff": "agi",
+          "whole": true
+        }
+      ],
+      "iconTint": "#f0d040"
+    },
+    {
+      "id": "tonic_copy13",
+      "name": "Stat Guard",
+      "description": "Prevents stat reduction in combat for one character!",
+      "kind": "consumable",
+      "icon": "builtin:soda_can",
+      "price": 1000,
+      "restore": {},
+      "iconTint": "#f4f4f4"
+    },
+    {
+      "id": "tonic_copy4",
+      "name": "Revive",
+      "description": "Restores a KO'd character to 1/2 HP.",
+      "kind": "consumable",
+      "icon": "builtin:vial_blue",
+      "price": 250,
+      "restore": {},
+      "restorePct": {
+        "hp": 50
+      },
+      "iconTint": "#f0d040",
+      "revive": true
+    },
+    {
+      "id": "tonic_copy5",
+      "name": "Full Revive",
+      "description": "Restores a KO'd character to max HP.",
+      "kind": "consumable",
+      "icon": "builtin:potion_yellow",
+      "price": 500,
+      "restore": {},
+      "restorePct": {
+        "hp": 100
+      },
+      "revive": true
+    },
+    {
+      "id": "bread",
+      "name": "Bread",
+      "description": "A crusty loaf. Restores a little health and stamina.",
+      "kind": "consumable",
+      "icon": "builtin:bread",
+      "price": 5,
+      "restore": {
+        "hp": 10,
+        "sp": 25
+      }
+    },
+    {
+      "id": "short_sword",
+      "name": "Short Sword",
+      "description": "Quick and light. A light weapon: fast swings, short reach.",
+      "kind": "equipment",
+      "icon": "builtin:sword",
+      "price": 150,
+      "slot": "weapon",
+      "weapon": {
+        "class": "light",
+        "damage": 9
+      },
+      "sprite": "arming_steel",
+      "material": "iron_ingot"
+    },
+    {
+      "id": "short_sword_copy",
+      "name": "Little Knife",
+      "description": "Quick and light. A light weapon: fast swings, short reach.",
+      "kind": "equipment",
+      "icon": "builtin:sword",
+      "price": 150,
+      "slot": "weapon",
+      "weapon": {
+        "class": "light",
+        "damage": 10
+      },
+      "sprite": "dagger",
+      "material": "ess_light_fragment",
+      "rarity": "rare",
+      "element": "light",
+      "iconTint": "#fef5cd"
+    },
+    {
+      "id": "longsword",
+      "name": "Longsword",
+      "description": "A medium weapon: balanced speed, reach and damage.",
+      "kind": "equipment",
+      "icon": "builtin:sword",
+      "price": 180,
+      "slot": "weapon",
+      "weapon": {
+        "class": "medium",
+        "damage": 15
+      },
+      "sprite": "longsword",
+      "material": "iron_ingot"
+    },
+    {
+      "id": "greatsword",
+      "name": "Greatsword",
+      "description": "A heavy weapon: slow, long reach, hits very hard.",
+      "kind": "equipment",
+      "icon": "builtin:greatsword",
+      "price": 320,
+      "slot": "weapon",
+      "weapon": {
+        "class": "heavy",
+        "damage": 26
+      },
+      "sprite": "longsword_alt",
+      "material": "iron_ingot"
+    },
+    {
+      "id": "hunting_bow",
+      "name": "Hunting Bow",
+      "description": "Hold 2 to draw, let go to shoot. A full draw flies furthest and hits hardest.",
+      "kind": "equipment",
+      "icon": "builtin:bow",
+      "price": 120,
+      "slot": "ranged",
+      "weapon": {
+        "class": "bow",
+        "damage": 10
+      },
+      "sprite": "bow_normal_medium",
+      "material": "iron_ingot"
+    },
+    {
+      "id": "round_shield",
+      "name": "Round Shield",
+      "description": "A sturdy wooden shield. Worn with a melee weapon.",
+      "kind": "equipment",
+      "icon": "builtin:shield",
+      "price": 40,
+      "slot": "shield",
+      "defense": 4,
+      "sprite": "shield_round_brown",
+      "material": "iron_ingot"
+    },
+    {
+      "id": "iron_arrow",
+      "name": "Iron Arrows",
+      "description": "Plain arrows. You'll never run out.",
+      "kind": "ammo",
+      "icon": "builtin:arrow",
+      "ammo": {
+        "damage": 0,
+        "infinite": true
+      }
+    },
+    {
+      "id": "steel_arrow",
+      "name": "Steel Arrows",
+      "description": "Sharper and heavier. Nock them from the bag.",
+      "kind": "ammo",
+      "icon": "builtin:arrow_steel",
+      "price": 3,
+      "ammo": {
+        "damage": 5
+      }
+    },
+    {
+      "id": "leather_armor",
+      "name": "Leather Armor",
+      "description": "Supple and quiet.",
+      "kind": "equipment",
+      "icon": "builtin:armor",
+      "price": 120,
+      "slot": "armor",
+      "defense": 8,
+      "material": "iron_ingot"
+    },
+    {
+      "id": "leather_armor_copy",
+      "name": "TitanTech Armor",
+      "description": "Old Earth-style armor built using strange technology.",
+      "kind": "equipment",
+      "icon": "builtin:shield",
+      "price": 120,
+      "slot": "armor",
+      "defense": 8,
+      "material": "iron_ingot",
+      "rarity": "uncommon",
+      "armorWeight": "new",
+      "iconTint": "#e8483a"
+    },
+    {
+      "id": "sun_ring",
+      "name": "Lantern",
+      "description": "Lights the way in the dark. Switch it on or off in the bag, or assign it to the B button.",
+      "kind": "key",
+      "icon": "builtin:lantern",
+      "light": {
+        "type": "lantern",
+        "color": "#ffe2b0",
+        "intensity": 2.2,
+        "radius": 11,
+        "shadows": true
+      },
+      "tool": "light"
+    },
+    {
+      "id": "tide_ring",
+      "name": "Strider Boots",
+      "description": "Walk on water of any depth while they’re on; they switch off when you step back on land. Switch them on in the bag, or assign them to the B button.",
+      "kind": "key",
+      "icon": "builtin:boots",
+      "tool": "waterWalk"
+    },
+    {
+      "id": "tide_ring_copy",
+      "name": "Swim Fin",
+      "description": "Swim and wade through water. Switch them on in the bag, or assign them to the B button.",
+      "kind": "key",
+      "icon": "builtin:fish_koi",
+      "iconTint": "#3a6ae0",
+      "field": {
+        "use": "swim"
+      }
+    },
+    {
+      "id": "moon_amulet",
+      "name": "Moon Amulet",
+      "description": "Engraved with a tiny moon.",
+      "kind": "equipment",
+      "icon": "builtin:amulet",
+      "price": 200,
+      "slot": "accessory",
+      "defense": 3,
+      "material": "gold_ingot"
+    },
+    {
+      "id": "old_key",
+      "name": "Old Key",
+      "description": "Rusty, heavy, and clearly important.",
+      "kind": "key",
+      "icon": "builtin:key"
+    },
+    {
+      "id": "fire_shard",
+      "name": "Fire Shard",
+      "kind": "equipment",
+      "slot": "magic",
+      "icon": "builtin:shard_fire",
+      "rarity": "common",
+      "price": 120,
+      "description": "A splinter of ember crystal. Ready it with key 3 (or Y) to hurl firebolts.",
+      "spell": {
+        "damage": 14,
+        "mp": 6,
+        "color": "#ff8a3a",
+        "light": {
+          "intensity": 1.2,
+          "radius": 3
+        }
+      },
+      "element": "fire"
+    },
+    {
+      "id": "firewood",
+      "name": "Firewood",
+      "kind": "material",
+      "icon": "builtin:log",
+      "price": 4,
+      "fuel": 1,
+      "description": "Dry branches. Feed a fire to keep it burning (+1 hour)."
+    },
+    {
+      "id": "stone",
+      "name": "Stone",
+      "kind": "material",
+      "icon": "builtin:stone",
+      "price": 2,
+      "description": "Rough stone, broken from a boulder."
+    },
+    {
+      "id": "iron_ore",
+      "name": "Iron Ore",
+      "kind": "material",
+      "icon": "builtin:ore_iron",
+      "price": 6,
+      "smelt": {
+        "into": "iron_ingot",
+        "need": 2
+      },
+      "description": "Rusty rock from an iron vein. Smelt two into an iron ingot at a forge."
+    },
+    {
+      "id": "gold_ore",
+      "name": "Gold Ore",
+      "kind": "material",
+      "icon": "builtin:ore_gold",
+      "price": 15,
+      "smelt": {
+        "into": "gold_ingot",
+        "need": 2
+      },
+      "description": "Rock flecked with gold. Smelt two into a gold ingot at a forge."
+    },
+    {
+      "id": "iron_ingot",
+      "name": "Iron Ingot",
+      "kind": "material",
+      "icon": "builtin:ingot_iron",
+      "price": 20,
+      "smelt": {
+        "into": "steel_ingot",
+        "need": 2
+      },
+      "description": "Upgrades iron weapons and armor at a forge. Two make a steel ingot."
+    },
+    {
+      "id": "steel_ingot",
+      "name": "Steel Ingot",
+      "kind": "material",
+      "icon": "builtin:ingot_steel",
+      "price": 45,
+      "description": "Upgrades steel weapons and armor at a forge."
+    },
+    {
+      "id": "gold_ingot",
+      "name": "Gold Ingot",
+      "kind": "material",
+      "icon": "builtin:ingot_gold",
+      "price": 60,
+      "description": "Upgrades golden weapons and jewellery at a forge."
+    },
+    {
+      "id": "pickaxe",
+      "name": "Pickaxe",
+      "kind": "equipment",
+      "slot": "weapon",
+      "icon": "builtin:pickaxe",
+      "price": 60,
+      "weapon": {
+        "class": "light",
+        "damage": 7
+      },
+      "mines": true,
+      "material": "iron_ingot",
+      "description": "Breaks boulders and ore veins: swing it at the rock."
+    },
+    {
+      "id": "fishing_rod",
+      "name": "Fishing Rod",
+      "kind": "key",
+      "icon": "builtin:fishing_rod",
+      "price": 40,
+      "rod": {
+        "power": 0
+      },
+      "description": "A simple rod and line. Face a fishing spot by the water and press Talk (A / Enter) to cast; when the float bobs under, press it again.",
+      "field": {
+        "use": "fish"
+      }
+    },
+    {
+      "id": "minnow",
+      "name": "Minnow",
+      "kind": "consumable",
+      "icon": "builtin:fish_minnow",
+      "price": 4,
+      "restore": {
+        "hp": 10
+      },
+      "fish": {
+        "size": 8
+      },
+      "description": "A little silver fish. Restores a bit of health."
+    },
+    {
+      "id": "trout",
+      "name": "Trout",
+      "kind": "consumable",
+      "icon": "builtin:fish_trout",
+      "price": 14,
+      "restore": {
+        "hp": 30
+      },
+      "fish": {
+        "size": 35
+      },
+      "description": "A speckled trout, out by day. Restores health."
+    },
+    {
+      "id": "night_eel",
+      "name": "Night Eel",
+      "kind": "consumable",
+      "icon": "builtin:fish_eel",
+      "price": 18,
+      "restore": {
+        "mp": 20
+      },
+      "fish": {
+        "size": 60
+      },
+      "description": "A slippery eel that only bites after dark. Restores magic."
+    },
+    {
+      "id": "golden_koi",
+      "name": "Golden Koi",
+      "kind": "material",
+      "icon": "builtin:fish_koi",
+      "price": 160,
+      "rarity": "rare",
+      "fish": {
+        "size": 50
+      },
+      "description": "A rare golden fish. Collectors pay well for one."
+    },
+    {
+      "id": "old_boot",
+      "name": "Old Boot",
+      "kind": "material",
+      "icon": "builtin:boot",
+      "price": 1,
+      "description": "Not a fish. Someone lost this a long time ago."
+    },
+    {
+      "id": "fur",
+      "name": "Fur",
+      "kind": "material",
+      "icon": "builtin:fist",
+      "price": 25,
+      "description": "Soft and warm, perfect for a cloak or blanket."
+    },
+    {
+      "id": "speed_boost_item",
+      "name": "Speed Boost Item",
+      "kind": "consumable",
+      "icon": "builtin:potion",
+      "price": 10,
+      "restore": {
+        "hp": 20
+      },
+      "buffs": [
+        {
+          "buff": "dex"
+        }
+      ],
+      "statRank": {
+        "stat": "dex",
+        "rank": "A"
+      }
+    },
+    {
+      "id": "saddle",
+      "name": "Saddle",
+      "kind": "key",
+      "icon": "builtin:saddle",
+      "description": "Your rented horse's saddle. Use it to send the horse home to its stable.",
+      "saddle": true
+    },
+    {
+      "id": "ess_water_fragment",
+      "name": "Water Fragment",
+      "kind": "material",
+      "icon": "builtin:ess_fragment_water",
+      "price": 8,
+      "stack": 99,
+      "essence": {
+        "element": "water",
+        "tier": "fragment"
+      },
+      "description": "A chip of water power, dropped by water monsters. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_water_shard",
+      "name": "Water Shard",
+      "kind": "material",
+      "icon": "builtin:ess_shard_water",
+      "price": 240,
+      "stack": 99,
+      "essence": {
+        "element": "water",
+        "tier": "shard"
+      },
+      "description": "A whole shard of water power. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_water_heart",
+      "name": "Water Heart Stone",
+      "kind": "material",
+      "icon": "builtin:ess_heart_water",
+      "price": 3000,
+      "stack": 9,
+      "essence": {
+        "element": "water",
+        "tier": "heart"
+      },
+      "description": "The heart of water power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_fire_fragment",
+      "name": "Fire Fragment",
+      "kind": "material",
+      "icon": "builtin:ess_fragment_fire",
+      "price": 8,
+      "stack": 99,
+      "essence": {
+        "element": "fire",
+        "tier": "fragment"
+      },
+      "description": "A chip of fire power, dropped by fire monsters. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_fire_shard",
+      "name": "Fire Shard",
+      "kind": "material",
+      "icon": "builtin:ess_shard_fire",
+      "price": 240,
+      "stack": 99,
+      "essence": {
+        "element": "fire",
+        "tier": "shard"
+      },
+      "description": "A whole shard of fire power. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_fire_heart",
+      "name": "Fire Heart Stone",
+      "kind": "material",
+      "icon": "builtin:ess_heart_fire",
+      "price": 3000,
+      "stack": 9,
+      "essence": {
+        "element": "fire",
+        "tier": "heart"
+      },
+      "description": "The heart of fire power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_nature_fragment",
+      "name": "Nature Fragment",
+      "kind": "material",
+      "icon": "builtin:ess_fragment_nature",
+      "price": 8,
+      "stack": 99,
+      "essence": {
+        "element": "nature",
+        "tier": "fragment"
+      },
+      "description": "A chip of nature power, dropped by nature monsters. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_nature_shard",
+      "name": "Nature Shard",
+      "kind": "material",
+      "icon": "builtin:ess_shard_nature",
+      "price": 240,
+      "stack": 99,
+      "essence": {
+        "element": "nature",
+        "tier": "shard"
+      },
+      "description": "A whole shard of nature power. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_nature_heart",
+      "name": "Nature Heart Stone",
+      "kind": "material",
+      "icon": "builtin:ess_heart_nature",
+      "price": 3000,
+      "stack": 9,
+      "essence": {
+        "element": "nature",
+        "tier": "heart"
+      },
+      "description": "The heart of nature power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_earth_fragment",
+      "name": "Earth Fragment",
+      "kind": "material",
+      "icon": "builtin:ess_fragment_earth",
+      "price": 8,
+      "stack": 99,
+      "essence": {
+        "element": "earth",
+        "tier": "fragment"
+      },
+      "description": "A chip of earth power, dropped by earth monsters. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_earth_shard",
+      "name": "Earth Shard",
+      "kind": "material",
+      "icon": "builtin:ess_shard_earth",
+      "price": 240,
+      "stack": 99,
+      "essence": {
+        "element": "earth",
+        "tier": "shard"
+      },
+      "description": "A whole shard of earth power. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_earth_heart",
+      "name": "Earth Heart Stone",
+      "kind": "material",
+      "icon": "builtin:ess_heart_earth",
+      "price": 3000,
+      "stack": 9,
+      "essence": {
+        "element": "earth",
+        "tier": "heart"
+      },
+      "description": "The heart of earth power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_shock_fragment",
+      "name": "Shock Fragment",
+      "kind": "material",
+      "icon": "builtin:ess_fragment_shock",
+      "price": 8,
+      "stack": 99,
+      "essence": {
+        "element": "shock",
+        "tier": "fragment"
+      },
+      "description": "A chip of shock power, dropped by shock monsters. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_shock_shard",
+      "name": "Shock Shard",
+      "kind": "material",
+      "icon": "builtin:ess_shard_shock",
+      "price": 240,
+      "stack": 99,
+      "essence": {
+        "element": "shock",
+        "tier": "shard"
+      },
+      "description": "A whole shard of shock power. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_shock_heart",
+      "name": "Shock Heart Stone",
+      "kind": "material",
+      "icon": "builtin:ess_heart_shock",
+      "price": 3000,
+      "stack": 9,
+      "essence": {
+        "element": "shock",
+        "tier": "heart"
+      },
+      "description": "The heart of shock power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_light_fragment",
+      "name": "Light Fragment",
+      "kind": "material",
+      "icon": "builtin:ess_fragment_light",
+      "price": 8,
+      "stack": 99,
+      "essence": {
+        "element": "light",
+        "tier": "fragment"
+      },
+      "description": "A chip of light power, dropped by light monsters. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_light_shard",
+      "name": "Light Shard",
+      "kind": "material",
+      "icon": "builtin:ess_shard_light",
+      "price": 240,
+      "stack": 99,
+      "essence": {
+        "element": "light",
+        "tier": "shard"
+      },
+      "description": "A whole shard of light power. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_light_heart",
+      "name": "Light Heart Stone",
+      "kind": "material",
+      "icon": "builtin:ess_heart_light",
+      "price": 3000,
+      "stack": 9,
+      "essence": {
+        "element": "light",
+        "tier": "heart"
+      },
+      "description": "The heart of light power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_dark_fragment",
+      "name": "Dark Fragment",
+      "kind": "material",
+      "icon": "builtin:ess_fragment_dark",
+      "price": 8,
+      "stack": 99,
+      "essence": {
+        "element": "dark",
+        "tier": "fragment"
+      },
+      "description": "A chip of dark power, dropped by dark monsters. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_dark_shard",
+      "name": "Dark Shard",
+      "kind": "material",
+      "icon": "builtin:ess_shard_dark",
+      "price": 240,
+      "stack": 99,
+      "essence": {
+        "element": "dark",
+        "tier": "shard"
+      },
+      "description": "A whole shard of dark power. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "ess_dark_heart",
+      "name": "Dark Heart Stone",
+      "kind": "material",
+      "icon": "builtin:ess_heart_dark",
+      "price": 3000,
+      "stack": 9,
+      "essence": {
+        "element": "dark",
+        "tier": "heart"
+      },
+      "description": "The heart of dark power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element."
+    },
+    {
+      "id": "lockpick",
+      "name": "Lockpick",
+      "kind": "key",
+      "icon": "builtin:lockpick",
+      "price": 25,
+      "stack": 99,
+      "lockpick": true,
+      "description": "A thin steel pick for locks. It snaps if you force a lock in the wrong spot."
+    },
+    {
+      "id": "outfit_traveler",
+      "name": "Traveler’s Clothes",
+      "kind": "equipment",
+      "slot": "armor",
+      "icon": "builtin:tunic",
+      "price": 40,
+      "defense": 2,
+      "warmth": 3,
+      "description": "A sturdy shirt and pants for the road.",
+      "worn": {
+        "top": {
+          "part": "torso_clothes_longsleeve",
+          "swatch": 4
+        },
+        "bottom": {
+          "part": "legs_pants",
+          "swatch": 0
+        }
+      },
+      "material": "iron_ingot"
+    },
+    {
+      "id": "outfit_leather",
+      "name": "Leather Armor",
+      "kind": "equipment",
+      "slot": "armor",
+      "icon": "builtin:leather_armor",
+      "price": 120,
+      "defense": 5,
+      "warmth": 4,
+      "description": "Boiled leather over a padded shirt.",
+      "worn": {
+        "top": {
+          "part": "torso_armour_leather"
+        },
+        "bottom": {
+          "part": "legs_pants2",
+          "swatch": 4
+        }
+      },
+      "material": "iron_ingot"
+    },
+    {
+      "id": "outfit_chainmail",
+      "name": "Chainmail Shirt",
+      "kind": "equipment",
+      "slot": "armor",
+      "icon": "builtin:chainmail",
+      "price": 260,
+      "defense": 8,
+      "warmth": 2,
+      "description": "Rings of steel over cuffed pants.",
+      "worn": {
+        "top": {
+          "part": "torso_chainmail"
+        },
+        "bottom": {
+          "part": "legs_cuffed",
+          "swatch": 7
+        }
+      },
+      "material": "iron_ingot"
+    },
+    {
+      "id": "outfit_plate",
+      "name": "Plate Armor",
+      "kind": "equipment",
+      "slot": "armor",
+      "icon": "builtin:plate_armor",
+      "price": 600,
+      "defense": 12,
+      "warmth": 1,
+      "rarity": "rare",
+      "description": "Full plate: chest and greaves.",
+      "worn": {
+        "top": {
+          "part": "torso_armour_plate"
+        },
+        "bottom": {
+          "part": "legs_armour"
+        }
+      },
+      "material": "iron_ingot"
+    },
+    {
+      "id": "outfit_cape",
+      "name": "Wanderer’s Cape",
+      "kind": "equipment",
+      "slot": "accessory",
+      "icon": "builtin:cloak",
+      "price": 60,
+      "defense": 1,
+      "warmth": 4,
+      "description": "A long cloth cape against the wind.",
+      "worn": {
+        "accessory": {
+          "part": "cape_solid",
+          "swatch": 1
+        }
+      },
+      "material": "gold_ingot"
+    },
+    {
+      "id": "outfit_necklace",
+      "name": "Beaded Necklace",
+      "kind": "equipment",
+      "slot": "accessory",
+      "icon": "builtin:amulet",
+      "price": 30,
+      "description": "Painted wooden beads on a cord.",
+      "worn": {
+        "accessory": {
+          "part": "neck_necklace_beaded_small",
+          "swatch": 6
+        }
+      },
+      "material": "gold_ingot"
+    },
+    {
+      "id": "storm_ring",
+      "name": "Storm Ring",
+      "kind": "key",
+      "icon": "builtin:ring_ember",
+      "field": {
+        "use": "weather"
+      },
+      "description": "Use it outdoors to change the weather here.",
+      "iconTint": "#3ab8c8"
+    },
+    {
+      "id": "smash_hammer",
+      "name": "Smash Hammer",
+      "kind": "key",
+      "icon": "builtin:hammer",
+      "field": {
+        "use": "smash"
+      },
+      "description": "Use it facing a boulder or ore vein to break it in one blow, no pickaxe needed.",
+      "iconTint": "#ff9a2a"
+    },
+    {
+      "id": "dark_pumpkin_core",
+      "name": "Dark Pumpkin Core",
+      "kind": "material",
+      "icon": "builtin:pumpkin",
+      "price": 1,
+      "description": "Used to corrupt The Great Pumpkin's minions. With enough of them, the spell can be reversed.",
+      "iconTint": "#2a2a30"
+    },
+    {
+      "id": "pumpkin_head",
+      "name": "Pumpkin Head",
+      "kind": "equipment",
+      "slot": "accessory",
+      "icon": "builtin:pumpkin",
+      "price": 1,
+      "defense": 5,
+      "description": "A gift from The Great Pumpkin for completing his quest. (Halloween 2026 Event)",
+      "rarity": "rare",
+      "magicDefense": 5,
+      "warmth": 3,
+      "material": "gold_ingot",
+      "worn": {}
+    },
+    {
+      "id": "key_cut",
+      "name": "Machete",
+      "kind": "key",
+      "icon": "builtin:sword",
+      "description": "A broad blade for vines, thin trees and crates.",
+      "field": {
+        "use": "cut",
+        "damage": 10
+      }
+    },
+    {
+      "id": "key_bow",
+      "name": "Hunting Bow",
+      "kind": "key",
+      "icon": "builtin:bow",
+      "description": "For switches and targets out of reach.",
+      "field": {
+        "use": "bow",
+        "damage": 10
+      }
+    }
+  ],
+  "enemies": [
+    {
+      "id": "slime",
+      "name": "Green Slime",
+      "look": {
+        "image": "assets/enemies/slime_mvbnipsk.png",
+        "flat": {}
+      },
+      "hp": 22,
+      "damage": 6,
+      "speed": 1.5,
+      "behaviour": "melee",
+      "attackRange": 0.8,
+      "cooldown": 1.5,
+      "windup": 0.55,
+      "sight": 5,
+      "fov": 160,
+      "hearing": 4,
+      "xp": 8,
+      "gold": [
+        0,
+        3
+      ],
+      "drops": [
+        {
+          "item": "potion",
+          "chance": 0.1
+        }
+      ],
+      "elements": [
+        "nature"
+      ],
+      "resists": [
+        "poison"
+      ],
+      "attackElement": "nature",
+      "actions": [
+        {
+          "name": "",
+          "kind": "attack"
+        }
+      ],
+      "defense": 80,
+      "tint": {
+        "color": "#1eff00",
+        "amount": 0.65,
+        "hue": -50,
+        "sat": 1.25
+      },
+      "battleOffset": -0.15
+    },
+    {
+      "id": "slime_copy",
+      "name": "Red Slime",
+      "look": {
+        "image": "assets/enemies/slime_mvbnipsk.png",
+        "flat": {}
+      },
+      "hp": 22,
+      "damage": 6,
+      "speed": 1.5,
+      "behaviour": "melee",
+      "attackRange": 0.8,
+      "cooldown": 1.5,
+      "windup": 0.55,
+      "sight": 5,
+      "fov": 160,
+      "hearing": 4,
+      "xp": 8,
+      "gold": [
+        0,
+        3
+      ],
+      "drops": [
+        {
+          "item": "potion",
+          "chance": 0.1
+        }
+      ],
+      "elements": [
+        "fire"
+      ],
+      "resists": [
+        "poison"
+      ],
+      "attackElement": "nature",
+      "actions": [
+        {
+          "name": "",
+          "kind": "attack"
+        }
+      ],
+      "defense": 80,
+      "tint": {
+        "color": "#ff4d00",
+        "amount": 0.5,
+        "hue": 180
+      },
+      "battleOffset": -0.15
+    },
+    {
+      "id": "bandit",
+      "name": "Kobold Bandit",
+      "look": {
+        "image": "assets/enemies/bandit_mvcyf0k7.png",
+        "flat": {}
+      },
+      "hp": 42,
+      "damage": 11,
+      "defense": 5,
+      "speed": 2.6,
+      "behaviour": "melee",
+      "attackRange": 1,
+      "cooldown": 1.6,
+      "windup": 0.45,
+      "sight": 8,
+      "fov": 110,
+      "hearing": 6,
+      "xp": 24,
+      "gold": [
+        4,
+        12
+      ],
+      "drops": [
+        {
+          "item": "steel_arrow",
+          "chance": 0.4,
+          "count": 5
+        },
+        {
+          "item": "potion",
+          "chance": 0.2
+        }
+      ]
+    },
+    {
+      "id": "bandit_archer",
+      "name": "Terror Vine",
+      "look": {
+        "image": "assets/enemies/bandit_archer_mvcyi4n5.png",
+        "flat": {
+          "height": 1.25
+        }
+      },
+      "hp": 10,
+      "damage": 5,
+      "speed": 2.4,
+      "behaviour": "melee",
+      "attackRange": 1,
+      "cooldown": 2.2,
+      "windup": 0.7,
+      "sight": 10,
+      "fov": 100,
+      "hearing": 6,
+      "xp": 18,
+      "gold": [
+        5,
+        7
+      ],
+      "drops": [
+        {
+          "item": "firewood",
+          "chance": 0.3
+        }
+      ],
+      "tint": {
+        "sat": 1.85,
+        "hue": 25
+      },
+      "battleOffset": -0.15,
+      "hpVariance": 10,
+      "absorb": [
+        "water",
+        "nature"
+      ],
+      "inflicts": [
+        {
+          "ailment": "poison",
+          "chance": 20
+        }
+      ],
+      "resists": [
+        "poison"
+      ],
+      "attackElement": "nature",
+      "description": "Thorny spines given a twisted amalgamation of life by a cruel wizard. Attacks with venomous thorns!"
+    },
+    {
+      "id": "enemy",
+      "name": "Dire Beast",
+      "look": {
+        "image": "assets/enemies/enemy_mvcyomqu.png",
+        "flat": {
+          "move": "hop",
+          "faces": "left",
+          "height": 2
+        }
+      },
+      "hp": 40,
+      "damage": 10,
+      "speed": 2,
+      "behaviour": "charger",
+      "attackRange": 3.5,
+      "cooldown": 1.5,
+      "windup": 0.5,
+      "sight": 6,
+      "fov": 140,
+      "hearing": 5,
+      "xp": 25,
+      "gold": [
+        0,
+        15
+      ],
+      "drops": [
+        {
+          "item": "potion",
+          "chance": 0.25
+        }
+      ],
+      "hpVariance": 10,
+      "elements": [
+        "nature"
+      ],
+      "inflicts": [
+        {
+          "ailment": "stagger",
+          "chance": 20
+        }
+      ],
+      "attackElement": "neutral"
+    },
+    {
+      "id": "enemy_2",
+      "name": "Wild Beast",
+      "look": {
+        "image": "assets/enemies/enemy_2_mvcynwbr.png",
+        "flat": {}
+      },
+      "hp": 20,
+      "damage": 6,
+      "speed": 1.6,
+      "behaviour": "melee",
+      "attackRange": 0.9,
+      "cooldown": 1.5,
+      "windup": 0.5,
+      "sight": 6,
+      "fov": 140,
+      "hearing": 5,
+      "xp": 10,
+      "gold": [
+        0,
+        4
+      ],
+      "drops": []
+    },
+    {
+      "id": "enemy_3",
+      "name": "Haunted Pumpkin",
+      "look": {
+        "image": "assets/enemies/enemy_3_mvoe1jg4.png",
+        "flat": {
+          "move": "hop",
+          "faces": "left"
+        }
+      },
+      "hp": 10,
+      "damage": 6,
+      "speed": 1.6,
+      "behaviour": "melee",
+      "attackRange": 0.9,
+      "cooldown": 1.5,
+      "windup": 0.5,
+      "sight": 6,
+      "fov": 140,
+      "hearing": 5,
+      "xp": 10,
+      "gold": [
+        13,
+        13
+      ],
+      "drops": [
+        {
+          "item": "dark_pumpkin_core",
+          "chance": 0.25
+        }
+      ],
+      "undead": true,
+      "material": "plant",
+      "elements": [
+        "nature",
+        "dark"
+      ],
+      "actions": [
+        {
+          "name": "Harden",
+          "kind": "buff",
+          "buffs": [
+            {
+              "buff": "def",
+              "amount": 15
+            }
+          ]
+        }
+      ],
+      "description": "A corrupted minion of The Great Pumpkin. These cute holiday creatures now swirl with dark and spooky energy!"
+    }
+  ],
+  "quests": [
+    {
+      "id": "first_night",
+      "name": "A Place by the Fire",
+      "kind": "main",
+      "location": "The meadow road",
+      "description": "You've arrived on the meadow road as the light fades. Find someone who knows the area, and somewhere warm to spend the night.",
+      "inOrder": true,
+      "autoComplete": true,
+      "objectives": [
+        {
+          "id": "meet_mira",
+          "text": "Find someone to talk to",
+          "kind": "task"
+        },
+        {
+          "id": "rest",
+          "text": "Rest at the campfire",
+          "kind": "task"
+        }
+      ],
+      "rewards": {
+        "xp": 15,
+        "skillPoints": 1
+      }
+    },
+    {
+      "id": "slime_trouble",
+      "name": "Slime Trouble",
+      "kind": "side",
+      "giver": "Mira",
+      "location": "Mira's camp",
+      "description": "Slimes have been getting into Mira's supplies. She'd be grateful if someone thinned them out.",
+      "objectives": [
+        {
+          "id": "slimes",
+          "text": "Defeat green slimes",
+          "kind": "defeat",
+          "enemy": "slime",
+          "count": 3
+        },
+        {
+          "id": "ember",
+          "text": "Put out the ember slime by the fire",
+          "kind": "defeat",
+          "enemy": "ember_slime",
+          "optional": true
+        }
+      ],
+      "turnIn": "Return to Mira",
+      "rewards": {
+        "gold": 40,
+        "xp": 30,
+        "items": [
+          {
+            "item": "potion",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "explore_the_woods",
+      "name": "Explore the Woods",
+      "kind": "main",
+      "objectives": [
+        {
+          "id": "find_alice",
+          "text": "Find Alice",
+          "kind": "task",
+          "optional": true
+        },
+        {
+          "id": "explore_the_woods",
+          "text": "Explore the Woods",
+          "kind": "task"
+        },
+        {
+          "id": "defeat_the_bandit_archers",
+          "text": "Defeat the Bandit Archers",
+          "kind": "defeat",
+          "enemy": "bandit_archer",
+          "count": 2
+        }
+      ],
+      "location": "Monolith Woods",
+      "description": "Search the woods for your sister, Alice.",
+      "rewards": {
+        "xp": 100
+      },
+      "inOrder": true,
+      "autoComplete": true
+    },
+    {
+      "id": "rotten_to_the_core",
+      "name": "Rotten to the Core",
+      "kind": "side",
+      "objectives": [
+        {
+          "id": "collect_10_dark_pumpkin_cores",
+          "text": "Collect 10 Dark Pumpkin Cores.",
+          "kind": "collect",
+          "item": "dark_pumpkin_core",
+          "count": 10
+        }
+      ],
+      "giver": "The Great Pumpkin",
+      "location": "Monolith Woods",
+      "description": "The Great Pumpkin's minions have been corrupted by mysterious dark magic. If we can defeat enough of them and collect their Dark Pumpkin Cores, the Great Pumpkin can reverse the spell and save the others.",
+      "rewards": {
+        "xp": 150,
+        "gold": 200
+      },
+      "autoComplete": true
+    }
+  ],
+  "weather": {
+    "kind": "leaves",
+    "amount": 0.3
+  },
+  "heroes": [
+    {
+      "id": "hero",
+      "name": "Jordan",
+      "color": "#e74b4b",
+      "gender": "male",
+      "outfit": "masc",
+      "roleplay": {
+        "rp1": "Pizza",
+        "rp2": "Heterosexual",
+        "rp3": "June 1",
+        "rp4": "Old Earth",
+        "rp5": "College Student"
+      },
+      "cls": "class_titan",
+      "additions": [
+        "quick_strike"
+      ],
+      "chatter": {
+        "lines": {
+          "cold": [
+            "Reminds me of fall back home!"
+          ],
+          "freezing": [
+            "Brrr! Who wants to make a snowman?"
+          ],
+          "hot": [
+            "Phew! I could use some water!"
+          ],
+          "overheating": [
+            "We need to find some shade soon!"
+          ],
+          "wet": [
+            "Ah...! My cell phone! Damn it!"
+          ],
+          "comfortable": [
+            "Wow, that's much better!"
+          ],
+          "rain": [
+            "Should've known with those clouds..."
+          ],
+          "snow": [
+            "Alice and I used to build snow forts back home."
+          ],
+          "storm": [
+            "I hope Alice is safe..."
+          ],
+          "clear": [
+            "I always love the colors of the sky after a storm!"
+          ],
+          "windUp": [
+            "Hold on, winds picking up!"
+          ],
+          "rest": [
+            "Still no texts from Alice...",
+            "I could use a snack!"
+          ],
+          "camp": [
+            "I wonder if Alice is camping out somewhere too."
+          ]
+        }
+      }
+    },
+    {
+      "id": "hero_2",
+      "name": "Katrina",
+      "look": "katrina",
+      "color": "#6271f9",
+      "gender": "female",
+      "outfit": "femme",
+      "stats": {
+        "str": 16,
+        "dex": 12,
+        "mag": 8,
+        "def": 14,
+        "mdf": 14
+      },
+      "chatter": {
+        "amount": 1,
+        "lines": {
+          "cold": [
+            "Cold..."
+          ],
+          "freezing": [
+            "I hope Lady Eleanor is dressed warm enough..."
+          ],
+          "hot": [
+            "Warm out here..."
+          ],
+          "overheating": [
+            "I should've dressed lighter, like my Lady."
+          ],
+          "wet": [
+            "Ah... soggy boots..."
+          ],
+          "comfortable": [
+            "Mmm... much better."
+          ],
+          "rain": [
+            "Looks like rain."
+          ],
+          "snow": [
+            "I love the snow."
+          ],
+          "storm": [
+            "Mmm... I love thunderstorms."
+          ],
+          "clear": [
+            "The sunshine feels good on my face."
+          ],
+          "windUp": [
+            "Winds getting stronger."
+          ],
+          "rest": [
+            "Time to catch our breath."
+          ],
+          "camp": [
+            "Rest is just as important as training. Remember that."
+          ],
+          "newMap": [
+            "Always new places to see. Titamas is a big place."
+          ]
+        }
+      }
+    },
+    {
+      "id": "hero_3",
+      "name": "Crowley",
+      "look": "crowley",
+      "color": "#7067da",
+      "gender": "transman",
+      "stats": {
+        "str": 8,
+        "dex": 8,
+        "mag": 19,
+        "def": 11,
+        "mdf": 17
+      },
+      "elements": [
+        "dark"
+      ],
+      "absorb": [
+        "dark"
+      ],
+      "chatter": {
+        "amount": 9,
+        "lines": {
+          "cold": [
+            "Damn, its freakin' cold!"
+          ],
+          "freezing": [
+            "I'm freezing over here!"
+          ],
+          "hot": [
+            "Phew... warm out here!"
+          ],
+          "overheating": [
+            "HOT!!"
+          ],
+          "comfortable": [
+            "Ahhh! Its pretty freakin' nice out!"
+          ],
+          "rain": [
+            "Oh no! My hair! My beautiful hair!"
+          ],
+          "wet": [
+            "Oh, damn it!  My robes are drenched!"
+          ],
+          "snow": [
+            "Oooh! Pretty snow!"
+          ],
+          "storm": [
+            "EEEK! I HATE THUNDER!!!"
+          ],
+          "clear": [
+            "About damn time!"
+          ],
+          "windUp": [
+            "Oooh, my skirt! I mean... robes!"
+          ],
+          "rest": [
+            "Oh, thank the Gods! I can finally sit!"
+          ],
+          "camp": [
+            "I don't wanna ever get up again."
+          ],
+          "newMap": [
+            "NOW where the hell are we!?"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hero_4",
+      "name": "Eleanor",
+      "look": "eleanor",
+      "color": "#62dbd8",
+      "gender": "female",
+      "outfit": "femme",
+      "stats": {
+        "str": 14,
+        "dex": 18,
+        "mag": 13,
+        "def": 13,
+        "mdf": 7
+      },
+      "elements": [
+        "fire"
+      ],
+      "absorb": [
+        "fire"
+      ],
+      "resists": [
+        "burn"
+      ],
+      "chatter": {
+        "lines": {
+          "cold": [
+            "Ooh, there is a chill in the air."
+          ],
+          "freezing": [
+            "Okay, NOW I am cold!"
+          ],
+          "hot": [
+            "Good thing I dressed light..."
+          ],
+          "overheating": [
+            "If it gets any hotter, the clothes are coming off...!"
+          ],
+          "wet": [
+            "A little water never hurt anybody."
+          ],
+          "comfortable": [
+            "Mmm... much better."
+          ],
+          "rain": [
+            "Feels good on my skin!"
+          ],
+          "snow": [
+            "Bleh... elves were not made for this weather!"
+          ],
+          "storm": [
+            "I hope my horns do not get hit by lightning..."
+          ],
+          "clear": [
+            "Ah, there is the sun!"
+          ],
+          "windUp": [
+            "Something in the air..."
+          ],
+          "rest": [
+            "Take five, everyone. We cannot sit around too long."
+          ],
+          "camp": [
+            "I hate being in one place for too long. Need to keep moving."
+          ],
+          "newMap": [
+            "This place seems... familiar."
+          ]
+        }
+      }
+    },
+    {
+      "id": "hero_5",
+      "name": "Theresa",
+      "look": "hero",
+      "color": "#e0c978",
+      "gender": "female",
+      "outfit": "femme",
+      "stats": {
+        "str": 13,
+        "dex": 16,
+        "mag": 12,
+        "def": 8,
+        "mdf": 8
+      }
+    },
+    {
+      "id": "hero_6",
+      "name": "Lynn",
+      "look": "hero",
+      "color": "#51e166",
+      "gender": "transwoman",
+      "stats": {
+        "str": 16,
+        "dex": 16,
+        "mag": 8,
+        "def": 15,
+        "mdf": 8
+      },
+      "elements": [
+        "nature",
+        "light"
+      ],
+      "absorb": [
+        "water",
+        "fire",
+        "nature",
+        "earth",
+        "shock",
+        "light",
+        "dark"
+      ],
+      "resists": [
+        "zombie"
+      ]
+    }
+  ],
+  "audio": {
+    "victoryMusic": "assets/audio/battle_victory_loop.wav",
+    "files": [
+      "assets/audio/0_step_dirt1.ogg",
+      "assets/audio/0_step_grass1.ogg",
+      "assets/audio/0_step_metal1.ogg",
+      "assets/audio/0_step_snow1.ogg",
+      "assets/audio/0_step_stone1.ogg",
+      "assets/audio/0_step_water1.ogg",
+      "assets/audio/0_step_wood1.ogg",
+      "assets/audio/21_select.ogg",
+      "assets/audio/22_navigate.ogg",
+      "assets/audio/24_goback.ogg",
+      "assets/audio/28_maletalk.ogg",
+      "assets/audio/79_talk1.ogg",
+      "assets/audio/89_talk2.ogg",
+      "assets/audio/arrow_fire.wav",
+      "assets/audio/enemy_poof.wav",
+      "assets/audio/dagger_swing_01.wav",
+      "assets/audio/dagger_swing_02.wav",
+      "assets/audio/dagger_swing_03.wav",
+      "assets/audio/bow_draw.wav",
+      "assets/audio/bow_hit.wav",
+      "assets/audio/shield_hit.wav",
+      "assets/audio/fireball_hit.wav",
+      "assets/audio/fireball_throw.wav",
+      "assets/audio/greatsword_swing.wav",
+      "assets/audio/monolithwoods.wav",
+      "assets/audio/titlemusic.wav",
+      "assets/audio/forest_birds_day.wav",
+      "assets/audio/battle_victory_loop.wav",
+      "assets/audio/battle_victory_start.wav",
+      "assets/audio/combat_music.wav"
+    ],
+    "sfx": {
+      "stepGrass": "assets/audio/0_step_grass1.ogg",
+      "stepStone": "assets/audio/0_step_stone1.ogg",
+      "stepSand": "assets/audio/0_step_snow1.ogg",
+      "stepWater": "assets/audio/0_step_water1.ogg",
+      "stepCarpet": "assets/audio/0_step_wood1.ogg",
+      "stepDirt": "assets/audio/0_step_dirt1.ogg",
+      "stepWood": "assets/audio/0_step_wood1.ogg",
+      "stepSnow": "assets/audio/0_step_snow1.ogg",
+      "stepMetal": "assets/audio/0_step_metal1.ogg",
+      "textTick": "assets/audio/28_maletalk.ogg",
+      "shoot": "assets/audio/arrow_fire.wav",
+      "defeat": "assets/audio/enemy_poof.wav",
+      "swing": "assets/audio/dagger_swing_01.wav",
+      "swingHeavy": "assets/audio/greatsword_swing.wav",
+      "draw": "assets/audio/bow_draw.wav",
+      "arrowHit": "assets/audio/bow_hit.wav",
+      "block": "assets/audio/shield_hit.wav",
+      "fire": "assets/audio/fireball_throw.wav",
+      "fireHit": "assets/audio/fireball_hit.wav"
+    },
+    "titleMusic": "assets/audio/titlemusic.wav"
+  },
+  "menus": {
+    "titleText": "Titamas",
+    "subtitle": "Chapter 1. Arcturus",
+    "titleBackground": {
+      "kind": "image",
+      "image": "assets/title/title_mvh3gpiw.webp"
+    },
+    "partyLayout": {
+      "panels": [
+        {
+          "x": 15,
+          "y": 1,
+          "w": 25,
+          "h": 40,
+          "size": "medium"
+        },
+        {
+          "x": 45,
+          "y": 1,
+          "w": 25,
+          "h": 30,
+          "size": "medium"
+        },
+        {
+          "x": 45,
+          "y": 34,
+          "w": 25,
+          "h": 30,
+          "size": "medium"
+        },
+        {
+          "x": 45,
+          "y": 67,
+          "w": 25,
+          "h": 30,
+          "size": "medium"
+        }
+      ]
+    },
+    "barFill": "flat",
+    "barShape": "rect",
+    "orbStyle": "flat"
+  },
+  "troops": [
+    {
+      "id": "troop",
+      "name": "New troop",
+      "members": [
+        {
+          "enemy": "slime",
+          "min": 1,
+          "max": 3
+        },
+        {
+          "enemy": "ember_slime",
+          "min": 1,
+          "max": 2
+        }
+      ],
+      "pick": "random"
+    },
+    {
+      "id": "troop_2",
+      "name": "New troop2",
+      "members": []
+    }
+  ],
+  "skills": {
+    "trees": [
+      {
+        "id": "might",
+        "name": "Might",
+        "color": "#e8784e"
+      },
+      {
+        "id": "dexterity",
+        "name": "Dexterity",
+        "color": "#7cc46a"
+      },
+      {
+        "id": "magic",
+        "name": "Magic",
+        "color": "#7aa8ff"
+      },
+      {
+        "id": "vitality",
+        "name": "Vitality",
+        "color": "#e6c25a"
+      },
+      {
+        "id": "tree",
+        "name": "Additions",
+        "color": "#c8a0ff"
+      },
+      {
+        "id": "party",
+        "name": "Party",
+        "color": "#5ac8c0",
+        "shared": true
+      },
+      {
+        "id": "tree_2",
+        "name": "Titan",
+        "color": "#9b2222"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "fighter",
+        "tree": "might",
+        "name": "Fighter",
+        "x": 2,
+        "y": 0,
+        "effects": [
+          {
+            "stat": "meleeDamage",
+            "value": 5
+          }
+        ],
+        "description": "The basics of the blade. Opens the Might tree.",
+        "teachesAddition": "quick_strike"
+      },
+      {
+        "id": "quick_hands",
+        "tree": "might",
+        "name": "Quick Hands",
+        "x": 0,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "agi",
+            "value": 2
+          }
+        ],
+        "parents": [
+          "fighter"
+        ],
+        "ranks": 3,
+        "description": "Quicker in battle: Agility up, so turns come round sooner."
+      },
+      {
+        "id": "steady_guard",
+        "tree": "might",
+        "name": "Steady Guard",
+        "x": 0,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "guardHeal",
+            "value": 5
+          }
+        ],
+        "parents": [
+          "quick_hands"
+        ],
+        "ranks": 2,
+        "description": "Guard gives back more health."
+      },
+      {
+        "id": "heavy_blows",
+        "tree": "might",
+        "name": "Heavy Blows",
+        "x": 2,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "meleeDamage",
+            "value": 10
+          }
+        ],
+        "parents": [
+          "fighter"
+        ],
+        "ranks": 3,
+        "description": "Every melee hit does more damage."
+      },
+      {
+        "id": "arms_training",
+        "tree": "might",
+        "name": "Arms Training",
+        "x": 4,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "meleeDamage",
+            "value": 3
+          },
+          {
+            "stat": "proficientMedium",
+            "value": 1
+          }
+        ],
+        "parents": [
+          "fighter"
+        ],
+        "description": "Trained with medium weapons (longswords, rapiers): untrained, they hit for three quarters. Opens the masteries."
+      },
+      {
+        "id": "heavy_arms",
+        "tree": "might",
+        "name": "Heavy Arms",
+        "x": 6,
+        "y": 1.6,
+        "effects": [
+          {
+            "stat": "proficientHeavy",
+            "value": 1
+          }
+        ],
+        "parents": [
+          "arms_training"
+        ],
+        "level": 3,
+        "description": "Trained with heavy weapons (greatswords, great axes, hammers): untrained, they hit for three quarters."
+      },
+      {
+        "id": "light_mastery",
+        "tree": "might",
+        "name": "Light Mastery",
+        "x": 3,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "lightDamage",
+            "value": 15
+          },
+          {
+            "stat": "crit",
+            "value": 3
+          }
+        ],
+        "parents": [
+          "arms_training"
+        ],
+        "ranks": 2,
+        "description": "Daggers and short swords: deadlier, with more critical hits."
+      },
+      {
+        "id": "medium_mastery",
+        "tree": "might",
+        "name": "Medium Mastery",
+        "x": 4,
+        "y": 2.4,
+        "effects": [
+          {
+            "stat": "mediumDamage",
+            "value": 15
+          },
+          {
+            "stat": "crit",
+            "value": 2
+          }
+        ],
+        "parents": [
+          "arms_training"
+        ],
+        "ranks": 2,
+        "description": "Longswords and rapiers: the balanced path."
+      },
+      {
+        "id": "heavy_mastery",
+        "tree": "might",
+        "name": "Heavy Mastery",
+        "x": 5,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "heavyDamage",
+            "value": 20
+          }
+        ],
+        "parents": [
+          "heavy_arms"
+        ],
+        "ranks": 2,
+        "description": "Greatswords and great axes hit even harder."
+      },
+      {
+        "id": "double_slash",
+        "tree": "might",
+        "name": "Double Slash",
+        "x": 1,
+        "y": 2,
+        "effects": [],
+        "parents": [
+          "quick_hands"
+        ],
+        "teachesAddition": "double_slash",
+        "description": "An Addition: two timed strikes."
+      },
+      {
+        "id": "volley",
+        "tree": "might",
+        "name": "Volley",
+        "x": 2,
+        "y": 3,
+        "effects": [],
+        "parents": [
+          "heavy_blows"
+        ],
+        "level": 4,
+        "teachesAddition": "volley",
+        "description": "An Addition: four timed strikes with mixed buttons."
+      },
+      {
+        "id": "crescent_storm",
+        "tree": "might",
+        "name": "Crescent Storm",
+        "x": 2,
+        "y": 4,
+        "effects": [],
+        "parents": [
+          "volley"
+        ],
+        "level": 10,
+        "cost": 2,
+        "teachesAddition": "crescent_storm",
+        "description": "An Addition: seven fast strikes."
+      },
+      {
+        "id": "archer",
+        "tree": "dexterity",
+        "name": "Archer",
+        "x": 1,
+        "y": 0,
+        "effects": [
+          {
+            "stat": "bowDamage",
+            "value": 10
+          }
+        ],
+        "description": "Arrows fly true. Opens archery."
+      },
+      {
+        "id": "steady_draw",
+        "tree": "dexterity",
+        "name": "Steady Draw",
+        "x": 0,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "dex",
+            "value": 2
+          }
+        ],
+        "parents": [
+          "archer"
+        ],
+        "ranks": 2,
+        "description": "A steadier hand: Dexterity up (aim, critical hits, bow damage)."
+      },
+      {
+        "id": "eagle_eye",
+        "tree": "dexterity",
+        "name": "Eagle Eye",
+        "x": 2,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "bowRange",
+            "value": 25
+          }
+        ],
+        "parents": [
+          "archer"
+        ],
+        "ranks": 2,
+        "description": "Lock on to enemies further away with a bow: spot them first and snipe one to start the battle with the first turns."
+      },
+      {
+        "id": "power_shot",
+        "tree": "dexterity",
+        "name": "Power Shot",
+        "x": 1,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "bowDamage",
+            "value": 15
+          }
+        ],
+        "parents": [
+          "steady_draw"
+        ],
+        "ranks": 2,
+        "description": "Arrows hit harder."
+      },
+      {
+        "id": "shadow",
+        "tree": "dexterity",
+        "name": "Shadow",
+        "x": 4,
+        "y": 0,
+        "effects": [
+          {
+            "stat": "sneakHide",
+            "value": 25
+          }
+        ],
+        "description": "Harder to see while sneaking: slip past foes, or catch them unaware for the first turns. Opens stealth."
+      },
+      {
+        "id": "light_step",
+        "tree": "dexterity",
+        "name": "Light Step",
+        "x": 3,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "quietSteps",
+            "value": 30
+          }
+        ],
+        "parents": [
+          "shadow"
+        ],
+        "ranks": 2,
+        "description": "Make less noise while sneaking."
+      },
+      {
+        "id": "backstab",
+        "tree": "dexterity",
+        "name": "Backstab",
+        "x": 5,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "crit",
+            "value": 4
+          }
+        ],
+        "parents": [
+          "shadow"
+        ],
+        "ranks": 2,
+        "description": "Find the weak spots: more critical hits."
+      },
+      {
+        "id": "silent_shot",
+        "tree": "dexterity",
+        "name": "Silent Shot",
+        "x": 3,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "silentShot",
+            "value": 1
+          }
+        ],
+        "parents": [
+          "light_step",
+          "archer"
+        ],
+        "description": "An arrow from 5 tiles or more at a foe that hasn’t noticed you wounds it before the battle starts (and can finish it)."
+      },
+      {
+        "id": "assassinate",
+        "tree": "dexterity",
+        "name": "Assassinate",
+        "x": 5,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "assassinate",
+            "value": 1
+          }
+        ],
+        "parents": [
+          "backstab"
+        ],
+        "level": 5,
+        "description": "A sword strike on an ordinary foe that hasn’t noticed you ends it on the spot: no battle (not bosses)."
+      },
+      {
+        "id": "fire",
+        "tree": "magic",
+        "name": "Arcana",
+        "x": 2,
+        "y": 0,
+        "effects": [
+          {
+            "stat": "spellDamage",
+            "value": 10
+          }
+        ],
+        "description": "Spell bolts hit harder, and learn Fire. Opens the Magic tree.",
+        "teachesSpell": "fire"
+      },
+      {
+        "id": "thrift",
+        "tree": "magic",
+        "name": "Mana Thrift",
+        "x": 1,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "spellCost",
+            "value": 10
+          }
+        ],
+        "parents": [
+          "fire"
+        ],
+        "ranks": 3,
+        "description": "Every spell costs less magic: bolts, and Light and Water Walk to cast and to keep going."
+      },
+      {
+        "id": "empower",
+        "tree": "magic",
+        "name": "Empower",
+        "x": 3,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "spellDamage",
+            "value": 10
+          }
+        ],
+        "parents": [
+          "fire"
+        ],
+        "ranks": 3,
+        "description": "Spell bolts hit harder still, and Fire ranks up (Fire II, Fire III).",
+        "teachesSpell": "fire",
+        "spellRankFrom": 2
+      },
+      {
+        "id": "frost_lore",
+        "tree": "magic",
+        "name": "Frost Lore",
+        "x": 0,
+        "y": 1,
+        "effects": [],
+        "parents": [
+          "fire"
+        ],
+        "ranks": 3,
+        "teachesSpell": "frost",
+        "description": "Learn Frost; more ranks raise it."
+      },
+      {
+        "id": "storm_lore",
+        "tree": "magic",
+        "name": "Storm Lore",
+        "x": 4,
+        "y": 2,
+        "effects": [],
+        "parents": [
+          "empower"
+        ],
+        "ranks": 3,
+        "level": 5,
+        "teachesSpell": "spark",
+        "description": "Learn Spark, lightning on every foe; more ranks raise it."
+      },
+      {
+        "id": "radiance",
+        "tree": "magic",
+        "name": "Radiance",
+        "x": 1,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "lightReach",
+            "value": 25
+          }
+        ],
+        "parents": [
+          "thrift"
+        ],
+        "ranks": 2,
+        "description": "The Light spell shines further."
+      },
+      {
+        "id": "far_cast",
+        "tree": "magic",
+        "name": "Far Cast",
+        "x": 3,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "spellRange",
+            "value": 25
+          }
+        ],
+        "parents": [
+          "empower"
+        ],
+        "ranks": 2,
+        "description": "Spell bolts fly further."
+      },
+      {
+        "id": "toughness",
+        "tree": "vitality",
+        "name": "Toughness",
+        "x": 0,
+        "y": 0,
+        "effects": [
+          {
+            "stat": "maxHp",
+            "value": 20
+          }
+        ],
+        "ranks": 5,
+        "description": "More health."
+      },
+      {
+        "id": "endurance",
+        "tree": "vitality",
+        "name": "Endurance",
+        "x": 2,
+        "y": 0,
+        "effects": [
+          {
+            "stat": "maxSp",
+            "value": 20
+          }
+        ],
+        "ranks": 5,
+        "description": "More stamina."
+      },
+      {
+        "id": "focus",
+        "tree": "vitality",
+        "name": "Focus",
+        "x": 4,
+        "y": 0,
+        "effects": [
+          {
+            "stat": "maxMp",
+            "value": 15
+          }
+        ],
+        "ranks": 5,
+        "description": "More magic."
+      },
+      {
+        "id": "mending",
+        "tree": "vitality",
+        "name": "Mending",
+        "x": 6,
+        "y": 0,
+        "effects": [],
+        "ranks": 3,
+        "teachesSpell": "mend",
+        "description": "Learn Mend, healing for one of the party; more ranks raise it."
+      },
+      {
+        "id": "quick_strike",
+        "tree": "tree",
+        "name": "Quick Strike",
+        "x": 0,
+        "y": 0,
+        "effects": [],
+        "teachesAddition": "quick_strike",
+        "description": "One clean cut!"
+      },
+      {
+        "id": "skill",
+        "tree": "tree",
+        "name": "Double Slash",
+        "x": 0,
+        "y": 1,
+        "effects": [],
+        "description": "Dart would be proud.",
+        "parents": [
+          "quick_strike"
+        ],
+        "teachesAddition": "double_slash"
+      },
+      {
+        "id": "fellowship",
+        "tree": "party",
+        "name": "Fellowship",
+        "x": 3,
+        "y": 0,
+        "effects": [
+          {
+            "stat": "maxHp",
+            "value": 10
+          },
+          {
+            "stat": "maxSp",
+            "value": 10
+          }
+        ],
+        "description": "The party sticks together: more health and stamina for everyone. Opens the Party tree."
+      },
+      {
+        "id": "hardy_company",
+        "tree": "party",
+        "name": "Hardy Company",
+        "x": 0,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "maxHp",
+            "value": 15
+          }
+        ],
+        "parents": [
+          "fellowship"
+        ],
+        "ranks": 3,
+        "description": "More health for everyone in the party."
+      },
+      {
+        "id": "second_wind",
+        "tree": "party",
+        "name": "Second Wind",
+        "x": 1.5,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "maxSp",
+            "value": 20
+          }
+        ],
+        "parents": [
+          "fellowship"
+        ],
+        "ranks": 3,
+        "description": "More stamina for everyone in the party."
+      },
+      {
+        "id": "battle_drill",
+        "tree": "party",
+        "name": "Battle Drill",
+        "x": 4.5,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "meleeDamage",
+            "value": 5
+          }
+        ],
+        "parents": [
+          "fellowship"
+        ],
+        "ranks": 3,
+        "description": "Everyone’s melee hits do more damage."
+      },
+      {
+        "id": "arcane_chorus",
+        "tree": "party",
+        "name": "Arcane Chorus",
+        "x": 6,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "spellDamage",
+            "value": 5
+          },
+          {
+            "stat": "maxMp",
+            "value": 5
+          }
+        ],
+        "parents": [
+          "fellowship"
+        ],
+        "ranks": 3,
+        "description": "Everyone’s spells hit harder, with a little more magic."
+      },
+      {
+        "id": "thick_skin",
+        "tree": "party",
+        "name": "Thick Skin",
+        "x": 0,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "end",
+            "value": 2
+          }
+        ],
+        "parents": [
+          "hardy_company"
+        ],
+        "ranks": 3,
+        "description": "Everyone’s Endurance goes up: ailments take hold less often."
+      },
+      {
+        "id": "quick_step",
+        "tree": "party",
+        "name": "Quick Step",
+        "x": 1.5,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "agi",
+            "value": 2
+          }
+        ],
+        "parents": [
+          "second_wind"
+        ],
+        "ranks": 3,
+        "level": 3,
+        "description": "Everyone’s Agility goes up: quicker turns, more dodging."
+      },
+      {
+        "id": "keen_eyes",
+        "tree": "party",
+        "name": "Keen Eyes",
+        "x": 3,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "dex",
+            "value": 2
+          }
+        ],
+        "parents": [
+          "fellowship"
+        ],
+        "ranks": 3,
+        "level": 3,
+        "description": "Everyone’s Dexterity goes up: better aim and more critical hits."
+      },
+      {
+        "id": "shield_wall",
+        "tree": "party",
+        "name": "Shield Wall",
+        "x": 4.5,
+        "y": 2,
+        "effects": [
+          {
+            "stat": "def",
+            "value": 2
+          },
+          {
+            "stat": "mdf",
+            "value": 2
+          }
+        ],
+        "parents": [
+          "battle_drill"
+        ],
+        "ranks": 3,
+        "level": 5,
+        "description": "Everyone’s Defence and Magic Defence go up."
+      },
+      {
+        "id": "skill_earthborn",
+        "tree": "tree_2",
+        "name": "Earthborn",
+        "x": 2,
+        "y": 0,
+        "effects": [],
+        "description": "Your heritage lets you use weapons/armor made from TitanTech.",
+        "trains": [
+          "armor:new"
+        ]
+      },
+      {
+        "id": "skill_2",
+        "tree": "tree_2",
+        "name": "New skill",
+        "x": 2,
+        "y": 1,
+        "effects": [],
+        "parents": [
+          "skill_earthborn"
+        ]
+      }
+    ]
+  },
+  "additions": [
+    {
+      "id": "quick_strike",
+      "name": "Quick Strike",
+      "description": "One clean, well-timed cut.",
+      "strikes": [
+        {
+          "power": 1.3
+        }
+      ]
+    },
+    {
+      "id": "double_slash",
+      "name": "Double Slash",
+      "description": "Two strikes!",
+      "strikes": [
+        {
+          "power": 0.8
+        },
+        {
+          "power": 0.9
+        }
+      ]
+    },
+    {
+      "id": "volley",
+      "name": "Volley",
+      "description": "Four quick strikes!",
+      "strikes": [
+        {
+          "power": 0.5,
+          "time": 0.6
+        },
+        {
+          "power": 0.5,
+          "time": 0.55
+        },
+        {
+          "power": 0.6,
+          "button": "A",
+          "time": 0.5
+        },
+        {
+          "power": 0.8,
+          "time": 0.5
+        }
+      ],
+      "maxRank": 5
+    },
+    {
+      "id": "crescent_storm",
+      "name": "Crescent Storm",
+      "description": "Seven strikes, fast and unforgiving.",
+      "strikes": [
+        {
+          "power": 0.4,
+          "time": 0.55
+        },
+        {
+          "power": 0.4,
+          "time": 0.5
+        },
+        {
+          "power": 0.45,
+          "time": 0.45
+        },
+        {
+          "power": 0.45,
+          "time": 0.45
+        },
+        {
+          "power": 0.5,
+          "button": "A",
+          "time": 0.42,
+          "window": 0.2
+        },
+        {
+          "power": 0.55,
+          "time": 0.4,
+          "window": 0.2
+        },
+        {
+          "power": 0.9,
+          "time": 0.55
+        }
+      ],
+      "maxRank": 5
+    }
+  ],
+  "world": {
+    "maps": {
+      "01_monolith": {
+        "x": 0,
+        "z": 0,
+        "w": 50,
+        "h": 50
+      },
+      "02_monolith_woods": {
+        "x": 7,
+        "z": 50,
+        "w": 50,
+        "h": 50
+      },
+      "singed_01": {
+        "x": 7,
+        "z": 100,
+        "w": 24,
+        "h": 24
+      }
+    },
+    "labels": [
+      {
+        "id": "monolith",
+        "name": "The Monolith",
+        "x": 28,
+        "z": 22,
+        "kind": "landmark"
+      },
+      {
+        "id": "woods",
+        "name": "Monolith Woods",
+        "x": 32,
+        "z": 75,
+        "kind": "region"
+      }
+    ],
+    "unvisited": "grey"
+  },
+  "achievements": [
+    {
+      "id": "FIRST_BLOOD",
+      "name": "First Blood",
+      "description": "Win your first battle.",
+      "icon": "builtin:sword",
+      "points": 5,
+      "rule": {
+        "kind": "record",
+        "record": "battlesWon",
+        "count": 1
+      }
+    },
+    {
+      "id": "SLIME_SLAYER",
+      "name": "Slime Slayer",
+      "description": "Defeat 25 slimes.",
+      "icon": "builtin:gem",
+      "points": 15,
+      "rule": {
+        "kind": "defeat",
+        "enemy": "slime",
+        "count": 25
+      }
+    },
+    {
+      "id": "COMBO_ARTIST",
+      "name": "Combo Artist",
+      "description": "Perform 20 Additions.",
+      "icon": "builtin:shard_fire",
+      "points": 20,
+      "rule": {
+        "kind": "addition",
+        "count": 20
+      }
+    },
+    {
+      "id": "SPELLWRIGHT",
+      "name": "Spellwright",
+      "description": "Cast 15 spells in battle.",
+      "icon": "builtin:shard_arcane",
+      "points": 15,
+      "rule": {
+        "kind": "spell",
+        "count": 15
+      }
+    },
+    {
+      "id": "UNTOUCHABLE",
+      "name": "Untouchable",
+      "description": "Win 5 battles without anyone taking damage.",
+      "icon": "builtin:shield",
+      "points": 25,
+      "rule": {
+        "kind": "record",
+        "record": "flawless",
+        "count": 5
+      }
+    },
+    {
+      "id": "SEASONED",
+      "name": "Seasoned",
+      "description": "Reach level 10.",
+      "icon": "builtin:trophy",
+      "points": 20,
+      "rule": {
+        "kind": "level",
+        "level": 10
+      }
+    },
+    {
+      "id": "FULL_HOUSE",
+      "name": "Full House",
+      "description": "Have four in the party.",
+      "icon": "builtin:amulet",
+      "points": 10,
+      "rule": {
+        "kind": "party",
+        "size": 4
+      }
+    },
+    {
+      "id": "ANGLER",
+      "name": "Angler",
+      "description": "Catch 5 fish.",
+      "icon": "builtin:fish_trout",
+      "points": 10,
+      "rule": {
+        "kind": "record",
+        "record": "fish",
+        "count": 5
+      }
+    },
+    {
+      "id": "WANDERER",
+      "name": "Wanderer",
+      "description": "Take 5,000 steps.",
+      "icon": "builtin:boots",
+      "points": 10,
+      "rule": {
+        "kind": "record",
+        "record": "steps",
+        "count": 5000
+      }
+    },
+    {
+      "id": "SECRET_OF_THE_STONE",
+      "name": "Secret of the Stone",
+      "description": "Learn what the Monolith hides.",
+      "icon": "builtin:key",
+      "points": 50,
+      "hidden": true,
+      "rule": {
+        "kind": "event"
+      }
+    }
+  ],
+  "time": {
+    "darkness": 1
+  },
+  "spells": [
+    {
+      "id": "fire",
+      "name": "Fire",
+      "kind": "bolt",
+      "power": 14,
+      "mp": 6,
+      "element": "fire",
+      "color": "#ff8a3a",
+      "maxRank": 3,
+      "description": "A firebolt. Higher ranks burn hotter but take longer to call up.",
+      "inflicts": [
+        {
+          "ailment": "burn",
+          "chance": 15
+        }
+      ]
+    },
+    {
+      "id": "frost",
+      "name": "Frost",
+      "kind": "bolt",
+      "power": 12,
+      "mp": 6,
+      "element": "water",
+      "color": "#8ad8ff",
+      "maxRank": 3,
+      "description": "A shard of ice that can chill.",
+      "inflicts": [
+        {
+          "ailment": "chill",
+          "chance": 35
+        }
+      ]
+    },
+    {
+      "id": "spark",
+      "name": "Spark",
+      "kind": "bolt",
+      "power": 10,
+      "mp": 8,
+      "element": "shock",
+      "color": "#ffe04a",
+      "maxRank": 3,
+      "targets": "all",
+      "description": "Lightning that strikes every foe.",
+      "inflicts": [
+        {
+          "ailment": "paralyze",
+          "chance": 20
+        }
+      ]
+    },
+    {
+      "id": "mend",
+      "name": "Mend",
+      "kind": "heal",
+      "power": 75,
+      "mp": 8,
+      "color": "#9dffb0",
+      "maxRank": 3,
+      "description": "Closes wounds on one of the party."
+    },
+    {
+      "id": "speedboost",
+      "name": "Speed Boost",
+      "kind": "support",
+      "power": 11,
+      "mp": 45,
+      "maxRank": 3,
+      "description": "Increase target's speed for the duration of the battle.",
+      "supportTarget": "any",
+      "buffs": [
+        {
+          "buff": "haste",
+          "whole": true
+        }
+      ],
+      "icon": "builtin:spell_fire",
+      "iconTint": "#f0d040",
+      "color": "#fff15c"
+    },
+    {
+      "id": "haste",
+      "name": "Haste",
+      "kind": "support",
+      "power": 0,
+      "mp": 10,
+      "color": "#5ae0ff",
+      "supportTarget": "any",
+      "description": "Someone (a friend, or a foe to undo its Slow) takes their turns half again as often, for a few turns.",
+      "buffs": [
+        {
+          "buff": "haste",
+          "amount": 50,
+          "turns": 4
+        }
+      ]
+    },
+    {
+      "id": "slow",
+      "name": "Slow",
+      "kind": "support",
+      "power": 0,
+      "mp": 8,
+      "color": "#c07a5a",
+      "supportTarget": "any",
+      "description": "Someone’s turns come round much more slowly (or undo a Haste), for a few turns. Endurance can shrug it off.",
+      "buffs": [
+        {
+          "buff": "slow",
+          "amount": 40,
+          "turns": 4
+        }
+      ]
+    },
+    {
+      "id": "rain_call",
+      "name": "Rain Call",
+      "kind": "support",
+      "power": 0,
+      "mp": 12,
+      "color": "#5a9cff",
+      "description": "Brings rain over the battle for five rounds: water spells hit harder, fire ones weaker.",
+      "weather": "rain",
+      "weatherTurns": 5
+    }
+  ],
+  "markers": [
+    {
+      "id": "quest",
+      "name": "Quest location",
+      "symbol": "question",
+      "color": "#ffd23f"
+    },
+    {
+      "id": "landmark",
+      "name": "Landmark",
+      "symbol": "square",
+      "color": "#ffffff"
+    },
+    {
+      "id": "town",
+      "name": "Town",
+      "symbol": "house",
+      "color": "#f3ead8"
+    },
+    {
+      "id": "danger",
+      "name": "Danger",
+      "symbol": "skull",
+      "color": "#ff5a4a"
+    },
+    {
+      "id": "marker",
+      "name": "Tower/Fort",
+      "symbol": "triangle",
+      "color": "#ffffff"
+    },
+    {
+      "id": "marker_2",
+      "name": "Monolith",
+      "symbol": "square",
+      "color": "#000000"
+    },
+    {
+      "id": "marker_3",
+      "name": "Monster",
+      "symbol": "circle",
+      "color": "#ff3333"
+    },
+    {
+      "id": "marker_4",
+      "name": "Ally",
+      "symbol": "circle",
+      "color": "#97ff8a"
+    }
+  ],
+  "combat": {
+    "turnBased": {
+      "mode": "single",
+      "statBlocks": true,
+      "layout": "pocket",
+      "singleParty": 4,
+      "additions": "choose"
+    }
+  },
+  "abilities": {
+    "crawl": false
+  },
+  "classes": [
+    {
+      "id": "class_titan",
+      "name": "Titan",
+      "trees": [
+        "tree_2"
+      ],
+      "description": "You hail from Old Earth, knowing little of magic---but your technological skills are vastly superior to most born on Titamas.",
+      "bonus": {
+        "mdf": 3,
+        "def": 3,
+        "agi": 1,
+        "str": 1,
+        "end": 2
+      },
+      "gear": {
+        "sword": "untrained",
+        "axe": "untrained",
+        "mace": "untrained",
+        "spear": "untrained",
+        "staff": "none",
+        "wand": "none",
+        "fist": "untrained",
+        "bow": "untrained",
+        "crossbow": "untrained",
+        "armor:medium": "untrained",
+        "armor:heavy": "untrained",
+        "shield": "untrained"
+      }
+    }
+  ],
+  "statOrder": [
+    "str",
+    "dex",
+    "end",
+    "mag",
+    "def",
+    "mdf",
+    "agi"
+  ],
+  "armorTypes": [
+    {
+      "id": "light",
+      "name": "Light armor",
+      "note": "Cloth, leather",
+      "untrained": {
+        "agi": -2
+      }
+    },
+    {
+      "id": "medium",
+      "name": "Medium armor",
+      "note": "Chain, scale",
+      "untrained": {
+        "agi": -4,
+        "dex": -2
+      }
+    },
+    {
+      "id": "heavy",
+      "name": "Heavy armor",
+      "note": "Plate",
+      "untrained": {
+        "agi": -7,
+        "dex": -3
+      }
+    },
+    {
+      "id": "new",
+      "name": "TitanTech"
+    }
+  ],
+  "credits": [
+    {
+      "title": "Misc. Sprites",
+      "names": "Stephen Challener (Redshrike), hosted by OpenGameArt.org"
+    }
+  ],
+  "activeParty": 4,
+  "roleplay": [
+    {
+      "id": "rp1",
+      "title": "Favorite Food:"
+    },
+    {
+      "id": "rp2",
+      "title": "Sexuality:"
+    },
+    {
+      "id": "rp3",
+      "title": "Birthday:"
+    },
+    {
+      "id": "rp4",
+      "title": "Home Region:"
+    },
+    {
+      "id": "rp5",
+      "title": "Career:"
+    }
+  ],
+  "inventory": {
+    "startItems": [
+      {
+        "item": "key_cut",
+        "count": 1
+      },
+      {
+        "item": "key_bow",
+        "count": 1
+      }
+    ]
+  },
+  "overworldCamera": {
+    "pitch": 90,
+    "lean": 100,
+    "distance": 38,
+    "fov": 15
+  },
+  "viewMode": "2d"
+}

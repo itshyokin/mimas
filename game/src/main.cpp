@@ -1,8 +1,9 @@
 /*
  * Mimas runtime: plays a map exported from the Saturn Game Engine.
  *
- * v0.1: walk around one map with grid movement, collision, cliffs and bridges,
- * tree tops drawn over the player, and the map name shown on arrival.
+ * v0.2: walk around one map with grid movement, collision, cliffs and bridges,
+ * tree tops drawn over the player, and the map name shown on arrival. The
+ * player is the 16x32 overworld sprite painted in GBA Studio (walk + run).
  *
  * Controls: D-pad walk, hold B run, START shows the map name again.
  */
@@ -30,8 +31,9 @@ namespace
     constexpr int HALF_W = bn::display::width() / 2;
     constexpr int HALF_H = bn::display::height() / 2;
 
-    // Facing directions, in the same order as the hero sprite strip.
+    // Facing directions. The sprite sheet has rows for down, up and left; right is left mirrored.
     enum dir { DOWN, UP, LEFT, RIGHT };
+    constexpr int SHEET_ROW[] = { 0, 1, 2, 2 };
     constexpr int DX[] = { 0, 0, -1, 1 };
     constexpr int DY[] = { 1, -1, 0, 0 };
 
@@ -159,7 +161,8 @@ int main()
     banner.show();
 
     int moving = 0;      // pixels left to walk into the next cell
-    int walk_anim = 0;   // counts pixels walked, drives the walk frames
+    int steps = 0;       // tiles walked: alternates the left and right foot
+    bool running = false;
     int bump = 0;        // short pause after walking into a wall
 
     while(true)
@@ -184,15 +187,13 @@ int main()
                     cell_x = tx;
                     cell_y = ty;
                     moving = CELL;
+                    ++steps;
+                    running = bn::keypad::b_held();
                 }
                 else if(bump == 0)
                 {
                     bump = 8;
                 }
-            }
-            else
-            {
-                walk_anim = 0;
             }
 
             if(bump > 0)
@@ -203,19 +204,25 @@ int main()
 
         if(moving > 0)
         {
-            int speed = bn::keypad::b_held() ? 2 : 1;
+            int speed = running ? 2 : 1;
             speed = bn::min(speed, moving);
             moving -= speed;
-            walk_anim += speed;
             px += DX[facing] * speed;
             py += DY[facing] * speed;
         }
 
-        // Sprite frames: 0 = standing, 1..8 = walking (a new frame every 2 pixels).
-        int frame = (moving > 0 || walk_anim % CELL != 0) ? 1 + (walk_anim / 2) % 8 : 0;
-        hero.set_tiles(bn::sprite_items::hero.tiles_item(), facing * mimas::map::hero_frames + frame);
+        // Pokémon-style steps: a foot forward for the first half of each tile, then standing,
+        // alternating feet tile by tile. Columns 0-2 walk, 3-5 run.
+        int column = (moving > CELL / 2) ? 1 + (steps & 1) : 0;
+        if(running && moving > 0)
+        {
+            column += 3;
+        }
 
-        // The 32x32 sprite's feet sit at the bottom of its cell.
+        hero.set_tiles(bn::sprite_items::hero.tiles_item(), SHEET_ROW[facing] * mimas::map::hero_frames + column);
+        hero.set_horizontal_flip(facing == RIGHT);
+
+        // The 16x32 sprite's feet sit at the bottom of its cell.
         hero.set_position(world_x(px + CELL / 2), world_y(py));
 
         int cam_x = clamp_camera(world_x(px + CELL / 2), mimas::map::width * CELL, mimas::map::bg_width, HALF_W);

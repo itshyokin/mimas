@@ -1,0 +1,4485 @@
+{
+ "version": 1,
+ "thumbSize": 64,
+ "thumbCols": 16,
+ "weapons": [
+  {
+   "id": "dagger",
+   "name": "Dagger",
+   "kind": "sword",
+   "file": "assets/weapons/dagger.png",
+   "width": 576,
+   "height": 1344,
+   "layers": {
+    "back": {
+     "slash": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 256,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 512,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 576,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 832,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "slash",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 0,
+   "credits": [
+    {
+     "item": "Dagger",
+     "authors": [
+      "bluecarrot16",
+      "Johannes Sj\u00f6lund (wulax)",
+      "Matthew Krohn (makrohn)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-extended-weapon-animations"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arming_brass",
+   "name": "Arming Sword (brass)",
+   "kind": "sword",
+   "file": "assets/weapons/arming_brass.png",
+   "width": 1664,
+   "height": 4736,
+   "layers": {
+    "back": {
+     "backslash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 512,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 768,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 1280,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1600,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2112,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "backslash": {
+      "y": 2368,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 2880,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 3136,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 3648,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 3712,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 3968,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4480,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "backslash",
+    "combat_idle",
+    "halfslash",
+    "hurt",
+    "idle",
+    "slash",
+    "walk"
+   ],
+   "thumb": 1,
+   "credits": [
+    {
+     "item": "Arming Sword",
+     "authors": [
+      "ElizaWy; walk and down by JaidynReiman"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+      "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arming_bronze",
+   "name": "Arming Sword (bronze)",
+   "kind": "sword",
+   "file": "assets/weapons/arming_bronze.png",
+   "width": 1664,
+   "height": 4736,
+   "layers": {
+    "back": {
+     "backslash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 512,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 768,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 1280,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1600,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2112,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "backslash": {
+      "y": 2368,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 2880,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 3136,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 3648,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 3712,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 3968,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4480,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "backslash",
+    "combat_idle",
+    "halfslash",
+    "hurt",
+    "idle",
+    "slash",
+    "walk"
+   ],
+   "thumb": 2,
+   "credits": [
+    {
+     "item": "Arming Sword",
+     "authors": [
+      "ElizaWy; walk and down by JaidynReiman"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+      "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arming_ceramic",
+   "name": "Arming Sword (ceramic)",
+   "kind": "sword",
+   "file": "assets/weapons/arming_ceramic.png",
+   "width": 1664,
+   "height": 4736,
+   "layers": {
+    "back": {
+     "backslash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 512,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 768,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 1280,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1600,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2112,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "backslash": {
+      "y": 2368,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 2880,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 3136,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 3648,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 3712,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 3968,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4480,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "backslash",
+    "combat_idle",
+    "halfslash",
+    "hurt",
+    "idle",
+    "slash",
+    "walk"
+   ],
+   "thumb": 3,
+   "credits": [
+    {
+     "item": "Arming Sword",
+     "authors": [
+      "ElizaWy; walk and down by JaidynReiman"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+      "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arming_copper",
+   "name": "Arming Sword (copper)",
+   "kind": "sword",
+   "file": "assets/weapons/arming_copper.png",
+   "width": 1664,
+   "height": 4736,
+   "layers": {
+    "back": {
+     "backslash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 512,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 768,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 1280,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1600,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2112,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "backslash": {
+      "y": 2368,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 2880,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 3136,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 3648,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 3712,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 3968,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4480,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "backslash",
+    "combat_idle",
+    "halfslash",
+    "hurt",
+    "idle",
+    "slash",
+    "walk"
+   ],
+   "thumb": 4,
+   "credits": [
+    {
+     "item": "Arming Sword",
+     "authors": [
+      "ElizaWy; walk and down by JaidynReiman"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+      "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arming_gold",
+   "name": "Arming Sword (gold)",
+   "kind": "sword",
+   "file": "assets/weapons/arming_gold.png",
+   "width": 1664,
+   "height": 4736,
+   "layers": {
+    "back": {
+     "backslash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 512,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 768,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 1280,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1600,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2112,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "backslash": {
+      "y": 2368,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 2880,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 3136,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 3648,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 3712,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 3968,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4480,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "backslash",
+    "combat_idle",
+    "halfslash",
+    "hurt",
+    "idle",
+    "slash",
+    "walk"
+   ],
+   "thumb": 5,
+   "credits": [
+    {
+     "item": "Arming Sword",
+     "authors": [
+      "ElizaWy; walk and down by JaidynReiman"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+      "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arming_iron",
+   "name": "Arming Sword (iron)",
+   "kind": "sword",
+   "file": "assets/weapons/arming_iron.png",
+   "width": 1664,
+   "height": 4736,
+   "layers": {
+    "back": {
+     "backslash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 512,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 768,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 1280,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1600,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2112,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "backslash": {
+      "y": 2368,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 2880,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 3136,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 3648,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 3712,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 3968,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4480,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "backslash",
+    "combat_idle",
+    "halfslash",
+    "hurt",
+    "idle",
+    "slash",
+    "walk"
+   ],
+   "thumb": 6,
+   "credits": [
+    {
+     "item": "Arming Sword",
+     "authors": [
+      "ElizaWy; walk and down by JaidynReiman"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+      "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arming_silver",
+   "name": "Arming Sword (silver)",
+   "kind": "sword",
+   "file": "assets/weapons/arming_silver.png",
+   "width": 1664,
+   "height": 4736,
+   "layers": {
+    "back": {
+     "backslash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 512,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 768,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 1280,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1600,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2112,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "backslash": {
+      "y": 2368,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 2880,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 3136,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 3648,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 3712,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 3968,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4480,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "backslash",
+    "combat_idle",
+    "halfslash",
+    "hurt",
+    "idle",
+    "slash",
+    "walk"
+   ],
+   "thumb": 7,
+   "credits": [
+    {
+     "item": "Arming Sword",
+     "authors": [
+      "ElizaWy; walk and down by JaidynReiman"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+      "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "arming_steel",
+   "name": "Arming Sword (steel)",
+   "kind": "sword",
+   "file": "assets/weapons/arming_steel.png",
+   "width": 1664,
+   "height": 4736,
+   "layers": {
+    "back": {
+     "backslash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 512,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 768,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 1280,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1600,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2112,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "backslash": {
+      "y": 2368,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "combat_idle": {
+      "y": 2880,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "halfslash": {
+      "y": 3136,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "hurt": {
+      "y": 3648,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "idle": {
+      "y": 3712,
+      "frame": 64,
+      "frames": 2,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 3968,
+      "frame": 128,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4480,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "backslash",
+    "combat_idle",
+    "halfslash",
+    "hurt",
+    "idle",
+    "slash",
+    "walk"
+   ],
+   "thumb": 8,
+   "credits": [
+    {
+     "item": "Arming Sword",
+     "authors": [
+      "ElizaWy; walk and down by JaidynReiman"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+      "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "longsword",
+   "name": "Longsword",
+   "kind": "sword",
+   "file": "assets/weapons/longsword.png",
+   "width": 1536,
+   "height": 5248,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 64,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "slash_reverse": {
+      "y": 832,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 1600,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2368,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 2624,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 2688,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "slash_reverse": {
+      "y": 3456,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 4224,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 4992,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "slash",
+    "slash_reverse",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 9,
+   "credits": [
+    {
+     "item": "Longsword",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-extended-weapon-animations"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "longsword_alt",
+   "name": "Longsword alt",
+   "kind": "sword",
+   "file": "assets/weapons/longsword_alt.png",
+   "width": 1664,
+   "height": 2048,
+   "layers": {
+    "back": {
+     "slash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "slash": {
+      "y": 1024,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1536,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "walk"
+   ],
+   "thumb": 10,
+   "credits": [
+    {
+     "item": "Longsword alt",
+     "authors": [
+      "Pierre Vigier and DCSS artists (see https://github.com/crawl/tiles/blob/master/ARTISTS.md)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-dcss-swords"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rapier",
+   "name": "Rapier",
+   "kind": "sword",
+   "file": "assets/weapons/rapier.png",
+   "width": 1152,
+   "height": 2112,
+   "layers": {
+    "back": {
+     "slash": {
+      "y": 0,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 768,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1024,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 1088,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1856,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "slash",
+    "walk"
+   ],
+   "thumb": 11,
+   "credits": [
+    {
+     "item": "Rapier",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-extended-weapon-animations"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "katana",
+   "name": "Katana",
+   "kind": "sword",
+   "file": "assets/weapons/katana.png",
+   "width": 1664,
+   "height": 2048,
+   "layers": {
+    "back": {
+     "slash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "slash": {
+      "y": 1024,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1536,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "walk"
+   ],
+   "thumb": 12,
+   "credits": [
+    {
+     "item": "Katana",
+     "authors": [
+      "Pierre Vigier and DCSS artists (see https://github.com/crawl/tiles/blob/master/ARTISTS.md)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-dcss-swords"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "scimitar",
+   "name": "Scimitar",
+   "kind": "sword",
+   "file": "assets/weapons/scimitar.png",
+   "width": 1664,
+   "height": 2048,
+   "layers": {
+    "back": {
+     "slash": {
+      "y": 0,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "slash": {
+      "y": 1024,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1536,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "walk"
+   ],
+   "thumb": 13,
+   "credits": [
+    {
+     "item": "Scimitar",
+     "authors": [
+      "Pierre Vigier and DCSS artists (see https://github.com/crawl/tiles/blob/master/ARTISTS.md)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-dcss-swords"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "glowsword_blue",
+   "name": "Glowsword (blue)",
+   "kind": "sword",
+   "file": "assets/weapons/glowsword_blue.png",
+   "width": 1152,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 64,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "slash",
+    "walk"
+   ],
+   "thumb": 14,
+   "credits": [
+    {
+     "item": "Glowsword",
+     "authors": [
+      "bluecarrot16",
+      "tskaufma",
+      "Johannes Sj\u00f6lund (wulax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-glow-sword",
+      "https://opengameart.org/content/lpc-extended-weapon-animations"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "glowsword_red",
+   "name": "Glowsword (red)",
+   "kind": "sword",
+   "file": "assets/weapons/glowsword_red.png",
+   "width": 1152,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 64,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "slash",
+    "walk"
+   ],
+   "thumb": 15,
+   "credits": [
+    {
+     "item": "Glowsword",
+     "authors": [
+      "bluecarrot16",
+      "tskaufma",
+      "Johannes Sj\u00f6lund (wulax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-glow-sword",
+      "https://opengameart.org/content/lpc-extended-weapon-animations"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mace",
+   "name": "Mace",
+   "kind": "blunt",
+   "file": "assets/weapons/mace.png",
+   "width": 1152,
+   "height": 2432,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 64,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2176,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "slash",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 16,
+   "credits": [
+    {
+     "item": "Mace",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-extended-weapon-animations"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "club",
+   "name": "Club",
+   "kind": "blunt",
+   "file": "assets/weapons/club.png",
+   "width": 1152,
+   "height": 1536,
+   "layers": {
+    "back": {
+     "slash_reverse": {
+      "y": 0,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "slash_reverse": {
+      "y": 768,
+      "frame": 192,
+      "frames": 6,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash_reverse"
+   ],
+   "thumb": 17,
+   "credits": [
+    {
+     "item": "Club",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_simple",
+   "name": "Simple staff",
+   "kind": "staff",
+   "file": "assets/weapons/staff_simple.png",
+   "width": 576,
+   "height": 1664,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "spellcast": {
+      "y": 64,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 320,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 576,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 832,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "spellcast": {
+      "y": 896,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1408,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "spellcast",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 18,
+   "credits": [
+    {
+     "item": "Simple staff",
+     "authors": [
+      "bluecarrot16",
+      "Dr. Jamgo"
+     ],
+     "licenses": [
+      "CC0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-simple-staff"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_crystal_blue",
+   "name": "Crystal (blue)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_crystal_blue.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 19,
+   "credits": [
+    {
+     "item": "Crystal",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_crystal_orange",
+   "name": "Crystal (orange)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_crystal_orange.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 20,
+   "credits": [
+    {
+     "item": "Crystal",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_crystal_green",
+   "name": "Crystal (green)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_crystal_green.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 21,
+   "credits": [
+    {
+     "item": "Crystal",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_crystal_purple",
+   "name": "Crystal (purple)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_crystal_purple.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 22,
+   "credits": [
+    {
+     "item": "Crystal",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_diamond_medium",
+   "name": "Diamond staff (medium)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_diamond_medium.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 23,
+   "credits": [
+    {
+     "item": "Diamond staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_diamond_light",
+   "name": "Diamond staff (light)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_diamond_light.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 24,
+   "credits": [
+    {
+     "item": "Diamond staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_diamond_red",
+   "name": "Diamond staff (red)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_diamond_red.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 25,
+   "credits": [
+    {
+     "item": "Diamond staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_diamond_dark",
+   "name": "Diamond staff (dark)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_diamond_dark.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 26,
+   "credits": [
+    {
+     "item": "Diamond staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_gnarled_medium",
+   "name": "Gnarled staff (medium)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_gnarled_medium.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 27,
+   "credits": [
+    {
+     "item": "Gnarled staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_gnarled_light",
+   "name": "Gnarled staff (light)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_gnarled_light.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 28,
+   "credits": [
+    {
+     "item": "Gnarled staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_gnarled_red",
+   "name": "Gnarled staff (red)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_gnarled_red.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 29,
+   "credits": [
+    {
+     "item": "Gnarled staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_gnarled_dark",
+   "name": "Gnarled staff (dark)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_gnarled_dark.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 30,
+   "credits": [
+    {
+     "item": "Gnarled staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_loop_medium",
+   "name": "Loop staff (medium)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_loop_medium.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 31,
+   "credits": [
+    {
+     "item": "Loop staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_loop_light",
+   "name": "Loop staff (light)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_loop_light.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 32,
+   "credits": [
+    {
+     "item": "Loop staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_loop_red",
+   "name": "Loop staff (red)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_loop_red.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 33,
+   "credits": [
+    {
+     "item": "Loop staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_loop_dark",
+   "name": "Loop staff (dark)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_loop_dark.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 34,
+   "credits": [
+    {
+     "item": "Loop staff",
+     "authors": [
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-more-weapons"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_s_medium",
+   "name": "S staff (medium)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_s_medium.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 35,
+   "credits": [
+    {
+     "item": "S staff",
+     "authors": [
+      "LordNeo",
+      "Michael Whitlock (bigbeargames)",
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "CC0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/staff-64-x64",
+      "https://opengameart.org/content/lpc-magic-staff"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_s_light",
+   "name": "S staff (light)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_s_light.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 36,
+   "credits": [
+    {
+     "item": "S staff",
+     "authors": [
+      "LordNeo",
+      "Michael Whitlock (bigbeargames)",
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "CC0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/staff-64-x64",
+      "https://opengameart.org/content/lpc-magic-staff"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_s_red",
+   "name": "S staff (red)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_s_red.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 37,
+   "credits": [
+    {
+     "item": "S staff",
+     "authors": [
+      "LordNeo",
+      "Michael Whitlock (bigbeargames)",
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "CC0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/staff-64-x64",
+      "https://opengameart.org/content/lpc-magic-staff"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_s_dark",
+   "name": "S staff (dark)",
+   "kind": "staff",
+   "file": "assets/weapons/staff_s_dark.png",
+   "width": 1536,
+   "height": 2176,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 64,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "thrust": {
+      "y": 1152,
+      "frame": 192,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 38,
+   "credits": [
+    {
+     "item": "S staff",
+     "authors": [
+      "LordNeo",
+      "Michael Whitlock (bigbeargames)",
+      "bluecarrot16"
+     ],
+     "licenses": [
+      "CC0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/staff-64-x64",
+      "https://opengameart.org/content/lpc-magic-staff"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "staff_wand",
+   "name": "Wand",
+   "kind": "staff",
+   "file": "assets/weapons/staff_wand.png",
+   "width": 832,
+   "height": 256,
+   "layers": {
+    "back": {},
+    "front": {
+     "slash": {
+      "y": 0,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash"
+   ],
+   "thumb": 39,
+   "credits": [
+    {
+     "item": "Wand",
+     "authors": [
+      "Matthew Krohn (makrohn)"
+     ],
+     "licenses": [
+      "CC-BY-SA 3.0",
+      "GPL 3.0",
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-wands"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bow_normal_light",
+   "name": "Normal (light)",
+   "kind": "bow",
+   "file": "assets/weapons/bow_normal_light.png",
+   "width": 1664,
+   "height": 1664,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 64,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 320,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 832,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 896,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1152,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "walk"
+   ],
+   "thumb": 40,
+   "credits": [
+    {
+     "item": "Normal",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Pierre Vigier (pvigier)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-walk-animations-for-bows"
+     ]
+    },
+    {
+     "item": "Ammo",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bow_normal_medium",
+   "name": "Normal (medium)",
+   "kind": "bow",
+   "file": "assets/weapons/bow_normal_medium.png",
+   "width": 1664,
+   "height": 1664,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 64,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 320,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 832,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 896,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1152,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "walk"
+   ],
+   "thumb": 41,
+   "credits": [
+    {
+     "item": "Normal",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Pierre Vigier (pvigier)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-walk-animations-for-bows"
+     ]
+    },
+    {
+     "item": "Ammo",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bow_normal_red",
+   "name": "Normal (red)",
+   "kind": "bow",
+   "file": "assets/weapons/bow_normal_red.png",
+   "width": 1664,
+   "height": 1664,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 64,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 320,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 832,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 896,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1152,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "walk"
+   ],
+   "thumb": 42,
+   "credits": [
+    {
+     "item": "Normal",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Pierre Vigier (pvigier)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-walk-animations-for-bows"
+     ]
+    },
+    {
+     "item": "Ammo",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bow_normal_dark",
+   "name": "Normal (dark)",
+   "kind": "bow",
+   "file": "assets/weapons/bow_normal_dark.png",
+   "width": 1664,
+   "height": 1664,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 64,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 320,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 832,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 896,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1152,
+      "frame": 128,
+      "frames": 13,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "walk"
+   ],
+   "thumb": 43,
+   "credits": [
+    {
+     "item": "Normal",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Pierre Vigier (pvigier)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0+",
+      "GPL 3.0",
+      "CC-BY 4.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-walk-animations-for-bows"
+     ]
+    },
+    {
+     "item": "Ammo",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_round_brown",
+   "name": "Round Shield (brown)",
+   "kind": "shield",
+   "file": "assets/weapons/shield_round_brown.png",
+   "width": 576,
+   "height": 768,
+   "layers": {
+    "back": {},
+    "front": {
+     "slash": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 256,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 44,
+   "credits": [
+    {
+     "item": "Round Shield",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Michael Whitlock (bigbeargames)",
+      "DarkwallLKE",
+      "Tuomo Untinen (reemax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-shields-pack"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_round_black",
+   "name": "Round Shield (black)",
+   "kind": "shield",
+   "file": "assets/weapons/shield_round_black.png",
+   "width": 576,
+   "height": 768,
+   "layers": {
+    "back": {},
+    "front": {
+     "slash": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 256,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 45,
+   "credits": [
+    {
+     "item": "Round Shield",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Michael Whitlock (bigbeargames)",
+      "DarkwallLKE",
+      "Tuomo Untinen (reemax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-shields-pack"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_round_gold",
+   "name": "Round Shield (gold)",
+   "kind": "shield",
+   "file": "assets/weapons/shield_round_gold.png",
+   "width": 576,
+   "height": 768,
+   "layers": {
+    "back": {},
+    "front": {
+     "slash": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 256,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 46,
+   "credits": [
+    {
+     "item": "Round Shield",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Michael Whitlock (bigbeargames)",
+      "DarkwallLKE",
+      "Tuomo Untinen (reemax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-shields-pack"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_round_green",
+   "name": "Round Shield (green)",
+   "kind": "shield",
+   "file": "assets/weapons/shield_round_green.png",
+   "width": 576,
+   "height": 768,
+   "layers": {
+    "back": {},
+    "front": {
+     "slash": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 256,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 47,
+   "credits": [
+    {
+     "item": "Round Shield",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Michael Whitlock (bigbeargames)",
+      "DarkwallLKE",
+      "Tuomo Untinen (reemax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-shields-pack"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_round_silver",
+   "name": "Round Shield (silver)",
+   "kind": "shield",
+   "file": "assets/weapons/shield_round_silver.png",
+   "width": 576,
+   "height": 768,
+   "layers": {
+    "back": {},
+    "front": {
+     "slash": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 256,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 48,
+   "credits": [
+    {
+     "item": "Round Shield",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Michael Whitlock (bigbeargames)",
+      "DarkwallLKE",
+      "Tuomo Untinen (reemax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-shields-pack"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_round_yellow",
+   "name": "Round Shield (yellow)",
+   "kind": "shield",
+   "file": "assets/weapons/shield_round_yellow.png",
+   "width": 576,
+   "height": 768,
+   "layers": {
+    "back": {},
+    "front": {
+     "slash": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 256,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 512,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "slash",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 49,
+   "credits": [
+    {
+     "item": "Round Shield",
+     "authors": [
+      "Johannes Sj\u00f6lund (wulax)",
+      "Michael Whitlock (bigbeargames)",
+      "DarkwallLKE",
+      "Tuomo Untinen (reemax)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0",
+      "CC-BY-SA 3.0",
+      "GPL 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "https://opengameart.org/content/lpc-shields-pack"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_spartan",
+   "name": "Spartan Shield",
+   "kind": "shield",
+   "file": "assets/weapons/shield_spartan.png",
+   "width": 832,
+   "height": 2688,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 64,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 320,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 576,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 832,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 1408,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1664,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 2176,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2432,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "slash",
+    "spellcast",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 50,
+   "credits": [
+    {
+     "item": "Spartan Shield",
+     "authors": [
+      "bluecarrot16",
+      "Sander Frenken (castelonia)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-shields"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_crusader",
+   "name": "Crusader shield",
+   "kind": "shield",
+   "file": "assets/weapons/shield_crusader.png",
+   "width": 832,
+   "height": 2688,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 64,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 320,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 576,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 832,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 1408,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1664,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 2176,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2432,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "slash",
+    "spellcast",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 51,
+   "credits": [
+    {
+     "item": "Crusader shield",
+     "authors": [
+      "bluecarrot16",
+      "Sander Frenken (castelonia)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-shields"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_plus",
+   "name": "Plus shield",
+   "kind": "shield",
+   "file": "assets/weapons/shield_plus.png",
+   "width": 832,
+   "height": 2688,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 64,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 320,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 576,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 832,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 1408,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1664,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 2176,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2432,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "slash",
+    "spellcast",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 52,
+   "credits": [
+    {
+     "item": "Plus shield",
+     "authors": [
+      "bluecarrot16",
+      "Sander Frenken (castelonia)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-shields"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_two_engrailed",
+   "name": "Two engrailed shield",
+   "kind": "shield",
+   "file": "assets/weapons/shield_two_engrailed.png",
+   "width": 832,
+   "height": 2688,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 64,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 320,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 576,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 832,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1344,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 1408,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1664,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 2176,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2432,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "slash",
+    "spellcast",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 53,
+   "credits": [
+    {
+     "item": "Two engrailed shield",
+     "authors": [
+      "bluecarrot16",
+      "Sander Frenken (castelonia)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-shields"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shield_scutum",
+   "name": "Scutum shield",
+   "kind": "shield",
+   "file": "assets/weapons/shield_scutum.png",
+   "width": 832,
+   "height": 2432,
+   "layers": {
+    "back": {
+     "hurt": {
+      "y": 0,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "slash": {
+      "y": 64,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 320,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 576,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 832,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    },
+    "front": {
+     "hurt": {
+      "y": 1088,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 1
+     },
+     "shoot": {
+      "y": 1152,
+      "frame": 64,
+      "frames": 13,
+      "dirs": 4
+     },
+     "slash": {
+      "y": 1408,
+      "frame": 64,
+      "frames": 6,
+      "dirs": 4
+     },
+     "spellcast": {
+      "y": 1664,
+      "frame": 64,
+      "frames": 7,
+      "dirs": 4
+     },
+     "thrust": {
+      "y": 1920,
+      "frame": 64,
+      "frames": 8,
+      "dirs": 4
+     },
+     "walk": {
+      "y": 2176,
+      "frame": 64,
+      "frames": 9,
+      "dirs": 4
+     }
+    }
+   },
+   "anims": [
+    "hurt",
+    "shoot",
+    "slash",
+    "spellcast",
+    "thrust",
+    "walk"
+   ],
+   "thumb": 54,
+   "credits": [
+    {
+     "item": "Scutum shield",
+     "authors": [
+      "bluecarrot16",
+      "Sander Frenken (castelonia)"
+     ],
+     "licenses": [
+      "OGA-BY 3.0"
+     ],
+     "urls": [
+      "https://opengameart.org/content/lpc-shields"
+     ]
+    }
+   ]
+  }
+ ]
+}

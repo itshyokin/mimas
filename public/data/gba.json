@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "palettes": [
+    {
+      "id": "mannequin",
+      "name": "Mannequin",
+      "colors": [
+        "#313139",
+        "#ceced6",
+        "#9c9cad",
+        "#737384",
+        "#7b8494",
+        "#d6dee7",
+        "#f79c42",
+        "#f7de7b",
+        "#f7c69c",
+        "#ce9473",
+        "#634231",
+        "#4a7bc6",
+        "#315294",
+        "#5a5a73",
+        "#f7f7f7"
+      ]
+    },
+    {
+      "id": "grass",
+      "name": "Grass",
+      "colors": [
+        "#183118",
+        "#296329",
+        "#399439",
+        "#5abd4a",
+        "#8cde73",
+        "#bdef94",
+        "#f7f7ce",
+        "#846331",
+        "#a5844a",
+        "#cead73",
+        "#efd694",
+        "#5a4221",
+        "#f76b7b",
+        "#f7ce4a",
+        "#ffffff"
+      ]
+    },
+    {
+      "id": "water",
+      "name": "Water",
+      "colors": [
+        "#10214a",
+        "#18397b",
+        "#295ab5",
+        "#3984de",
+        "#5aa5f7",
+        "#94cef7",
+        "#ceefff",
+        "#f7f7f7",
+        "#d6c694",
+        "#b59c63",
+        "#8c7342",
+        "#396b39",
+        "#5a9c4a",
+        "#215229",
+        "#000000"
+      ]
+    },
+    {
+      "id": "rock",
+      "name": "Rock & cliffs",
+      "colors": [
+        "#211810",
+        "#423121",
+        "#635242",
+        "#847363",
+        "#9c9484",
+        "#c6b59c",
+        "#e7dec6",
+        "#295229",
+        "#428c39",
+        "#63b54a",
+        "#394a5a",
+        "#5a6b7b",
+        "#8c94a5",
+        "#b5c6ce",
+        "#f7f7f7"
+      ]
+    }
+  ],
+  "tiles": [],
+  "sprites": [
+    {
+      "id": "player",
+      "name": "Player",
+      "kind": "overworld",
+      "palette": "mannequin",
+      "image": "gba/sprites/player.png"
+    },
+    {
+      "id": "player_back",
+      "name": "Player (battle)",
+      "kind": "backsprite",
+      "palette": "mannequin",
+      "image": "gba/sprites/player_back.png"
+    }
+  ],
+  "player": "player"
+}

@@ -1,0 +1,664 @@
+{
+ "fpsshared": 1,
+ "saved": "2026-10-14T18:02:13.996Z",
+ "parts": {
+  "weapons": {
+   "weapons": {
+    "pistol": {
+     "name": "Pistol",
+     "model": "pistol",
+     "color": "#4a505a",
+     "damage": 25,
+     "headshot": 60,
+     "fireInterval": 0.22,
+     "auto": false,
+     "pellets": 1,
+     "spread": 0,
+     "range": 0,
+     "magazine": 12,
+     "reserve": 60,
+     "pickupAmmo": 24,
+     "reloadTime": 1.3,
+     "zoom": 2,
+     "kick": 1,
+     "noise": 35,
+     "pitch": 1,
+     "fireSound": "",
+     "reloadSound": "",
+     "zoom2": 0,
+     "crosshair": "pistol",
+     "ammoIcon": "bullet",
+     "zoomType": "smart",
+     "snd": {
+      "fire": [
+       "pistol_firing.wav"
+      ],
+      "dry": [],
+      "ready": [],
+      "reload": [],
+      "reloadDone": [],
+      "melee": []
+     },
+     "modelFile": "pistol.glb",
+     "modelFwd": "+X",
+     "modelDZ": 0.25,
+     "modelDY": -0.1,
+     "modelDX": 0,
+     "bloomRecover": 8,
+     "crossImg": "h5_magnum_reticle.png",
+     "crossBloomImg": "h5_magnum_Bloom.png",
+     "bloom": 2,
+     "fpZ": 0.08,
+     "fpX": -0.094,
+     "fpY": 0.13,
+     "sFpX": -0.027,
+     "sFpY": 0.077,
+     "fpModelFile": "pistol_with_arms.glb"
+    },
+    "rifle": {
+     "name": "Assault Rifle",
+     "model": "rifle",
+     "color": "#59624f",
+     "damage": 12,
+     "headshot": 12,
+     "fireInterval": 0.085,
+     "auto": true,
+     "pellets": 1,
+     "spread": 2,
+     "range": 0,
+     "magazine": 32,
+     "reserve": 352,
+     "pickupAmmo": 64,
+     "reloadTime": 1.9,
+     "zoom": 0,
+     "kick": 0.55,
+     "noise": 40,
+     "pitch": 1.2,
+     "fireSound": "",
+     "reloadSound": "",
+     "zoom2": 0,
+     "zoomType": "smart",
+     "snd": {
+      "fire": [
+       "fire_battle_rifle (1).wav",
+       "fire_battle_rifle (2).wav",
+       "fire_battle_rifle (3).wav",
+       "fire_battle_rifle (4).wav"
+      ],
+      "dry": [],
+      "ready": [],
+      "reload": [],
+      "reloadDone": [],
+      "melee": []
+     },
+     "modelFile": "ar.glb",
+     "modelFwd": "+X",
+     "ammoIcon": "round",
+     "modelDZ": 0.3,
+     "crossImg": "assault_rifle.png",
+     "ammoImg": "",
+     "crossBloomImg": "assault_rifle_bloom.png",
+     "bloom": 3,
+     "bloomRecover": 3,
+     "modelDY": 0,
+     "modelDX": 0,
+     "fpZ": 0.24,
+     "fpX": -0.048,
+     "fpY": -0.01,
+     "sFpX": 0,
+     "sFpY": -0.093,
+     "fpModelFile": "ar_with_arms.glb"
+    },
+    "shotgun": {
+     "name": "Shotgun",
+     "model": "shotgun",
+     "color": "#6a4b32",
+     "damage": 9,
+     "headshot": 13,
+     "fireInterval": 0.85,
+     "auto": false,
+     "pellets": 9,
+     "spread": 5.5,
+     "range": 22,
+     "magazine": 6,
+     "reserve": 36,
+     "pickupAmmo": 12,
+     "reloadTime": 2.4,
+     "zoom": 1.3,
+     "kick": 1.8,
+     "noise": 45,
+     "pitch": 0.7,
+     "fireSound": "",
+     "reloadSound": "",
+     "zoom2": 0,
+     "zoomType": "smart",
+     "snd": {}
+    },
+    "sniper": {
+     "name": "Sniper Rifle",
+     "model": "sniper",
+     "color": "#33383d",
+     "damage": 110,
+     "headshot": 250,
+     "fireInterval": 1.1,
+     "auto": false,
+     "pellets": 1,
+     "spread": 0,
+     "range": 0,
+     "magazine": 4,
+     "reserve": 24,
+     "pickupAmmo": 8,
+     "reloadTime": 2.6,
+     "zoom": 4,
+     "kick": 2.2,
+     "noise": 50,
+     "pitch": 0.6,
+     "fireSound": "",
+     "reloadSound": "",
+     "zoom2": 10,
+     "zoomType": "scope",
+     "snd": {}
+    },
+    "weapon_1": {
+     "name": "Plasma Pistol",
+     "model": "pistol",
+     "color": "#4a505a",
+     "damage": 25,
+     "headshot": 0,
+     "fireInterval": 0.1,
+     "auto": false,
+     "pellets": 1,
+     "spread": 3,
+     "range": 0,
+     "magazine": 100,
+     "reserve": 100,
+     "pickupAmmo": 0,
+     "reloadTime": 1.3,
+     "zoom": 1.3,
+     "kick": 1,
+     "noise": 35,
+     "pitch": 1,
+     "fireSound": "",
+     "reloadSound": "",
+     "zoom2": 0,
+     "crosshair": "pistol",
+     "ammoIcon": "bar",
+     "zoomType": "smart",
+     "snd": {
+      "fire": [
+       "plas_pistol_fire_reach1.wav",
+       "plas_pistol_fire_reach2.wav",
+       "plas_pistol_fire_reach3.wav"
+      ],
+      "dry": [],
+      "ready": [],
+      "reload": [],
+      "reloadDone": [],
+      "melee": []
+     },
+     "modelFile": "plasma_pistol.glb",
+     "modelFwd": "+X",
+     "modelDZ": 0.25,
+     "modelDY": -0.1,
+     "modelDX": 0,
+     "bloomRecover": 8,
+     "crossImg": "crosshair_carbine.png",
+     "crossBloomImg": "",
+     "bloom": 2,
+     "fpZ": 0.32,
+     "fpX": -0.097,
+     "fpY": 0.044,
+     "sFpX": -0.01,
+     "sFpY": -0.037,
+     "proj": "bolt",
+     "projColor": "#61ff73",
+     "flashColor": "#61ff73",
+     "impactColor": "#61ff73",
+     "heatPerShot": 0.2,
+     "battery": true,
+     "charge": true,
+     "chargeProj": "orb",
+     "chargeTrack": true,
+     "fpModelFile": "plasma_pistol_with_arms.glb"
+    },
+    "needler": {
+     "name": "Needler",
+     "model": "pistol",
+     "color": "#7a3a6a",
+     "damage": 7,
+     "headshot": 0,
+     "fireInterval": 0.14,
+     "auto": true,
+     "pellets": 1,
+     "spread": 2,
+     "range": 0,
+     "magazine": 20,
+     "reserve": 60,
+     "pickupAmmo": 20,
+     "reloadTime": 1.8,
+     "zoom": 0,
+     "kick": 0.3,
+     "noise": 30,
+     "pitch": 1.8,
+     "fireSound": "",
+     "reloadSound": "",
+     "proj": "needle",
+     "projColor": "#ff6ad5",
+     "track": true,
+     "trackAmount": 70,
+     "superCount": 7,
+     "superWindow": 3,
+     "superDelay": 0.6,
+     "superDamage": 200,
+     "superRadius": 3.5,
+     "snd": {
+      "fire": [],
+      "dry": [],
+      "ready": [],
+      "reload": [],
+      "reloadDone": [],
+      "melee": []
+     }
+    },
+    "weapon_2": {
+     "name": "Battle Rifle",
+     "model": "rifle",
+     "color": "#59624f",
+     "damage": 12,
+     "headshot": 12,
+     "fireInterval": 0.085,
+     "auto": false,
+     "pellets": 3,
+     "spread": 2,
+     "range": 0,
+     "magazine": 36,
+     "reserve": 108,
+     "pickupAmmo": 64,
+     "reloadTime": 1.9,
+     "zoom": 2,
+     "kick": 0.55,
+     "noise": 40,
+     "pitch": 1.2,
+     "fireSound": "",
+     "reloadSound": "",
+     "zoom2": 0,
+     "zoomType": "scope",
+     "snd": {
+      "fire": [
+       "fire_battle_rifle (1).wav",
+       "fire_battle_rifle (2).wav",
+       "fire_battle_rifle (3).wav",
+       "fire_battle_rifle (4).wav"
+      ],
+      "dry": [],
+      "ready": [],
+      "reload": [],
+      "reloadDone": [],
+      "melee": []
+     },
+     "modelFile": "br.glb",
+     "modelFwd": "+X",
+     "ammoIcon": "bullet",
+     "modelDZ": 0.3,
+     "crossImg": "assault_rifle.png",
+     "ammoImg": "",
+     "crossBloomImg": "assault_rifle_bloom.png",
+     "bloom": 3,
+     "bloomRecover": 3,
+     "modelDY": 0,
+     "modelDX": 0,
+     "fpZ": 0.24,
+     "fpX": -0.048,
+     "fpY": -0.01,
+     "sFpX": 0,
+     "sFpY": -0.093,
+     "fpModelFile": "br_with_arms.glb"
+    }
+   },
+   "weapon": {
+    "meleeDamage": 60,
+    "meleeRange": 2.2,
+    "lungeRange": 3.6,
+    "grenades": 2,
+    "stickies": 2,
+    "grenadeModel": "",
+    "stickyModel": "",
+    "grenadeLen": 0.2,
+    "damage": 25,
+    "headshot": 60,
+    "fireInterval": 0.22,
+    "magazine": 12,
+    "reserve": 60,
+    "reloadTime": 1.3
+   },
+   "loadout": [
+    "weapon_1",
+    ""
+   ]
+  },
+  "hud": {
+   "color": "#7fd6ff",
+   "healthColor": "#e5483a",
+   "opacity": 0.65,
+   "scale": 1.1,
+   "ammoStyle": "bullets",
+   "targetColors": true,
+   "radarRange": 25,
+   "radarAllies": true,
+   "img": {
+    "gren": "icon_frag.png",
+    "sticky": "icon_plasma.png"
+   },
+   "crossTint": true,
+   "bloomScale": 1,
+   "bloomParts": {
+    "ticks": true,
+    "ring": true,
+    "brackets": true
+   },
+   "el": {
+    "cross": {
+     "x": 50,
+     "y": 50,
+     "ax": 0.5,
+     "ay": 0.5,
+     "s": 0.45,
+     "on": true
+    },
+    "wicons": {
+     "x": 91.62,
+     "y": 8.39,
+     "ax": 1,
+     "ay": 1,
+     "s": 1,
+     "on": true
+    },
+    "wname": {
+     "x": 97.04,
+     "y": 20,
+     "ax": 1,
+     "ay": 1,
+     "s": 1,
+     "on": true
+    },
+    "ameter": {
+     "x": 80,
+     "y": 9.78,
+     "ax": 1,
+     "ay": 1,
+     "s": 1,
+     "on": true
+    },
+    "anum": {
+     "x": 82.63,
+     "y": 9.23,
+     "ax": 1,
+     "ay": 1,
+     "s": 0.5,
+     "on": true
+    },
+    "gren": {
+     "x": 16.52,
+     "y": 1.57,
+     "ax": 1,
+     "ay": 0,
+     "s": 1.5,
+     "on": true
+    },
+    "shbar": {
+     "x": 30,
+     "y": 1.22,
+     "ax": 0,
+     "ay": 0,
+     "s": 1.9,
+     "on": true
+    },
+    "hpbar": {
+     "x": 39.69,
+     "y": 7.47,
+     "ax": 0,
+     "ay": 0,
+     "s": 1,
+     "on": true
+    },
+    "radar": {
+     "x": 1.5,
+     "y": 97,
+     "ax": 0,
+     "ay": 1,
+     "s": 1,
+     "on": true
+    },
+    "sprint": {
+     "x": 0,
+     "y": 70,
+     "ax": 0,
+     "ay": 1,
+     "s": 1,
+     "on": true
+    },
+    "thrust": {
+     "x": 0,
+     "y": 70,
+     "ax": 0,
+     "ay": 1,
+     "s": 1,
+     "on": true
+    }
+   },
+   "custom": [],
+   "tint": {
+    "gren": {
+     "m": "hud",
+     "c": "#ffffff"
+    },
+    "sticky": {
+     "m": "hud",
+     "c": "#ffffff"
+    },
+    "sprint": {
+     "m": "hud",
+     "c": "#ffffff"
+    },
+    "thrust": {
+     "m": "hud",
+     "c": "#ffffff"
+    }
+   }
+  },
+  "controls": {
+   "v": 4,
+   "mouseSens": 1,
+   "padSens": 1,
+   "invertY": false,
+   "deadzone": 0.15,
+   "crouchToggle": false,
+   "padOn": true,
+   "kb": {
+    "forward": [
+     "KeyW",
+     ""
+    ],
+    "back": [
+     "KeyS",
+     ""
+    ],
+    "left": [
+     "KeyA",
+     ""
+    ],
+    "right": [
+     "KeyD",
+     ""
+    ],
+    "jump": [
+     "Space",
+     ""
+    ],
+    "crouch": [
+     "KeyC",
+     "ControlLeft"
+    ],
+    "sprint": [
+     "ShiftLeft",
+     ""
+    ],
+    "thrust": [
+     "KeyV",
+     ""
+    ],
+    "fire": [
+     "Mouse0",
+     ""
+    ],
+    "zoom": [
+     "Mouse2",
+     ""
+    ],
+    "melee": [
+     "KeyF",
+     ""
+    ],
+    "grenade": [
+     "KeyG",
+     ""
+    ],
+    "gtype": [
+     "KeyT",
+     ""
+    ],
+    "reload": [
+     "KeyR",
+     ""
+    ],
+    "interact": [
+     "KeyE",
+     ""
+    ],
+    "cycle": [
+     "KeyQ",
+     ""
+    ],
+    "slot1": [
+     "Digit1",
+     ""
+    ],
+    "slot2": [
+     "Digit2",
+     ""
+    ],
+    "swapAlly": [
+     "KeyX",
+     ""
+    ],
+    "night": [
+     "KeyN",
+     ""
+    ],
+    "flash": [
+     "KeyL",
+     ""
+    ]
+   },
+   "pad": {
+    "forward": "",
+    "back": "",
+    "left": "",
+    "right": "",
+    "jump": "LB",
+    "crouch": "LS",
+    "sprint": "X",
+    "thrust": "DR",
+    "fire": "RT",
+    "zoom": "RS",
+    "melee": "RB",
+    "grenade": "LT",
+    "gtype": "A",
+    "reload": "B",
+    "interact": "B",
+    "cycle": "Y",
+    "slot1": "",
+    "slot2": "",
+    "swapAlly": "B",
+    "night": "DL",
+    "flash": "DU"
+   }
+  },
+  "gfx": {
+   "modelTex": 4096,
+   "renderScale": 1,
+   "maxPixelRatio": 2.75,
+   "drawDistance": 300,
+   "stats": false,
+   "bvh": true,
+   "instancing": true,
+   "ssao": true,
+   "ssaoRadius": 1.8,
+   "ssaoEditor": false
+  },
+  "player": {
+   "player": {
+    "health": 100,
+    "shield": 100,
+    "shieldDelay": 7,
+    "shieldRegen": 33,
+    "walk": 4.5,
+    "sprint": 7.5,
+    "crouch": 2.2,
+    "jump": 7,
+    "gravity": 11,
+    "fov": 90,
+    "eye": 1.75
+   },
+   "game": {
+    "title": "Halo: Echo Ops",
+    "version": "0.1"
+   }
+  },
+  "audio": {
+   "master": 0.8,
+   "music": "",
+   "fire": "",
+   "reload": "",
+   "melee": "",
+   "explosion": "",
+   "hurt": "",
+   "footstep": ""
+  },
+  "menus": {
+   "title": "MY FPS GAME",
+   "subtitle": "A story campaign",
+   "accent": "#5b8cff",
+   "bg": "#10151d",
+   "bgImage": "",
+   "music": "",
+   "progression": "linear",
+   "items": [
+    {
+     "label": "Campaign",
+     "action": "campaign"
+    },
+    {
+     "label": "Custom Games",
+     "action": "custom"
+    },
+    {
+     "label": "Settings",
+     "action": "settings"
+    },
+    {
+     "label": "Quit to Editor",
+     "action": "quit"
+    }
+   ],
+   "levels": [
+    {
+     "id": "lvl1",
+     "name": "Level 1",
+     "file": "",
+     "desc": "The level currently open in the editor"
+    }
+   ]
+  }
+ }
+}

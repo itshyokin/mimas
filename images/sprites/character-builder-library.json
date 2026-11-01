@@ -1,0 +1,3356 @@
+{
+ "format": "hd2d-builder-library",
+ "version": 1,
+ "exported": "2026-10-13T15:12:05.828Z",
+ "characters": [
+  {
+   "id": "mv2lr6isvapnmt",
+   "name": "Katrina",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "ivory",
+    "ver": "lpcr"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "silver",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "torso_armour_plate"
+    },
+    "body": {
+     "id": "body"
+    },
+    "cape": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "navy",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_solid"
+    },
+    "cape_trim": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "yellow",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_trim"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "face_neutral"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "sandy",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_ponytail2"
+    },
+    "head": {
+     "id": "heads_human_female"
+    },
+    "legs": {
+     "id": "legs_armour"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    },
+    "shoulders": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "sky",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "shoulders_mantal"
+    }
+   },
+   "updated": 1791830315304
+  },
+  {
+   "id": "mv2m4n3g202tgo",
+   "name": "Jordan",
+   "body": "teen",
+   "skin": {
+    "mat": "body",
+    "name": "brown",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "beard": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "brown",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "beards_trimmed"
+    },
+    "belt": {
+     "id": "belt_leather2"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "maroon",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve2_buttoned"
+    },
+    "expression": {
+     "id": "face_neutral"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "brown",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_plain"
+    },
+    "head": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "heads_human_male"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "charcoal",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_shoes_basic"
+    },
+    "sleeves": {
+     "id": "torso_clothes_longsleeves_cuffed"
+    }
+   },
+   "updated": 1791830322334
+  },
+  {
+   "id": "mv2mibgl93obit",
+   "name": "Eleanor",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "tan",
+    "ver": "lpcr"
+   },
+   "leftEye": {
+    "mat": "eye",
+    "name": "blue",
+    "ver": "ulpc"
+   },
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_tshirt"
+    },
+    "ears": {
+     "id": "head_ears_medium"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "face_angry"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "gold",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_sara"
+    },
+    "head": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "heads_human_male_small"
+    },
+    "horns": {
+     "colours": [
+      {
+       "mat": "body",
+       "name": "olive",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "head_horns_backwards"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_pants2"
+    },
+    "sleeves": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "charcoal",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeves_cuffed"
+    },
+    "wrists": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "slate",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "wrists_cuffs"
+    }
+   },
+   "updated": 1791830331526
+  },
+  {
+   "id": "mv2msr0vnqeu5l",
+   "name": "Crowley",
+   "body": "teen",
+   "skin": {
+    "mat": "body",
+    "name": "porcelain",
+    "ver": "lpcr"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "charm": {
+     "id": "neck_gem_natural",
+     "variant": "red"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_sleeveless1"
+    },
+    "dress": {
+     "id": "dress_kimono"
+    },
+    "dress_sleeves": {
+     "id": "dress_kimono_longsleeve",
+     "variant": "red"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "red",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "face_neutral"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "black",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_bob"
+    },
+    "head": {
+     "id": "heads_human_female_small"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791830327369
+  },
+  {
+   "id": "mv2nlflsbbm03i",
+   "name": "Orc Male",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "dark_green",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "id": "torso_armour_leather"
+    },
+    "body": {
+     "id": "body"
+    },
+    "hat": {
+     "id": "hat_helmet_legion"
+    },
+    "head": {
+     "id": "heads_orc_male"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "charcoal",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_leggings"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791831510691
+  },
+  {
+   "id": "mv2nt7gm38526a",
+   "name": "Skeleton Pants",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body_skeleton"
+    },
+    "head": {
+     "id": "heads_skeleton"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    }
+   },
+   "updated": 1791820636922
+  },
+  {
+   "id": "mv2nu1ce1fbbec",
+   "name": "Skeleton",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body_skeleton"
+    },
+    "head": {
+     "id": "heads_skeleton"
+    }
+   },
+   "updated": 1791820643022
+  },
+  {
+   "id": "mv5frdz72o19mr",
+   "name": "Lady1",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "dark_brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_bangs_bun"
+    },
+    "head": {
+     "id": "heads_human_female"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791820665476
+  },
+  {
+   "id": "mv5fs1nlen7xig",
+   "name": "Lady2",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "bronze",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "belt": {
+     "colours": [],
+     "id": "belt_robe",
+     "variant": "white"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [],
+     "id": "torso_clothes_tunic_sara",
+     "variant": "purple"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "pink",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "eyebrows_thin"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "black",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_curly_short"
+    },
+    "head": {
+     "id": "heads_human_female"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "orange",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_skirts_plain"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "slate",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_shoes_revised"
+    }
+   },
+   "updated": 1791820696162
+  },
+  {
+   "id": "mv5fs9zwit44hl",
+   "name": "Lady3",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [],
+     "id": "torso_clothes_blouse_longsleeve",
+     "variant": "maroon"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "orange",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "eyebrows_thin"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "green",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_princess"
+    },
+    "head": {
+     "id": "heads_human_male_small"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_pants"
+    }
+   },
+   "updated": 1791820706972
+  },
+  {
+   "id": "mv5fsglh9ks14v",
+   "name": "Lady4",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve2_buttoned"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "navy",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "eyebrows_thin"
+    },
+    "head": {
+     "id": "heads_human_male_small"
+    },
+    "jacket": {
+     "colours": [],
+     "id": "torso_jacket_tabard",
+     "variant": "forest"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "purple",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_skirt_straight"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "silver",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "feet_armour"
+    }
+   },
+   "updated": 1791820715526
+  },
+  {
+   "id": "mv5fstr30styy9",
+   "name": "Lady5",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "bronze",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "pink",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve2_buttoned"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "teal",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_topknot_short"
+    },
+    "head": {
+     "id": "heads_human_female_small"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "sky",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_skirts_plain"
+    }
+   },
+   "updated": 1791820732575
+  },
+  {
+   "id": "mv5fvhptiacozn",
+   "name": "Lady6",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "olive",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "belt": {
+     "colours": [],
+     "id": "belt_leather2",
+     "variant": "leather"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "white",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve2_scoop"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "raven",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "eyebrows_thick"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "blonde",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_relm_short"
+    },
+    "head": {
+     "id": "heads_human_male"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_skirt_straight"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_shoes_sara"
+    }
+   },
+   "updated": 1791820856946
+  },
+  {
+   "id": "mv5fvxdeadnibz",
+   "name": "Man1",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "brown",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "pink",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "strawberry",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "eyebrows_thin"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_high_ponytail"
+    },
+    "hat": {
+     "colours": [],
+     "id": "hat_cap_leather",
+     "variant": "pink"
+    },
+    "head": {
+     "id": "heads_human_male_gaunt"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "white",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_pants"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_fold"
+    }
+   },
+   "updated": 1791820877236
+  },
+  {
+   "id": "mv5fwpzxd1rxug",
+   "name": "Man2",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "amber",
+    "ver": "ulpc"
+   },
+   "leftEye": {
+    "mat": "eye",
+    "name": "gray",
+    "ver": "ulpc"
+   },
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "orange",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve2_scoop"
+    },
+    "head": {
+     "id": "heads_human_female_small"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "slate",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_shorts"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "sky",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_sandals"
+    }
+   },
+   "updated": 1791820914334
+  },
+  {
+   "id": "mv5fwwdx2336bv",
+   "name": "Man3",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "cape": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "walnut",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_solid"
+    },
+    "clothes": {
+     "colours": [],
+     "id": "torso_clothes_sleeveless",
+     "variant": "slate"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "pink",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_curly_long"
+    },
+    "head": {
+     "id": "heads_human_male_gaunt"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_formal_striped"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "walnut",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_fold"
+    }
+   },
+   "updated": 1791820922613
+  },
+  {
+   "id": "mv5fxtq0r1yftt",
+   "name": "Man4",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "amber",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "beard": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "dark_gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "beards_medium"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_sleeveless1"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "white",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_half_up"
+    },
+    "head": {
+     "id": "heads_human_male_small"
+    },
+    "jacket": {
+     "colours": [],
+     "id": "torso_jacket_tabard",
+     "variant": "tan"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "navy",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791820965816
+  },
+  {
+   "id": "mv5fz2q9oufijb",
+   "name": "Man5",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "taupe",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "violet",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "eyebrows_thick"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "black",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_curly_short2"
+    },
+    "head": {
+     "id": "heads_human_male_gaunt"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "silver",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_armour"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791821024146
+  },
+  {
+   "id": "mv5fzr72mdkou6",
+   "name": "Man6",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_sleeveless2_polo"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "blue",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "eyebrows_thin"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_jewfro"
+    },
+    "head": {
+     "id": "heads_human_male_small"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_pants"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "sky",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_fold"
+    }
+   },
+   "updated": 1791821055854
+  },
+  {
+   "id": "mv5g6tspfr2nr0",
+   "name": "Theresa",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "fur_tan",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "id": "torso_clothes_sleeveless"
+    },
+    "ears": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "black",
+       "ver": "lpcr"
+      },
+      {
+       "mat": "hair",
+       "name": "rose",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "head_ears_zabos"
+    },
+    "ears_inner": {
+     "id": "head_ears_zabos_skin"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "yellow",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "face_neutral"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "black",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_sara"
+    },
+    "head": {
+     "id": "heads_human_female"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "slate",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "necklace": {
+     "id": "neck_necklace_chain"
+    },
+    "socks": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "charcoal",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_socks_tabi"
+    },
+    "tail": {
+     "id": "tail_cat",
+     "variant": "black"
+    }
+   },
+   "updated": 1791821385818
+  },
+  {
+   "id": "mv5gdcfpa2t94e",
+   "name": "King Draconus",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "arms": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "gold",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "arms_armour"
+    },
+    "body": {
+     "id": "body"
+    },
+    "cape": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "yellow",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_solid"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "red",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_sleeveless2_polo"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "dark_gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_half_up"
+    },
+    "hat": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "steel",
+       "ver": "ulpc"
+      },
+      {
+       "mat": "cloth",
+       "name": "red",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hat_helmet_kettle"
+    },
+    "head": {
+     "id": "heads_human_male_elderly"
+    },
+    "jacket_collar": {
+     "id": "torso_jacket_frock_collar"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_formal"
+    },
+    "mustache": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "dark_gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "beards_chevron"
+    },
+    "sash": {
+     "id": "belt_sash_narrow",
+     "variant": "yellow"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "charcoal",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791821727650
+  },
+  {
+   "id": "mv5gk1uqahsdm0",
+   "name": "Alice",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "bronze",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "yellow",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve2"
+    },
+    "dress": {
+     "id": "dress_kimono",
+     "variant": "yellow"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "dark_brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_curly_short"
+    },
+    "hat": {
+     "id": "hat_cap_cavalier",
+     "variant": "red"
+    },
+    "head": {
+     "id": "heads_human_female"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791822002787
+  },
+  {
+   "id": "mv5gsxerm6rn2m",
+   "name": "Queen Blackstone",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "porcelain",
+    "ver": "lpcr"
+   },
+   "leftEye": null,
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "dress": {
+     "id": "dress_slit",
+     "variant": "bluegray"
+    },
+    "earrings": {
+     "id": "facial_earrings_emerald",
+     "variant": "green"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "face_neutral"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "black",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_xlong"
+    },
+    "head": {
+     "id": "heads_human_female_small"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "necklace": {
+     "id": "neck_necklace_chain"
+    },
+    "sash": {
+     "id": "belt_sash_narrow",
+     "variant": "black"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791822416932
+  },
+  {
+   "id": "mv5gzamidnflxe",
+   "name": "King Rose",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "colours": [
+      {
+       "mat": "all",
+       "name": "red",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "torso_armour_legion"
+    },
+    "arms": {
+     "colours": [
+      {
+       "mat": "all",
+       "name": "wine",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "arms_armour"
+    },
+    "body": {
+     "id": "body"
+    },
+    "cape": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "forest",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_solid"
+    },
+    "cape_trim": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "red",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_trim"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "forest",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_shortsleeve_polo"
+    },
+    "expression": {
+     "id": "face_angry"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "silver",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "eyebrows_thin"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "white",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_jewfro"
+    },
+    "head": {
+     "id": "heads_human_male_gaunt"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "all",
+       "name": "emerald",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "legs_armour"
+    },
+    "neck": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "forest",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "neck_capeclip"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "rose",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_rim"
+    }
+   },
+   "updated": 1791822713995
+  },
+  {
+   "id": "mv5h4abwabvptf",
+   "name": "King Faewood",
+   "body": "teen",
+   "skin": {
+    "mat": "body",
+    "name": "olive",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "forest",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_armour_leather"
+    },
+    "body": {
+     "id": "body"
+    },
+    "cape": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "forest",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_solid"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "gray",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "ears": {
+     "id": "head_ears_medium"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "gold",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_long_straight"
+    },
+    "head": {
+     "id": "heads_human_male"
+    },
+    "horns": {
+     "colours": [
+      {
+       "mat": "body",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "head_horns_backwards"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "nose": {
+     "id": "head_nose_large"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791822946893
+  },
+  {
+   "id": "mv5h8omxgugbzc",
+   "name": "Ben Torres",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "brown",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "iron",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "torso_armour_plate"
+    },
+    "arms": {
+     "id": "arms_armour"
+    },
+    "body": {
+     "id": "body"
+    },
+    "cape": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "navy",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_solid"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "face_neutral"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "brown",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_high_ponytail"
+    },
+    "head": {
+     "id": "heads_human_male_gaunt"
+    },
+    "headcover": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "navy",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hat_headband_tied"
+    },
+    "legs": {
+     "id": "legs_armour"
+    },
+    "shoes": {
+     "id": "feet_armour"
+    }
+   },
+   "updated": 1791823193752
+  },
+  {
+   "id": "mv5loo6o46futw",
+   "name": "Bandit Leader",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "rose",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_armour_leather"
+    },
+    "bandana": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "red",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hat_bandana"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "walnut",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "facial_eyes": {
+     "id": "facial_eyepatch2_left"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "blonde",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_page"
+    },
+    "head": {
+     "id": "heads_human_male"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791830616433
+  },
+  {
+   "id": "mv5lr4cr77abxc",
+   "name": "Bandit Captain",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "id": "torso_armour_leather"
+    },
+    "bandana": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hat_bandana"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "facial_eyes": {
+     "id": "facial_eyepatch_ambi"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "dark_brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_bangs_bun"
+    },
+    "head": {
+     "id": "heads_human_male"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791830730700
+  },
+  {
+   "id": "mv5m2v8cgow1at",
+   "name": "Bandit",
+   "body": "teen",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "id": "torso_armour_leather"
+    },
+    "arms": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "iron",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "arms_armour"
+    },
+    "bandana": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "red",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hat_bandana"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "slate",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "black",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "face_eyeroll"
+    },
+    "facial_eyes": {
+     "id": "facial_eyepatch2_left"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "brown",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_buzzcut"
+    },
+    "head": {
+     "id": "heads_human_female"
+    },
+    "headcover": {
+     "id": "hat_headband_kerchief"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "slate",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "sash_tie": {
+     "id": "belt_obi_knot_left",
+     "variant": "red"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791831278749
+  },
+  {
+   "id": "mv5m7mreqnbl3b",
+   "name": "Orc Female",
+   "body": "female",
+   "skin": {
+    "mat": "body",
+    "name": "green",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "id": "torso_armour_leather"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "id": "torso_clothes_longsleeve2_cardigan"
+    },
+    "hat": {
+     "id": "hat_helmet_legion"
+    },
+    "head": {
+     "id": "heads_orc_female"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791831501051
+  },
+  {
+   "id": "mv5md92vyxwgmf",
+   "name": "Cosmo",
+   "body": "teen",
+   "skin": {
+    "mat": "body",
+    "name": "ivory",
+    "ver": "lpcr"
+   },
+   "leftEye": {
+    "mat": "eye",
+    "name": "blue",
+    "ver": "ulpc"
+   },
+   "sel": {
+    "body": {
+     "id": "body"
+    },
+    "charm": {
+     "id": "neck_gem_emerald",
+     "variant": "purple"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "purple",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "dress": {
+     "id": "dress_kimono_split",
+     "variant": "purple"
+    },
+    "ears": {
+     "id": "head_ears_medium"
+    },
+    "expression": {
+     "id": "face_neutral"
+    },
+    "eyebrows": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "raven",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "eyebrows_thin"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "raven",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_long_center_part"
+    },
+    "head": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "heads_human_female"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_leggings"
+    },
+    "necklace": {
+     "id": "neck_necklace_simple"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_shoes_basic"
+    }
+   },
+   "updated": 1791831836082
+  },
+  {
+   "id": "mv5mjksp2e0dfd",
+   "name": "Arcturus",
+   "body": "male",
+   "skin": {
+    "mat": "all",
+    "name": "red",
+    "ver": "lpcr"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "iron",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_armour_plate"
+    },
+    "arms": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "iron",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "arms_armour"
+    },
+    "body": {
+     "id": "body"
+    },
+    "bracers": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "gold",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "arms_bracers"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "face_angry"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "gold",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_parted3"
+    },
+    "hat": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "iron",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hat_helmet_xeon"
+    },
+    "head": {
+     "id": "heads_human_male_gaunt"
+    },
+    "horns": {
+     "id": "head_horns_backwards"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "iron",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_armour"
+    },
+    "sash_tie": {
+     "id": "belt_obi_knot_left",
+     "variant": "green"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "iron",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_armour"
+    },
+    "shoulders": {
+     "colours": [
+      {
+       "mat": "metal",
+       "name": "iron",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "shoulders_legion"
+    },
+    "wings": {
+     "id": "wings_lizard_bat"
+    }
+   },
+   "updated": 1791832309193
+  },
+  {
+   "id": "mv5mufyonjzxg8",
+   "name": "Lynn Rose",
+   "body": "teen",
+   "skin": {
+    "mat": "body",
+    "name": "amber",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "armour": {
+     "colours": [
+      {
+       "mat": "all",
+       "name": "forest",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "torso_armour_plate"
+    },
+    "arms": {
+     "colours": [
+      {
+       "mat": "all",
+       "name": "emerald",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "arms_armour"
+    },
+    "belt": {
+     "id": "belt_leather"
+    },
+    "body": {
+     "id": "body"
+    },
+    "cape": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "red",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_solid"
+    },
+    "cape_trim": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "yellow",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "cape_trim"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_longsleeve"
+    },
+    "expression": {
+     "id": "face_look_r"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "raven",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_plain"
+    },
+    "head": {
+     "id": "heads_human_male"
+    },
+    "headcover": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "green",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hat_headband_tied"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "black",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_shoes_basic"
+    }
+   },
+   "updated": 1791832586131
+  },
+  {
+   "id": "mv5ufysqb3iyjp",
+   "name": "Devin",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "arms": {
+     "id": "arms_armour"
+    },
+    "beard": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "chestnut",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "beards_medium"
+    },
+    "body": {
+     "id": "body"
+    },
+    "clothes": {
+     "id": "torso_clothes_sleeveless_laced"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "chestnut",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "hair_page"
+    },
+    "head": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "heads_human_male"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "walnut",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_pants"
+    },
+    "sash_tie": {
+     "id": "belt_obi_knot_right",
+     "variant": "purple"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_fold"
+    }
+   },
+   "updated": 1791845366702
+  },
+  {
+   "id": "mv5ukm640rmmj0",
+   "name": "Tori",
+   "body": "male",
+   "skin": {
+    "mat": "body",
+    "name": "light",
+    "ver": "ulpc"
+   },
+   "leftEye": null,
+   "sel": {
+    "beard": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "ash_brown",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "beards_trimmed"
+    },
+    "body": {
+     "id": "body"
+    },
+    "chainmail": {
+     "id": "torso_chainmail"
+    },
+    "clothes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "walnut",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "torso_clothes_sleeveless2_polo"
+    },
+    "expression": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "face_neutral"
+    },
+    "hair": {
+     "colours": [
+      {
+       "mat": "hair",
+       "name": "ash_brown",
+       "ver": "lpcr"
+      }
+     ],
+     "id": "hair_xlong"
+    },
+    "head": {
+     "colours": [
+      null,
+      {
+       "mat": "eye",
+       "name": "blue",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "heads_human_male_gaunt"
+    },
+    "legs": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "brown",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "legs_cuffed"
+    },
+    "sash_tie": {
+     "id": "belt_obi_knot_left",
+     "variant": "green"
+    },
+    "shoes": {
+     "colours": [
+      {
+       "mat": "cloth",
+       "name": "leather",
+       "ver": "ulpc"
+      }
+     ],
+     "id": "feet_boots_basic"
+    }
+   },
+   "updated": 1791845792421
+  }
+ ],
+ "weapons": [
+  {
+   "id": "mv5eooku2l9bsm",
+   "name": "Little Knife",
+   "base": "dagger",
+   "colours": {
+    "metal": "#f4f6fb",
+    "wood": "#3a6be0"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791818859631
+  },
+  {
+   "id": "mv5eqnedcvjhe4",
+   "name": "Thorn",
+   "base": "rapier",
+   "colours": {
+    "gold": "#36bf68",
+    "metal": "#8a1424",
+    "wood": "#36bf68"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791818951414
+  },
+  {
+   "id": "mv5erf81o4wgle",
+   "name": "Ursabre",
+   "base": "longsword",
+   "colours": {
+    "gold": "#3a6be0",
+    "metal": "#7d838d",
+    "wood": "#3a6be0"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819029830
+  },
+  {
+   "id": "mv5eswa4ew4fv9",
+   "name": "Mourning Light",
+   "base": "longsword_alt",
+   "colours": {
+    "gold": "#5fbf9a",
+    "metal": "#7d838d",
+    "wood": "#3a6be0"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819066038
+  },
+  {
+   "id": "mv5eupy37r7q6n",
+   "name": "Gnarled Staff",
+   "base": "staff_gnarled_light",
+   "colours": {
+    "gold": "#6e4527"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819151872
+  },
+  {
+   "id": "mv5evautt6v446",
+   "name": "Wooden Sword",
+   "base": "staff_wand",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819168437
+  },
+  {
+   "id": "mv5ewcarcwl5i8",
+   "name": "Serpent Staff",
+   "base": "staff_s_medium",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819216964
+  },
+  {
+   "id": "mv5ewjtq8k7vz7",
+   "name": "Ring Staff",
+   "base": "staff_loop_light",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819226718
+  },
+  {
+   "id": "mv5ex3jox27rht",
+   "name": "Horned Staff",
+   "base": "staff_diamond_medium",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819252277
+  },
+  {
+   "id": "mv5exacfrua52j",
+   "name": "Mage's Staff",
+   "base": "staff_simple",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819261088
+  },
+  {
+   "id": "mv5f066bcbqmth",
+   "name": "Blackcandle Staff",
+   "base": "staff_simple",
+   "colours": {
+    "hue0": "#1d1f29",
+    "hue200": "#5a2a8a",
+    "metal": "#9b5ad9",
+    "wood": "#1d1f29"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819395652
+  },
+  {
+   "id": "mv5f0vi4lz4ok4",
+   "name": "Light Bow",
+   "base": "bow_normal_light",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819428477
+  },
+  {
+   "id": "mv5f28jg7wyh7z",
+   "name": "Quickdraw Bow",
+   "base": "bow_normal_light",
+   "colours": {
+    "gold": "#3d281b",
+    "metal": "#9fe6ff",
+    "wood": "#8c5a2e"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819492029
+  },
+  {
+   "id": "mv5f2j0ychq9rd",
+   "name": "Military Bow",
+   "base": "bow_normal_red",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819505619
+  },
+  {
+   "id": "mv5f34k0m0zjjo",
+   "name": "Gold Bow",
+   "base": "bow_normal_red",
+   "colours": {
+    "gold": "#e8b53c",
+    "hue0": "#e8b53c",
+    "metal": "#3a6be0",
+    "wood": "#8c5a2e"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819533521
+  },
+  {
+   "id": "mv5f53nin8ku11",
+   "name": "Wooden Shield",
+   "base": "shield_round_brown",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819625663
+  },
+  {
+   "id": "mv5f5ajt142apv",
+   "name": "Iron Shield",
+   "base": "shield_round_black",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819634601
+  },
+  {
+   "id": "mv5f66uxjylh0y",
+   "name": "Soldier Shield",
+   "base": "shield_two_engrailed",
+   "colours": {
+    "metal": "#7d838d",
+    "outline": "#3b3448",
+    "wood": "#c2683e"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819770144
+  },
+  {
+   "id": "mv5f7w5ksn77n9",
+   "name": "Mirror Shield",
+   "base": "shield_round_silver",
+   "colours": {
+    "metal": "#a9b2bf",
+    "wood": "#a9b2bf"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819755913
+  },
+  {
+   "id": "mv5f9gsz69gmf9",
+   "name": "Rusty Mace",
+   "base": "mace",
+   "colours": {
+    "metal": "#c2683e"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819829332
+  },
+  {
+   "id": "mv5f9om32dzisc",
+   "name": "Spiked Mace",
+   "base": "mace",
+   "colours": {
+    "metal": "#7d838d"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819839451
+  },
+  {
+   "id": "mv5faetggaey8d",
+   "name": "Radiant Mace",
+   "base": "mace",
+   "colours": {
+    "metal": "#e8b53c",
+    "outline": "#9fe6ff"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819873412
+  },
+  {
+   "id": "mv5faucfw9rm5i",
+   "name": "Copper Dagger",
+   "base": "dagger",
+   "colours": {
+    "metal": "#c2683e"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819893535
+  },
+  {
+   "id": "mv5fbkwr7bcodz",
+   "name": "New Moon Dagger",
+   "base": "dagger",
+   "colours": {
+    "metal": "#dfe4ec",
+    "outline": "#1d1f29",
+    "wood": "#1d1f29"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819927963
+  },
+  {
+   "id": "mv5fbvjsvnq1j7",
+   "name": "Bloody Dagger",
+   "base": "dagger",
+   "colours": {
+    "metal": "#d9334a"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791819941753
+  },
+  {
+   "id": "mv5fdbnpdu70nz",
+   "name": "Falchion",
+   "base": "scimitar",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791820009286
+  },
+  {
+   "id": "mv5fdgp8c6ntay",
+   "name": "Katana",
+   "base": "katana",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791820015820
+  },
+  {
+   "id": "mv5fdq3sqwhiay",
+   "name": "Rapier",
+   "base": "rapier",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791820028009
+  },
+  {
+   "id": "mv5fdyxlwr6yf8",
+   "name": "Greatsword",
+   "base": "longsword",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791820039451
+  },
+  {
+   "id": "mv5fe7kudzlrbb",
+   "name": "Longsword",
+   "base": "longsword_alt",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791820050655
+  },
+  {
+   "id": "mv5ffopqevrz2r",
+   "name": "Invader Sword",
+   "base": "glowsword_red",
+   "colours": {
+    "hue200": "#a9b2bf",
+    "metal": "#8a1424"
+   },
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791820119519
+  },
+  {
+   "id": "mv5fgn3bxuvu26",
+   "name": "Force Sword",
+   "base": "glowsword_blue",
+   "colours": {},
+   "glow": {
+    "color": "#7fd0ff",
+    "on": false,
+    "pulse": true,
+    "strength": 1
+   },
+   "trail": {
+    "color": "#ffffff",
+    "length": 3,
+    "on": false
+   },
+   "updated": 1791820164072
+  }
+ ]
+}

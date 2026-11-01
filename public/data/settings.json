@@ -1,0 +1,157 @@
+{
+  "kind": "hd2d-settings",
+  "version": 1,
+  "game": "Titamas",
+  "saved": "2026-10-15T22:09:25.785Z",
+  "settings": {
+    "quality": "auto",
+    "showFps": false,
+    "bloom": true,
+    "depthOfField": true,
+    "shadows": true,
+    "ambientOcclusion": true,
+    "lightShadows": true,
+    "detailedLighting": true,
+    "brightness": 1,
+    "musicVolume": 70,
+    "soundVolume": 80,
+    "ambienceVolume": 70,
+    "textSpeed": "normal",
+    "alwaysRun": false,
+    "clock12": false,
+    "crouch": "toggle",
+    "sprint": "hold",
+    "stickRun": false,
+    "textBox": "above",
+    "adventureLog": "all",
+    "footsteps": true,
+    "bindings": {
+      "keys": {
+        "up": [
+          "KeyW",
+          "ArrowUp"
+        ],
+        "down": [
+          "KeyS",
+          "ArrowDown"
+        ],
+        "left": [
+          "KeyA",
+          "ArrowLeft"
+        ],
+        "right": [
+          "KeyD",
+          "ArrowRight"
+        ],
+        "ok": [
+          "Enter",
+          "NumpadEnter"
+        ],
+        "jump": [
+          "Space"
+        ],
+        "cancel": [
+          "Escape",
+          "KeyX"
+        ],
+        "run": [
+          "ShiftLeft",
+          "ShiftRight"
+        ],
+        "melee": [
+          "Digit1",
+          "Numpad1"
+        ],
+        "bow": [
+          "Digit2",
+          "Numpad2"
+        ],
+        "magic": [
+          "Digit3",
+          "Numpad3"
+        ],
+        "ring": [
+          "Digit4",
+          "KeyF"
+        ],
+        "attack": [],
+        "switchWeapon": [
+          "KeyR"
+        ],
+        "block": [
+          "KeyE"
+        ],
+        "target": [
+          "Tab"
+        ],
+        "lock": [
+          "KeyQ"
+        ],
+        "targetPrev": [],
+        "sneak": [
+          "KeyC"
+        ],
+        "quick1": [
+          "Digit5",
+          "Numpad5"
+        ],
+        "quick2": [
+          "Digit6",
+          "Numpad6"
+        ],
+        "quick3": [
+          "Digit7",
+          "Numpad7"
+        ]
+      },
+      "pad": {
+        "ok": [
+          0
+        ],
+        "jump": [
+          0
+        ],
+        "ring": [
+          1
+        ],
+        "run": [
+          2
+        ],
+        "switchWeapon": [
+          3
+        ],
+        "targetPrev": [
+          4
+        ],
+        "target": [
+          5
+        ],
+        "attack": [
+          7
+        ],
+        "block": [
+          6
+        ],
+        "cancel": [
+          9
+        ],
+        "sneak": [
+          11
+        ],
+        "lock": [
+          13
+        ],
+        "quick1": [
+          14
+        ],
+        "quick2": [
+          12
+        ],
+        "quick3": [
+          15
+        ]
+      }
+    },
+    "bindingsVersion": 2
+  }
+}

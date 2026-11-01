@@ -2,8 +2,9 @@
 """
 Mimas exporter: turns a Saturn Game Engine map into GBA data for the Butano runtime.
 
-Reads   project/mimas.json   (which map, where the player starts, which sprite)
-        project/maps/<map>.json, project/assets.json, project/tiles, props, sprites
+Reads   public/data/mimas.json  (which map, where the player starts)
+        public/data/maps/<map>.json, public/data/assets.json, public/assets/tiles
+        public/data/gba.json + public/gba/  (GBA Studio: palettes, painted sprites)
 Writes  game/graphics/world_ground.bmp/.json   ground layer (behind the player)
         game/graphics/world_over.bmp/.json     overhead layer (tree tops, in front)
         game/graphics/world_palette.bmp/.json  shared background palette
@@ -28,7 +29,8 @@ from PIL import Image, ImageDraw
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PROJECT = os.path.join(ROOT, 'project')
+PUBLIC = os.path.join(ROOT, 'public')
+DATA = os.path.join(PUBLIC, 'data')
 GFX = os.path.join(ROOT, 'game', 'graphics')
 INC = os.path.join(ROOT, 'game', 'include')
 CELL = 16
@@ -44,12 +46,14 @@ def load_json(path):
         return json.load(f)
 
 
+# Built-in prop art the exporter uses (from images/gb_tiles).
+PROP_ART = {'pine.png': 'images/gb_tiles/pinetree.png', 'tuft.png': 'images/gb_tiles/grass_patch_test.png'}
+
+
 def project_image(rel):
-    """assets.json paths look like 'assets/tiles/rock.png'; Mimas keeps them in project/tiles."""
-    name = os.path.basename(rel)
-    for sub in ('tiles', 'props', 'sprites'):
-        p = os.path.join(PROJECT, sub, name)
-        if os.path.exists(p):
+    """An image by its path under public/ (as assets.json writes it), or a built-in prop picture."""
+    for p in (os.path.join(PUBLIC, rel), os.path.join(ROOT, PROP_ART.get(rel, '\0'))):
+        if os.path.isfile(p):
             return Image.open(p).convert('RGBA')
     return None
 
@@ -421,34 +425,49 @@ def pad_to(im, w, h, fill):
 
 # ----------------------------------------------------------------------------- sprite
 
-LPC_ROWS = {'up': 8, 'left': 9, 'down': 10, 'right': 11}  # walk rows in an LPC sheet
-DIR_ORDER = ['down', 'up', 'left', 'right']
-FRAMES = 9  # stand + 8 walk frames
+DIR_ORDER = ['down', 'up', 'left']   # rows in the sheet; right is the left row mirrored in game
+HERO_COLS = 6                        # walk: stand, step, step; run: stand, step, step
+HERO_W, HERO_H = 16, 32
+MANNEQUIN = ['#303038', '#d0d0d8', '#a0a0b0', '#707080', '#788090', '#d8e0e8', '#f8a040', '#f8e078',
+             '#f8c8a0', '#d09070', '#604030', '#4878c8', '#305090', '#585870', '#f8f8f8']
 
 
-def build_hero(path):
-    sheet = Image.open(path).convert('RGBA')
+def hex_rgb(h):
+    h = h.lstrip('#')
+    return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+
+
+def player_sprite():
+    """The overworld sheet and palette GBA Studio marked as the player (or the plain mannequin)."""
+    try:
+        gba = load_json(os.path.join(DATA, 'gba.json'))
+    except (OSError, ValueError):
+        gba = {}
+    sprite = next((s for s in gba.get('sprites', []) if s.get('id') == gba.get('player') and s.get('kind') == 'overworld'), None)
+    if sprite:
+        pal = next((p for p in gba.get('palettes', []) if p.get('id') == sprite.get('palette')), None)
+        img = project_image(sprite['image'])
+        if img is not None and pal:
+            return img, [hex_rgb(c) for c in pal['colors']], sprite.get('name', 'player')
+    base = project_image('gba/bases/overworld_base.png')
+    return base, [hex_rgb(c) for c in MANNEQUIN], 'mannequin'
+
+
+def build_hero():
+    sheet, pal, name = player_sprite()
+    print(f'  player sprite: {name}')
     frames = []
-    for d in DIR_ORDER:
-        row = LPC_ROWS[d]
-        for f in range(FRAMES):
-            fr = sheet.crop((f * 64, row * 64, f * 64 + 64, row * 64 + 64))
-            frames.append(hard_alpha(fr.resize((32, 32), Image.BOX)))
-    strip = Image.new('RGBA', (32, 32 * len(frames)), (0, 0, 0, 0))
+    for row in range(len(DIR_ORDER)):
+        for col in range(HERO_COLS):
+            frames.append(sheet.crop((col * HERO_W, row * HERO_H, (col + 1) * HERO_W, (row + 1) * HERO_H)))
+    strip = Image.new('RGBA', (HERO_W, HERO_H * len(frames)), (0, 0, 0, 0))
     for i, fr in enumerate(frames):
-        strip.alpha_composite(fr, (0, i * 32))
-    opaque = [(r, g, b) for (r, g, b, a) in strip.getdata() if a]
-    sample = Image.new('RGB', (len(opaque), 1))
-    sample.putdata(opaque)
-    q = sample.quantize(colors=15, method=Image.Quantize.MEDIANCUT)
-    qp = q.getpalette()[:45]
-    pal = [tuple(qp[i:i + 3]) for i in range(0, len(qp), 3)]
-    while len(pal) < 15:
-        pal.append((0, 0, 0))
+        strip.alpha_composite(fr, (0, i * HERO_H))
+    pal = (pal + [(0, 0, 0)] * 15)[:15]
     cache = {}
     data = []
     for (r, g, b, a) in strip.getdata():
-        if not a:
+        if a < 128:
             data.append(0)
             continue
         c = (r, g, b)
@@ -490,10 +509,10 @@ def write_json(path, obj):
 
 
 def main():
-    cfg = load_json(os.path.join(PROJECT, 'mimas.json'))
+    cfg = load_json(os.path.join(DATA, 'mimas.json'))
     map_id = sys.argv[1] if len(sys.argv) > 1 else cfg['map']
-    mp = load_json(os.path.join(PROJECT, 'maps', map_id + '.json'))
-    assets = load_json(os.path.join(PROJECT, 'assets.json'))
+    mp = load_json(os.path.join(DATA, 'maps', map_id + '.json'))
+    assets = load_json(os.path.join(DATA, 'assets.json'))
     W, H = mp['width'], mp['height']
     print(f'Exporting "{mp.get("name", map_id)}" ({W} x {H})')
 
@@ -523,25 +542,25 @@ def main():
     write_json(os.path.join(GFX, 'world_palette.json'),
                {'type': 'bg_palette', 'bpp_mode': 'bpp_4', 'colors_count': len(palette)})
 
-    hero = build_hero(os.path.join(PROJECT, 'sprites', cfg.get('player', 'jordan') + '.png'))
+    hero = build_hero()
     hero.save(os.path.join(GFX, 'hero.bmp'))
-    write_json(os.path.join(GFX, 'hero.json'), {'type': 'sprite', 'height': 32})
+    write_json(os.path.join(GFX, 'hero.json'), {'type': 'sprite', 'height': HERO_H})
 
     sx, sz = find_start(cfg, coll, W, H)
-    dirs = {d: i for i, d in enumerate(DIR_ORDER)}
+    dirs = {'down': 0, 'up': 1, 'left': 2, 'right': 3}
     # The GBA font only has plain ASCII letters.
     name = ''.join(ch for ch in mp.get('name', map_id) if 32 <= ord(ch) < 127)
     name = name.replace('\\', '\\\\').replace('"', '\\"')
     flat_coll = [coll[z][x] for z in range(H) for x in range(W)]
     flat_h = [hgrid[z][x] for z in range(H) for x in range(W)]
     with open(os.path.join(INC, 'mimas_map.h'), 'w') as f:
-        f.write('// Generated by tools/export.py from project/maps/' + map_id + '.json - do not edit.\n')
+        f.write('// Generated by tools/export.py from public/data/maps/' + map_id + '.json - do not edit.\n')
         f.write('#ifndef MIMAS_MAP_H\n#define MIMAS_MAP_H\n\n#include <cstdint>\n\nnamespace mimas::map\n{\n')
         f.write(f'constexpr int width = {W};\nconstexpr int height = {H};\n')
         f.write(f'constexpr int bg_width = {bw};\nconstexpr int bg_height = {bh};\n')
         f.write(f'constexpr int start_x = {sx};\nconstexpr int start_y = {sz};\n')
         f.write(f'constexpr int start_dir = {dirs.get(cfg.get("dir", "down"), 0)};\n')
-        f.write(f'constexpr int hero_frames = {FRAMES};\n')
+        f.write(f'constexpr int hero_frames = {HERO_COLS};\n')
         f.write(f'constexpr const char* name = "{name}";\n')
         f.write(f'constexpr uint8_t solid = {SOLID};\nconstexpr uint8_t bridge = {BRIDGE};\n\n')
         f.write(c_array('collision', 'uint8_t', flat_coll, W))
