@@ -19,6 +19,7 @@ GBA rules this enforces automatically:
 import json
 import math
 from gba_events import Compiler
+import gba_game
 import os
 import sys
 from collections import Counter
@@ -1060,7 +1061,7 @@ def main():
     w(f'constexpr int hero_frames = {HERO_COLS};\n\n')
     w('// Event scripts (tools/gba_events.py has the ops). Text is pre-wrapped: lines split by \\n, pages by \\f.\n')
     w('enum op : int16_t { OP_END, OP_TEXT, OP_CHOICE, OP_JUMP, OP_IF, OP_SWITCH, OP_VAR, OP_SELF, OP_GIVE, OP_TAKE, OP_GOLD, '
-      'OP_TRANSFER, OP_WAIT, OP_FADEOUT, OP_FADEIN, OP_BATTLE };\n')
+      'OP_TRANSFER, OP_WAIT, OP_FADEOUT, OP_FADEIN, OP_BATTLE, OP_PARTY, OP_LEARN, OP_SHOP, OP_SAVE, OP_GAUGE, OP_HEAL };\n')
     w('struct condition { uint8_t type; uint8_t op; int16_t a; int16_t b; };\n')
     w('// sprite: -1 none, -2 the player\'s sprite (a stand-in), k = npc_sprites[k]. trigger: 0 action, 1 touch, 2 autorun, 3 none.\n')
     w('struct page { int16_t cond; int8_t sprite; uint8_t dir; uint8_t trigger; bool solid; bool face; int16_t code; };\n')
@@ -1115,6 +1116,8 @@ def main():
     with open(os.path.join(INC, 'mimas_map.h'), 'w') as f:
         f.write(''.join(out))
     print(f'  {len(maps)} map(s); start at {sx}, {sz}; wrote game/graphics and game/include/mimas_map.h')
+    # Battles, the party, items, shops and menus (tools/gba_game.py)
+    gba_game.export(ROOT, PUBLIC, DATA, GFX, INC, db, gba, maps, comp)
 
 
 if __name__ == '__main__':

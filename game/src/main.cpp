@@ -1,6 +1,8 @@
 /*
  * Mimas runtime: plays the maps made in GBA Studio (or one exported Saturn map).
  *
+ * v0.7: the party, Pokémon-style battles (random ones from the Encounters layer, and Start battle), the START menu
+ * (party, bag, save), shops, learning moves, saving to the cartridge (game_systems.hpp).
  * v0.6: Saturn's events, compiled by tools/gba_events.py: pages and their conditions, action / touch / autorun
  * triggers, area events, text (box or bubble), choices, if / else, switches, variables, self-switches, items,
  * gold, transfers, waits and fades. Props are drawn into the map by the exporter.
@@ -10,7 +12,7 @@
  * talk to (text box), doors / transfers between maps with a fade, and the map name
  * shown on arrival. The player is the 16x32 overworld sprite painted in GBA Studio.
  *
- * Controls: D-pad walk, hold B run, A talk / next, START shows the map name again.
+ * Controls: D-pad walk, hold B run, A talk / next, START the menu.
  */
 
 #include "bn_core.h"
@@ -27,6 +29,14 @@
 #include "bn_vector.h"
 #include "bn_string_view.h"
 #include "bn_string.h"
+#include "bn_sram.h"
+#include "bn_random.h"
+#include "bn_memory.h"
+#include "bn_bg_tiles.h"
+#include "bn_regular_bg_item.h"
+#include "bn_regular_bg_map_ptr.h"
+#include "bn_regular_bg_map_item.h"
+#include "bn_regular_bg_map_cell_info.h"
 
 #include "bn_regular_bg_items_textbox.h"
 #include "bn_regular_bg_items_bubble.h"
@@ -36,9 +46,13 @@
 #include "bn_sprite_items_bubble_tail.h"
 #include "bn_sprite_items_hero.h"
 #include "bn_sprite_palette_items_text_palette.h"
+#include "bn_regular_bg_tiles_items_ui_tiles.h"
+#include "bn_bg_palette_items_ui_palette.h"
+#include "bn_sprite_items_cursor.h"
 
 #include "common_variable_8x16_sprite_font.h"
 #include "mimas_map.h"
+#include "mimas_game.h"
 
 namespace
 {
@@ -598,6 +612,13 @@ namespace
         faded = to;
     }
 
+    [[nodiscard]] int map_index()
+    {
+        return M - mimas::maps;
+    }
+
+    #include "game_systems.hpp"
+
     // Runs an event's page: its script from the map's code (ops in tools/gba_events.py).
     void run_event(int ev, world& w, bn::sprite_text_generator& gen, name_banner& banner)
     {
@@ -755,8 +776,128 @@ namespace
                     break;
 
                 case mimas::OP_BATTLE:
-                    show_text(mimas::strings[code[at + 1]], gen, banner, view);
-                    at += 3;
+                {
+                    view = text_view();
+                    banner.hide();
+                    int n = code[at + 1];
+                    int16_t foes[6];
+
+                    for(int k = 0; k < n && k < 6; ++k) { foes[k] = code[at + 2 + k]; }
+
+                    bool can_run = code[at + 2 + n] != 0;
+                    int var = code[at + 3 + n], lose = code[at + 4 + n];
+                    int r = battle(w, foes, bn::min(n, 6), can_run, false);
+
+                    if(var >= 0) { vars[var] = r == WON ? 1 : r == RAN ? 2 : 0; }
+
+                    at += 5 + n;
+
+                    if(r == LOST)
+                    {
+                        if(lose == 0)
+                        {
+                            whited_out(w);
+                            return;
+                        }
+
+                        for(int i = 0; i < party_count; ++i) { if(party[i].hp <= 0) { party[i].hp = 1; } }
+                    }
+
+                    w.make_people();
+                    grace_steps = 3;
+                    break;
+                }
+
+                case mimas::OP_PARTY:
+                {
+                    view = text_view();
+                    int hero = code[at + 2];
+                    bool quiet = code[at + 3] != 0;
+                    int here = -1;
+
+                    for(int i = 0; i < party_count; ++i) { if(party[i].hero == hero) { here = i; } }
+
+                    bn::string<64> t = mimas::heroes[hero].name;
+
+                    if(code[at + 1] == 0 && here < 0)
+                    {
+                        if(party_count < MAX_PARTY)
+                        {
+                            int level = mimas::heroes[hero].join_level ? mimas::heroes[hero].join_level : party[0].level;
+                            party[party_count++] = new_member(hero, level);
+                            t += " joined the party!";
+                        }
+                        else
+                        {
+                            t = "There's no room in the party.";
+                        }
+
+                        if(! quiet) { say(t); }
+                    }
+                    else if(code[at + 1] == 1 && here > 0)
+                    {
+                        for(int i = here; i < party_count - 1; ++i) { party[i] = party[i + 1]; }
+                        --party_count;
+                        t += " left the party.";
+                        if(! quiet) { say(t); }
+                    }
+
+                    at += 4;
+                    break;
+                }
+
+                case mimas::OP_LEARN:
+                {
+                    view = text_view();
+                    int who = code[at + 1], add = code[at + 2], sp = code[at + 3], rank = code[at + 4];
+                    bool silent = code[at + 5] != 0;
+
+                    for(int i = 0; i < party_count; ++i)
+                    {
+                        if(who >= 0 && party[i].hero != who) { continue; }
+                        if(sp >= 0) { learn_spell(party[i], sp, rank, silent); }
+                        if(add >= 0) { learn_move(party[i], add, silent); }
+                    }
+
+                    at += 6;
+                    break;
+                }
+
+                case mimas::OP_SHOP:
+                {
+                    view = text_view();
+                    int n = code[at + 1];
+                    shop(code + at + 2, n, code[at + 2 + n * 2] != 0);
+                    w.make_people();
+                    at += 3 + n * 2;
+                    break;
+                }
+
+                case mimas::OP_SAVE:
+                    view = text_view();
+                    save_flow(map_index(), w.cell_x, w.cell_y, w.facing);
+                    at += 1;
+                    break;
+
+                case mimas::OP_GAUGE:
+                {
+                    int which = code[at + 1], op = code[at + 2], v = code[at + 3];
+
+                    for(int i = 0; i < party_count; ++i)
+                    {
+                        member& m = party[i];
+                        int mx = which == 0 ? max_hp(m) : max_mp(m);
+                        int16_t& g = which == 0 ? m.hp : m.mp;
+                        g = int16_t(bn::max(0, bn::min(mx, op == 2 ? mx : op == 0 ? v : g + v)));
+                    }
+
+                    at += 4;
+                    break;
+                }
+
+                case mimas::OP_HEAL:
+                    heal_all();
+                    at += 1;
                     break;
 
                 default:
@@ -793,8 +934,7 @@ int main()
         bag[mimas::start_items[k * 2]] = uint8_t(bn::min(99, int(mimas::start_items[k * 2 + 1])));
     }
 
-    world w;
-    w.load(mimas::start_map, mimas::start_x, mimas::start_y, mimas::start_dir);
+    new_party();
 
     bn::sprite_text_generator text(common::variable_8x16_sprite_font);
     text.set_center_alignment();
@@ -803,6 +943,22 @@ int main()
     box_text.set_left_alignment();
     box_text.set_bg_priority(0);
     box_text.set_palette_item(bn::sprite_palette_items::text_palette);
+    G = &box_text;
+
+    // A saved game: CONTINUE where it was saved, or a NEW GAME.
+    bool continued = title_menu();
+
+    world w;
+
+    if(continued)
+    {
+        w.load(SAVE.map, SAVE.x, SAVE.y, SAVE.dir);
+    }
+    else
+    {
+        w.load(mimas::start_map, mimas::start_x, mimas::start_y, mimas::start_dir);
+    }
+
     name_banner banner(text);
     banner.show();
 
@@ -892,6 +1048,12 @@ int main()
             if(w.moving == 0)
             {
                 touched = event_at(w.cell_x, w.cell_y, 1);
+
+                if(touched < 0)
+                {
+                    w.place();
+                    encounter_step(w, map_index());
+                }
             }
         }
 
@@ -907,12 +1069,14 @@ int main()
             run_event(touched, w, box_text, banner);
         }
 
-        if(bn::keypad::start_pressed())
+        if(bn::keypad::start_pressed() && w.moving == 0)
         {
-            banner.show();
+            banner.hide();
+            start_menu(w, map_index());
         }
 
         banner.update();
+        ++play_frames;
         bn::core::update();
     }
 }

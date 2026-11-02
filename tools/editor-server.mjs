@@ -72,7 +72,7 @@ const readBytes = (req) => new Promise((resolve, reject) => {
 });
 const readBody = async (req) => (await readBytes(req)).toString('utf8');
 /** Imported files: images under public/assets/(props|tiles|icons|characters)/, sounds under public/assets/audio/. */
-const ASSET_FILE = /^(?:gba\/(?:tiles|sprites|props)\/[A-Za-z0-9_.-]+\.png$)|^assets\/(?:(?:props|tiles|icons|characters|enemies|weapons\/custom)\/[A-Za-z0-9_.-]+\.png|props\/[A-Za-z0-9_.-]+\.(?:glb|fbx)|models\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+\.(?:glb|fbx)|audio\/[A-Za-z0-9_.-]+\.(?:ogg|mp3|wav|m4a))$/;
+const ASSET_FILE = /^(?:gba\/(?:tiles|sprites|props|enemies|heroes|items)\/[A-Za-z0-9_.-]+\.png$)|^assets\/(?:(?:props|tiles|icons|characters|enemies|weapons\/custom)\/[A-Za-z0-9_.-]+\.png|props\/[A-Za-z0-9_.-]+\.(?:glb|fbx)|models\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+\.(?:glb|fbx)|audio\/[A-Za-z0-9_.-]+\.(?:ogg|mp3|wav|m4a))$/;
 
 const AUDIO = path.join(ROOT, 'audio');
 /** Every sound under audio/ (any depth), as "audio/…" paths. */
@@ -103,7 +103,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/__editor/save' && req.method === 'POST') {
       const file = url.searchParams.get('file') ?? '';
-      if (!/^(database|assets|gba|mimas|(?:gba)?maps\/[A-Za-z0-9_-]+)\.json$/.test(file)) return send(res, 400, { error: 'Invalid file name' });
+      if (!/^(database|assets|gba|gba_game|mimas|(?:gba)?maps\/[A-Za-z0-9_-]+)\.json$/.test(file)) return send(res, 400, { error: 'Invalid file name' });
       const body = await readBody(req);
       JSON.parse(body); // refuse anything that isn't valid JSON
       const target = path.join(DATA, file);

@@ -6,7 +6,8 @@ import type { Command, Condition, Database, EventPage, MapData } from '../world/
 import { h, openModal } from './dom';
 
 /** Commands the ROM runs (the rest are left out). */
-const SUPPORTED = new Set(['text', 'choice', 'if', 'setSwitch', 'setVar', 'selfSwitch', 'giveItem', 'takeItem', 'gold', 'transfer', 'wait', 'fadeOut', 'fadeIn', 'battle']);
+const SUPPORTED = new Set(['text', 'choice', 'if', 'setSwitch', 'setVar', 'selfSwitch', 'giveItem', 'takeItem', 'gold', 'transfer', 'wait', 'fadeOut', 'fadeIn', 'battle',
+  'party', 'learn', 'shop', 'save', 'gauge', 'fullRest', 'rest']);
 /** Commands that only change sound or the HD-2D look: skipped quietly. */
 const QUIET = new Set(['sound', 'music', 'ambience', 'weather', 'console', 'tutorial', 'journalTab', 'heroWeather', 'temperature']);
 
@@ -31,7 +32,7 @@ function commands(list: Command[] | undefined, where: string, maps: (n: string) 
     } else if (c.cmd === 'transfer') {
       if (!maps(c.map)?.gba) out.push({ where, what: `a transfer to “${c.map}”, which isn’t a GBA map`, kind: 'left out' });
     } else if (c.cmd === 'battle') {
-      out.push({ where, what: 'Start battle: the ROM shows a note until GBA battles are in (next update)', kind: 'later' });
+      if (c.map) out.push({ where, what: 'Start battle on a battle map: the GBA fights on its white screen', kind: 'stand-in' });
     } else if (!SUPPORTED.has(c.cmd) && !QUIET.has(c.cmd)) {
       out.push({ where, what: `the “${c.cmd}” command`, kind: 'left out' });
     }
@@ -41,7 +42,7 @@ function commands(list: Command[] | undefined, where: string, maps: (n: string) 
 function pageLines(page: EventPage, where: string, maps: (n: string) => MapData | undefined, out: CheckLine[]): void {
   const p = condProblem(page.condition);
   if (p) out.push({ where, what: `page condition: ${p}`, kind: 'left out' });
-  if (page.enemy) out.push({ where, what: 'an enemy on the map (it stands still on the GBA for now)', kind: 'later' });
+  if (page.enemy) out.push({ where, what: 'an enemy walking the map: the GBA has random battles and Start battle, not roaming enemies', kind: 'left out' });
   if (page.character && !page.gbaSprite) out.push({ where, what: `Saturn character “${page.character}”: the player’s GBA sprite stands in until it has a GBA sprite`, kind: 'stand-in' });
   if (page.sprite && !page.gbaSprite && !page.character) out.push({ where, what: `object sprite “${page.sprite}”: the ROM uses its picture at GBA size (save the map so it's written; a GBA Studio sprite looks crisper)`, kind: 'stand-in' });
   if (page.breakable) out.push({ where, what: 'a breakable (no hitting things on the GBA)', kind: 'left out' });
@@ -57,7 +58,11 @@ export function gbaCheck(m: MapData, mapName: string, db: Database, maps: (n: st
   if (m.lights.length) out.push({ where: 'Map', what: `${m.lights.length} light(s): the GBA has no lighting`, kind: 'left out' });
   if (m.buildings?.length) out.push({ where: 'Map', what: 'Saturn houses: paint houses as GBA objects', kind: 'left out' });
   if (m.weather && (m.weather.amount ?? 1) > 0) out.push({ where: 'Map', what: 'weather (not on the GBA yet)', kind: 'later' });
-  if ((m.zoneGrid ?? []).some((r) => /[^.]/.test(r)) || m.encounters?.enemies.length) out.push({ where: 'Map', what: 'random battles: the playtest has them; the ROM gets them with GBA battles (next update)', kind: 'later' });
+  const zones = Object.values(m.zones ?? {});
+  if (zones.some((z) => z.troops?.some((t) => t.time || t.days?.length || t.switch)))
+    out.push({ where: 'Map', what: 'encounter troops only by day / night, on some weekdays or with a switch: the GBA uses every troop any time', kind: 'stand-in' });
+  if (zones.some((z) => z.levels || z.troops?.some((t) => t.levels)))
+    out.push({ where: 'Map', what: 'zone enemy levels: the GBA uses each enemy’s own level', kind: 'stand-in' });
   void db;
   return out;
 }

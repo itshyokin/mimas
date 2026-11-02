@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 1, 2026, after Update 6)
+# Handoff: where Mimas stands (Nov 2, 2026, after Update 9)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -19,8 +19,8 @@ Flaming fists, Rapier, Claws; RPG Maker passability stays as an override; GBA St
   1-wide strips work; mirrored by `quarters` / `compose` in tools/export.py) and the preview shape.
 - `src/gba/mapRender.ts`: draws a GBA map and computes its collision. Must match `build_gba_map` in tools/export.py
   (same layer order and rules); collision bits SOLID 1, LEDGE_S 4, LEDGE_E 8, LEDGE_W 16, WATER 32, GRASS 64.
-- `src/editor/GbaPlaytest.ts`: the in-editor GBA playtest (same rules as main.cpp: steps, run, hops, events, text,
-  transfers). Text wrapping: `textPages` in types.ts = `text_pages` in export.py (30 characters, 2 lines a page).
+- Text wrapping for events: `textPages` in types.ts = `text_pages` in export.py (30 characters, 2 lines a page);
+  the ROM's menus wrap at run time by pixel width (`wrap` in game_systems.hpp).
 - Ledges: 9 pieces, `ledgeCell` / `ledgeDir` in types.ts (0-2 south, 3-5 east, 6-8 west; sheet 5×3). Old 5×1
   ledge sheets are migrated by `migrateLedges` in GbaStudio.ts (maps' p 3→4, 4→7); the exporter detects the old
   height and reads them the old way.
@@ -36,9 +36,8 @@ Flaming fists, Rapier, Claws; RPG Maker passability stays as an override; GBA St
 - `game/src/main.cpp`: grid movement, collision, camera, layers, walk / run frames, people, events (A to talk,
   touch for doors), text box, transfers with a fade (blocking loops for text and fades).
 - `.github/workflows/build.yml`: devkitpro/devkitarm container, Butano 21.9.0, export, make, release.
-- No GitHub Pages: the repo stays private (owner's choice, Nov 1). Editing is on the PC (Start Map Editor.bat).
-  Later: a public GBA Studio page (separate public repo, no art) that loads / saves the private repo through the
-  GitHub API with a token kept in the tablet's browser.
+- GitHub Pages (`.github/workflows/pages.yml`) publishes the editor and the game for editing on Android; it needs
+  the repo public and Settings → Pages → Source: GitHub Actions.
 
 ## The plan the owner agreed (Nov 1)
 Saturn is the game; GBA Studio is the art department. Everything must work in a GBA ROM: Saturn features that can't
@@ -49,6 +48,19 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Things to know
+- Update 9, the party / menus / battles:
+  - Playtest: src/gbaplay/party.ts (members: level, EXP, stats, gear, four moves; the same formulas as the ROM),
+    menus.ts (START menu, bag, party, shops, the learn questions), ui.ts (windows on the 240×160 screen; messages and
+    YES / NO through Saturn's MessageWindow). Battles run TurnBattle in Single mode with additions 'choose' and
+    additionTiming 'auto' (QTE hidden by gba.css). Saves: localStorage `mimas-gba-save:<title>`.
+  - Database option: combat.turnBased.moveSlots 'forget' (default) | 'equip' (CombatEditor, "GBA moves").
+  - ROM: the editor's save writes public/data/gba_game.json (src/editor/gbaGame.ts: numbers from the game's own
+    rules) and public/gba/enemies|heroes|items PNGs; tools/gba_game.py turns them into game/include/mimas_game.h
+    and sprites (enemy_K 64×64, hback_K, hface_K, icon_K, the ui_tiles window pieces and cursor);
+    game/src/game_systems.hpp (included into main.cpp) has the party, ui:: windows on a run-time background,
+    pick() lists, the START menu, bag, shops, learn, battles, random encounters and SRAM saves.
+  - New ROM ops (gba_events.py, keep the enum in export.py in step): BATTLE n enemy*n run var lose, PARTY, LEARN,
+    SHOP, SAVE, GAUGE, HEAL.
 - ROM events (Update 8): tools/gba_events.py compiles each GBA map's Saturn events (ops listed at its top; the enum
   export.py writes must match); game/src/main.cpp `run_event` runs them. Props: the editor's save writes
   public/gba/props/<type>.png and the map's gba.propCells; export.py's draw_props uses them. src/editor/gbaCheck.ts
@@ -62,9 +74,8 @@ sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → t
   code but have no tabs.
 - Mimas's editor server is on 5274+ and checks `project: 'mimas'` in the ping before reusing a running server;
   Saturn's is on 5174+. Vite dev: 5273. IndexedDB names are `mimas-editor` / `mimas-playtest`. Keep them apart.
-- Event commands: text (speaker '' / 'player' / 'ev:<id>', bubble), transfer, item (Database item, count), battle
-  (Database troop). The header's `command` struct carries speaker / bubble / item / count; the ROM's bag is
-  `bag[item_count]`. Text box and bubble share `box_palette`, so the world can keep 15 palettes.
+- The ROM's bag is `bag[item_count]` (Database item order). Text box and bubble share `box_palette`, so the world
+  can keep 15 palettes; menus and battles use `ui_palette` on a background made at run time (only while open).
 - Ledges: 15 pieces (0-2 S, 3-5 E, 6-8 W, 9-11 singles S/E/W, 12-14 extras S/E/W).
 
 ## How we work

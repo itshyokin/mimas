@@ -27,8 +27,12 @@ also has `map-preview.png`, a picture of the exported map.
 |---|---|
 | D-pad | Walk, one tile per step |
 | Hold B | Run |
-| A | Talk to people, read signs, next page of text |
-| START | Show the map name again |
+| A | Talk to people, read signs, next page of text, choose |
+| B | Back (in menus) |
+| START | The menu: PARTY, BAG, your hero (money, time), SAVE, EXIT |
+
+The game saves to the cartridge (SAVE in the menu, or a Save event); with a
+save on it, it starts with **CONTINUE / NEW GAME**.
 
 ## The editor
 
@@ -87,15 +91,34 @@ editor, with your unsaved changes. Saturn's own systems run it:
 - **Props** stand on the map and block like they did in Saturn.
 - **Random battles** from the Encounters layer's zones (or the map's own
   table), and the *Start battle* command: Saturn's turn-based battles in the
-  Pocket Handheld layout on a plain white screen, Gold / Silver style.
+  Pocket Handheld layout on a plain white screen, Gold / Silver style. The
+  party fights Pokémon-style: one hero out at a time, the rest sent in with
+  PARTY (or when one faints); everyone who was out shares the EXP.
+- **Moves**: each hero's Additions are their FIGHT moves, four at most, played
+  without button prompts (for now); moves cost no MP, spells (MAGIC) do. When
+  a hero learns a fifth, they're asked which to forget, Pokémon-style. With
+  Database → Combat → *GBA moves* set to *Equip*, nothing is forgotten: the
+  new move takes a slot and the four are chosen in PARTY → MOVES.
+- **The menu** (Enter = START): PARTY (SUMMARY, MOVES, EQUIP, SWITCH), BAG
+  (pockets ITEMS / GEAR / KEY ITEMS with ◀ ▶; each item's icon, name and ×n;
+  USE / EQUIP / TOSS), your hero (money and play time), SAVE, EXIT. Gear adds
+  to stats and armour.
+- **Shops** (BUY / SELL / QUIT with "how many?") and **saving** (kept in the
+  browser; the next playtest offers CONTINUE).
 - **Sound**: Saturn's sound effects (your files and the built-in ones) and the
   built-in chiptune music, as the GBA's sound chip will play it. Music files
   play as the built-in field or battle theme for now (a GBA ROM can't hold
   them as they are; they'll become tracker songs).
 
-Keys: arrows or WASD walk, Z / Enter / Space = A, X = B (hold to run), Esc
-stops; a gamepad works too. Not in the GBA playtest yet: shops, menus (the
-bag, the party), saving, and party members in battle (the hero fights alone).
+Keys: arrows or WASD walk, Z / Space = A (Enter too in menus), X = B (hold
+to run), Enter = START, Esc stops; a gamepad works too. One pixel font for
+everything: text boxes, menus and battles.
+
+**Saving a GBA map** also writes what the ROM needs for battles and menus:
+`public/data/gba_game.json` (the heroes, moves, spells, items, enemies and
+troops with the game's numbers) and pictures in `public/gba/enemies/` (each
+foe's front), `public/gba/heroes/` (backs and faces) and `public/gba/items/`
+(icons). Save once after changing them in the Database.
 
 The full guide to Saturn's tools (events, Database, props) is in
 [docs/saturn/README.md](docs/saturn/README.md).
@@ -175,6 +198,23 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 
 ## What the ROM does (v0.7)
 
+- **Battles**, Gold / Silver style on a white screen: the foe across from your
+  hero, HP bars, *What will Jordan do?* with FIGHT, MAGIC, BAG, GUARD, PARTY
+  and RUN. FIGHT is the hero's four moves (their Additions, every strike
+  landing); MAGIC their spells (costing MP); the faster side goes first.
+  Foes from a troop come out one at a time. Winning gives EXP (levels grow
+  each stat by the hero's ranks) and money; losing sends you back to the
+  start, healed, with half your money.
+- **Random battles** from the Encounters layer's zones (each with its troops
+  and steps) and the map's own table, plus the *Start battle* command (can
+  run, the result variable, lose and continue).
+- **The party**: up to six heroes (the *Party* command adds and removes
+  them). The START menu has PARTY (SUMMARY, MOVES, EQUIP, SWITCH), BAG (item
+  icons, ×n, USE / EQUIP / TOSS), your hero's card, SAVE and EXIT.
+- **Learn** gives moves and spells; a fifth move asks which to forget (or,
+  with *Equip* moves, which to put away). **Shops**, **Save**, **Full rest**
+  and **Change HP / MP** work too. Saves go to the cartridge.
+
 - Every GBA map is in the ROM; it starts on the game's start map (Database
   → start; now **Starter Meadow**). Maps are built from your tiles with
   their exact colors: ground, paths and water with joined corners (one tile
@@ -194,8 +234,7 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   cells they block in the editor. Saving a GBA map in the editor writes their
   pictures to `public/gba/props/` and the cells they block into the map.
 - **GBA check** (toolbar, on GBA maps) lists what a map uses that the ROM
-  can't do yet, so nothing is left out without you knowing. Battles and random
-  encounters are next.
+  can't do yet, so nothing is left out without you knowing.
 - Walls, water, cliff edges, tree trunks and signs block; stairs and ladders
   get you through cliffs; **ledges** hop you down (and block the way back up).
 - The player is your GBA Studio sprite, walking Pokémon-style (a foot forward
@@ -203,7 +242,7 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 - With no GBA map set, it plays the Saturn map in `public/data/mimas.json`
   instead (the old Monolith Woods export).
 
-Next up: people walking around, Surf, menus and battles. See [NOTES.md](NOTES.md).
+Next up: people walking around, Surf, battle animations, sound. See [NOTES.md](NOTES.md).
 
 ## Building the ROM yourself
 

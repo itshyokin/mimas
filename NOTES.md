@@ -46,20 +46,18 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       conditions, triggers, area events, text / bubbles / names, choices, if / else, switches, variables, self
       switches, items, gold, transfers, waits, fades; props drawn and blocking (baked by the editor on save);
       GBA check panel; the GBA playtest uses the Game Pixel font everywhere.
-- [ ] Update 9 (agreed): GBA battles in the ROM (Pokémon style, white screen); playtest and ROM menus in GB / GBA
-      Pokémon style (vertical pause list: party as the "Pokémon" list, bag as a text list with icons and (x3),
-      Use / Toss…, Save); battle log in the pixel font; Additions are the attacks (no button prompts yet), up to 4
-      a hero, learning a 5th asks which to forget (Database option: keep them all and equip 4 outside battle);
-      Additions cost no MP, Spells do; shops; party members in battle; stats from gear.
-- [ ] GBA playtest gaps: shops, START menu (bag, party), saving, party members in battle, hero stats from gear.
-- [ ] Update 8+: the ROM: Saturn events compiled to a compact script, encounter zones, battles, sound (chip versions
-      of the built-in sounds on the GBA's sound chip; effect files as samples; music as tracker files), props drawn
-      into the map, and a GBA check panel listing what a map uses that the GBA can't do.
+- [x] Update 9 (Nov 2): Pokémon-style party, menus and battles, in the playtest and the ROM. Playtest
+      (src/gbaplay/party.ts, menus.ts, ui.ts): START menu (Party, Bag with pockets / icons / ×n / Use · Equip · Toss,
+      the hero's card, Save, Exit), party Summary / Moves / Equip / Switch, shops, saving with Continue; battles in
+      Single mode (the party sent in one at a time), Additions as the four FIGHT moves without prompts, a 5th asks
+      which to forget (Database → Combat → GBA moves: Equip keeps them all), light command box. ROM
+      (game/src/game_systems.hpp, tools/gba_game.py, gba_game.json + battle art baked by the editor on save):
+      battles on a white screen (FIGHT / MAGIC / BAG / GUARD / PARTY / RUN), random battles from zones and map
+      tables, Start battle, Party, Learn (forget prompt), Shop, Save (SRAM, CONTINUE / NEW GAME), Change HP / MP,
+      Full rest, gear stats, the START menu.
 - [ ] Tall grass rustle, water animation, Surf on water (needs a key item / ability), one-way passability arrows.
-- [ ] More event commands: choices, switches / variables, conditions, give item, move route, wait.
+- [ ] More event commands in the ROM: move route, show / hide events, class changes.
 - [ ] NPCs walking around (GBA Studio overworld sprites).
-- [ ] GBA battles (Start battle runs them), the bag in a START menu.
-- [ ] Menus (START), then battles with back-sprites (the poses from GBA Studio) and front sprites.
 - [ ] Move Saturn's Database over piece by piece: items, characters, enemies, heroes as GBA data.
 
 ## Later

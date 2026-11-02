@@ -6,7 +6,11 @@ import { formatDatabase, formatMap } from '../shared/dataFiles';
 import { h, openModal, toast } from './dom';
 import type { EditorStore } from './store';
 import { blockedTiles } from '../world/props';
-import { propSprite } from './editorArt';
+import { characterImage, enemyImage, propSprite } from './editorArt';
+import { tintCanvas } from '../render/tint';
+import { builtinIcon, builtinIconName } from '../art/itemIcons';
+import { mainHero } from '../world/heroes';
+import { romGameData } from './gbaGame';
 
 /** File name for a prop's GBA picture (public/gba/props/<name>.png). */
 export const propFile = (type: string): string => `gba/props/${type.replace(/[^A-Za-z0-9_.-]/g, '_')}.png`;
@@ -44,10 +48,90 @@ async function bakeProps(store: EditorStore): Promise<void> {
   }
 }
 
+/** What was written this session (by file), so unchanged pictures aren't written again. */
+const bakedArt = new Map<string, string>();
+
+/** A picture fitted into a box (nearest-neighbour, keeping its shape), bottom-centred. */
+function fitInto(src: HTMLCanvasElement, w: number, h: number, bottom = true): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  // Small art is scaled up by whole steps (crisp pixels), big art down to fit.
+  const fit = Math.min(w / src.width, h / src.height) || 1;
+  const k = fit >= 1 ? Math.floor(fit) : fit;
+  const dw = Math.max(1, Math.round(src.width * k)), dh = Math.max(1, Math.round(src.height * k));
+  const g = c.getContext('2d')!;
+  g.imageSmoothingEnabled = false;
+  g.drawImage(src, Math.floor((w - dw) / 2), bottom ? h - dh : Math.floor((h - dh) / 2), dw, dh);
+  return c;
+}
+
+/** The part of a picture that's drawn (no empty rows or columns around it). */
+function trim(src: HTMLCanvasElement): HTMLCanvasElement {
+  const d = src.getContext('2d')!.getImageData(0, 0, src.width, src.height).data;
+  let x0 = src.width, y0 = src.height, x1 = -1, y1 = -1;
+  for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) if (d[(y * src.width + x) * 4 + 3] > 16) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (x1 < 0) return src;
+  const c = document.createElement('canvas');
+  c.width = x1 - x0 + 1; c.height = y1 - y0 + 1;
+  c.getContext('2d')!.drawImage(src, x0, y0, c.width, c.height, 0, 0, c.width, c.height);
+  return c;
+}
+
+async function blobOf(c: HTMLCanvasElement): Promise<Blob | null> { return new Promise((res) => c.toBlob(res, 'image/png')); }
+
+/**
+ * Mimas: the battle and menu art the ROM needs, drawn here (the editor makes these pictures; the exporter can't):
+ * each enemy's front (64 × 64), each hero's back (64 × 64) and face (16 × 16), and each item's icon (16 × 16),
+ * into public/gba/enemies, heroes and items.
+ */
+async function bakeGameArt(store: EditorStore): Promise<void> {
+  if (!store.project.canStoreImages) return;
+  const db = store.db, out: [string, HTMLCanvasElement][] = [];
+  for (const e of db.enemies ?? []) {
+    let c = enemyImage(db, e.look);
+    if (c && e.tint) c = tintCanvas(c, e.tint);
+    if (c && c.width && c.height) out.push([`gba/enemies/${e.id}.png`, fitInto(trim(c), 64, 64)]);
+  }
+  const first = mainHero(db).id;
+  for (const hero of db.heroes ?? []) {
+    const look = hero.look ?? (hero.id === first ? db.player : undefined);
+    const ch = look ? db.characters[look] : undefined;
+    if (!look || !ch) continue;
+    const back = characterImage(look, ch, 'up'), front = characterImage(look, ch, 'down');
+    if (back.width && back.height) out.push([`gba/heroes/${hero.id}_back.png`, fitInto(trim(back), 64, 64)]);
+    if (front.width && front.height) {
+      const t = trim(front), head = document.createElement('canvas');
+      head.width = t.width; head.height = Math.min(t.height, t.width);
+      head.getContext('2d')!.drawImage(t, 0, 0);
+      out.push([`gba/heroes/${hero.id}_face.png`, fitInto(head, 16, 16, false)]);
+    }
+  }
+  for (const it of db.items ?? []) {
+    const b = builtinIconName(it.icon);
+    let c: HTMLCanvasElement | null = null;
+    if (b) c = builtinIcon(b, it.iconTint);
+    else if (it.icon && it.icon !== 'sprite') {
+      try { const bmp = await createImageBitmap(await store.project.readFile(it.icon)); c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; c.getContext('2d')!.drawImage(bmp, 0, 0); bmp.close(); } catch { c = null; }
+    }
+    c ??= builtinIcon(it.slot === 'ranged' ? 'bow' : it.slot === 'shield' ? 'shield' : it.slot ? 'sword' : 'potion');
+    if (c.width && c.height) out.push([`gba/items/${it.id}.png`, fitInto(c, 16, 16, false)]);
+  }
+  for (const [file, c] of out) {
+    const key = c.toDataURL();
+    if (bakedArt.get(file) === key) continue;
+    const blob = await blobOf(c);
+    if (!blob) continue;
+    try { await store.project.writeFile(file, blob); bakedArt.set(file, key); } catch { /* the ROM uses a stand-in */ }
+  }
+}
+
 export async function save(store: EditorStore): Promise<void> {
   // Mimas: what the ROM needs from the props, worked out here (their art and footprints live in the editor).
   if (store.map.gba && store.project.canSave) await bakeProps(store);
+  if (store.map.gba && store.project.canSave) await bakeGameArt(store);
   const files: [string, string][] = [[`maps/${store.mapName}.json`, formatMap(store.map)]];
+  // Mimas: the game's numbers for the ROM (battles, the party, items), from the Database.
+  if (store.map.gba && store.project.canSave) files.push(['gba_game.json', `${JSON.stringify(romGameData(store.db), null, 1)}\n`]);
   if (store.dbDirty) files.push(['database.json', formatDatabase(store.db)]);
 
   if (store.project.canSave) {

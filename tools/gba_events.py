@@ -21,14 +21,22 @@ The script (game/src/main.cpp runs it; keep the two in step, and the op numbers 
   WAIT frames
   FADEOUT frames
   FADEIN frames
-  BATTLE str troop                 GBA battles come with the next update: a line for now
+  BATTLE n enemy*n run var lose    a battle (Pokémon style: the foes come out one at a time); run 1: can run away;
+                                   var: the result variable (-1 none: 1 won, 2 ran, 0 lost); lose 0: back to the
+                                   start (healed), 1: the event goes on
+  PARTY op hero quiet              op 0: joins, 1: leaves
+  LEARN who addition spell rank silent   who -1: the whole party, else a hero (Database order)
+  SHOP n (item price)*n sell       a shop (BUY / SELL / QUIT); sell 0: buying only
+  SAVE                             "Would you like to save the game?"
+  GAUGE which op value             which 0 HP, 1 MP; op 0 set, 1 add, 2 fill (everyone in the party)
+  HEAL                             everyone back to full (Full rest)
 
 Text: \\v[name] becomes {Vn} (the variable's value) and \\s[name] {Sn} (ON / OFF); Saturn's rich-text tags are dropped.
 """
 import re
 
 OPS = ['END', 'TEXT', 'CHOICE', 'JUMP', 'IF', 'SWITCH', 'VAR', 'SELF', 'GIVE', 'TAKE', 'GOLD', 'TRANSFER', 'WAIT',
-       'FADEOUT', 'FADEIN', 'BATTLE']
+       'FADEOUT', 'FADEIN', 'BATTLE', 'PARTY', 'LEARN', 'SHOP', 'SAVE', 'GAUGE', 'HEAL']
 OP = {n: i for i, n in enumerate(OPS)}
 DIRS = {'down': 0, 'up': 1, 'left': 2, 'right': 3}
 TRIGGERS = {'action': 0, 'touch': 1, 'auto': 2, 'none': 3}
@@ -39,6 +47,19 @@ I16 = lambda v: max(-32768, min(32767, int(v)))
 # Commands that only mean something in the HD-2D game: skipped quietly.
 QUIET = {'weather', 'heroWeather', 'temperature', 'ambience', 'fieldWeapons', 'journalTab', 'tutorial', 'console',
          'roost', 'horse', 'stable', 'tendFire', 'sound', 'music'}
+
+
+DEFAULT_ADDITION_IDS = ['quick_strike', 'double_slash', 'volley', 'crescent_storm']
+DEFAULT_SPELL_IDS = ['fire', 'frost', 'spark', 'mend', 'haste', 'slow', 'rain_call']
+
+
+def additions_of(db):
+    """The Database's Additions (or the built-in ones), in order: the ROM's addition numbers."""
+    return db.get('additions') or [{'id': i} for i in DEFAULT_ADDITION_IDS]
+
+
+def spells_of(db):
+    return db.get('spells') or [{'id': i} for i in DEFAULT_SPELL_IDS]
 
 
 class Compiler:
@@ -53,6 +74,11 @@ class Compiler:
         self.item_names = [it.get('name') or it.get('id', '?') for it in items]
         self.troops = {t.get('id'): t for t in db.get('troops', [])}
         self.enemies = {e.get('id'): e for e in db.get('enemies', [])}
+        self.enemy_index = {e.get('id'): n for n, e in enumerate(db.get('enemies', []))}
+        heroes = db.get('heroes') or [{'id': 'hero'}]
+        self.hero_index = {h.get('id'): n for n, h in enumerate(heroes)}
+        self.addition_index = {a.get('id'): n for n, a in enumerate(additions_of(db))}
+        self.spell_index = {sp.get('id'): n for n, sp in enumerate(spells_of(db))}
         self.switches, self.vars, self.strings = {}, {}, []
         self.string_index = {}
         self.conds = [(0, 0, 0, 0)]           # 0: always
@@ -207,9 +233,38 @@ class Compiler:
             elif k in ('fadeOut', 'fadeIn'):
                 emit(OP['FADEOUT' if k == 'fadeOut' else 'FADEIN'], max(1, round(float(c.get('seconds', 0.5) or 0.5) * 60)))
             elif k == 'battle':
-                names = ', '.join(dict.fromkeys(self.enemies.get(e, {}).get('name', e) for e in c.get('enemies', [])))
-                self.warn('Start battle: GBA battles come with the next update (the ROM shows a line for now)')
-                emit(OP['BATTLE'], self.message(f'A battle with {names or "foes"}! (GBA battles come soon.)'), 0)
+                foes = [self.enemy_index[e] for e in c.get('enemies', []) if e in self.enemy_index][:6]
+                if not foes:
+                    self.warn('Start battle with no enemies from the Database: skipped')
+                    return
+                rv = self.var(c['resultVar']) if c.get('resultVar') else -1
+                emit(OP['BATTLE'], len(foes), *foes, 0 if c.get('canRun') is False else 1, rv, 1 if c.get('lose') == 'continue' else 0)
+            elif k == 'party':
+                if c.get('hero') not in self.hero_index:
+                    self.warn(f'Party: “{c.get("hero")}” isn\'t a hero in the Database')
+                    return
+                emit(OP['PARTY'], 1 if c.get('op') == 'remove' else 0, self.hero_index[c['hero']], 1 if c.get('quiet') else 0)
+            elif k == 'learn':
+                who = c.get('who') or '@party'
+                w = -1 if who == '@party' else self.hero_index.get(who, -2)
+                if w == -2:
+                    self.warn(f'Learn: “{who}” isn\'t a hero in the Database')
+                    return
+                emit(OP['LEARN'], w, self.addition_index.get(c.get('addition'), -1), self.spell_index.get(c.get('spell'), -1),
+                     int(c.get('rank', 1) or 1), 1 if c.get('silent') else 0)
+            elif k == 'shop':
+                goods = [(self.items[g['item']], int(g['price']) if g.get('price') is not None else -1) for g in c.get('goods', []) if g.get('item') in self.items][:16]
+                if not goods:
+                    return
+                emit(OP['SHOP'], len(goods), *[v for pair in goods for v in pair], 0 if c.get('canSell') is False else 1)
+            elif k == 'save':
+                emit(OP['SAVE'])
+            elif k == 'gauge':
+                if c.get('gauge') not in ('hp', 'mp'):
+                    return
+                emit(OP['GAUGE'], 0 if c['gauge'] == 'hp' else 1, {'set': 0, 'add': 1, 'fill': 2}.get(c.get('op'), 1), int(c.get('value', 0) or 0))
+            elif k in ('fullRest', 'rest'):
+                emit(OP['HEAL'])
             elif k in QUIET:
                 pass
             else:
@@ -220,7 +275,7 @@ class Compiler:
             first = len(pages_out)
             for pg in e.get('pages', []):
                 if pg.get('enemy'):
-                    self.warn('an enemy on the map: GBA battles come with the next update (left out)')
+                    self.warn('an enemy walking the map: the GBA has random battles and Start battle, not roaming enemies (left out)')
                 if pg.get('sprite') and not pg.get('gbaSprite') and sprite_of(pg) == -1:
                     self.warn(f'the object sprite “{pg["sprite"]}” has no GBA picture yet (save the map in the editor)')
                 if pg.get('character') and not pg.get('gbaSprite'):
