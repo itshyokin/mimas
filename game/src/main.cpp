@@ -297,11 +297,13 @@ namespace
                     continue;
                 }
 
-                const bn::sprite_item& item = pg->sprite >= 0 ? *mimas::npc_sprites[pg->sprite] : bn::sprite_items::hero;
+                // an object (a chest, a sign): one frame, its foot on the bottom of the event's area
+                const bool object = pg->sprite <= -10;
+                const bn::sprite_item& item = object ? *mimas::obj_sprites[-10 - pg->sprite] : pg->sprite >= 0 ? *mimas::npc_sprites[pg->sprite] : bn::sprite_items::hero;
                 bn::sprite_ptr s = item.create_sprite(0, 0);
                 s.set_camera(camera);
                 s.set_bg_priority(2);
-                s.set_position(world_x(e.x * CELL + e.w * CELL / 2), world_y((e.y + e.h - 1) * CELL));
+                s.set_position(world_x(e.x * CELL + e.w * CELL / 2), object ? world_y((e.y + e.h) * CELL - mimas::obj_heights[-10 - pg->sprite] / 2) : world_y((e.y + e.h - 1) * CELL));
                 s.set_z_order(-(e.y + e.h - 1));
                 people.push_back(s);
                 people_event.push_back(i);
@@ -313,6 +315,7 @@ namespace
         void face_person(int k, int d)
         {
             const mimas::page* pg = page_of(people_event[k]);
+            if(pg && pg->sprite <= -10) { return; }   // objects have one frame and don't turn
             const bn::sprite_item& item = pg && pg->sprite >= 0 ? *mimas::npc_sprites[pg->sprite] : bn::sprite_items::hero;
             people[k].set_tiles(item.tiles_item(), SHEET_ROW[d] * mimas::hero_frames);
             people[k].set_horizontal_flip(d == RIGHT);

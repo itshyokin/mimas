@@ -43,7 +43,7 @@ function pageLines(page: EventPage, where: string, maps: (n: string) => MapData 
   if (p) out.push({ where, what: `page condition: ${p}`, kind: 'left out' });
   if (page.enemy) out.push({ where, what: 'an enemy on the map (it stands still on the GBA for now)', kind: 'later' });
   if (page.character && !page.gbaSprite) out.push({ where, what: `Saturn character “${page.character}”: the player’s GBA sprite stands in until it has a GBA sprite`, kind: 'stand-in' });
-  if (page.sprite && !page.gbaSprite && !page.character) out.push({ where, what: `object sprite “${page.sprite}” isn’t drawn on the GBA: give it a GBA sprite, or put a GBA object under it`, kind: 'left out' });
+  if (page.sprite && !page.gbaSprite && !page.character) out.push({ where, what: `object sprite “${page.sprite}”: the ROM uses its picture at GBA size (save the map so it's written; a GBA Studio sprite looks crisper)`, kind: 'stand-in' });
   if (page.breakable) out.push({ where, what: 'a breakable (no hitting things on the GBA)', kind: 'left out' });
   if (page.trigger === 'auto' && !page.commands.some((c) => c.cmd === 'selfSwitch' || c.cmd === 'setSwitch' || c.cmd === 'setVar' || c.cmd === 'transfer'))
     out.push({ where, what: 'an autorun page that never changes a switch, variable or map: it would run forever', kind: 'left out' });

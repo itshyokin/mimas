@@ -26,7 +26,10 @@ async function bakeProps(store: EditorStore): Promise<void> {
   }
   g.propCells = [...cells].map((k) => k.split(',').map(Number) as [number, number]);
   if (!store.project.canStoreImages) return;
-  for (const type of new Set(m.props.map((p) => p.type))) {
+  // Props on the map, and the object sprites events show (a chest, a sign): the ROM draws both from these pictures.
+  const used = new Set(m.props.map((p) => p.type));
+  for (const ev of m.events) for (const pg of ev.pages) if (pg.sprite && !pg.gbaSprite) used.add(pg.sprite);
+  for (const type of used) {
     if (bakedThisSession.has(type)) continue;
     const sp = propSprite(type);
     const w = Math.max(1, Math.round(sp.w)), h = Math.max(1, Math.round(sp.h));

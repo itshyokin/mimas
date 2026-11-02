@@ -221,8 +221,8 @@ class Compiler:
             for pg in e.get('pages', []):
                 if pg.get('enemy'):
                     self.warn('an enemy on the map: GBA battles come with the next update (left out)')
-                if pg.get('sprite') and not pg.get('gbaSprite'):
-                    self.warn(f'the object sprite “{pg["sprite"]}” isn\'t drawn on the GBA (give it a GBA sprite, or paint a GBA object)')
+                if pg.get('sprite') and not pg.get('gbaSprite') and sprite_of(pg) == -1:
+                    self.warn(f'the object sprite “{pg["sprite"]}” has no GBA picture yet (save the map in the editor)')
                 if pg.get('character') and not pg.get('gbaSprite'):
                     self.warn('a Saturn character: the player\'s GBA sprite stands in for it')
                 cmds = pg.get('commands', [])

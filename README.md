@@ -183,7 +183,9 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   B for the cancel choice), if / else, switches, variables, self switches,
   give / take items, gold, transfers between GBA maps, waits and fades.
   People show their GBA sprite (Saturn characters: the player's sprite stands
-  in) and turn to face you when the page says so.
+  in) and turn to face you when the page says so. Objects events show (a
+  chest, a sign) use their picture at GBA size, so a chest opens when its
+  page changes.
 - **Props** are drawn into the map (their tops over the player) and block the
   cells they block in the editor. Saving a GBA map in the editor writes their
   pictures to `public/gba/props/` and the cells they block into the map.

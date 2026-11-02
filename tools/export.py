@@ -821,7 +821,7 @@ def clean_outputs():
     os.makedirs(GFX, exist_ok=True)
     os.makedirs(INC, exist_ok=True)
     for f in os.listdir(GFX):
-        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'textbox', 'text_palette', 'bubble', 'box_palette', 'choice_')):
+        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'obj_', 'textbox', 'text_palette', 'bubble', 'box_palette', 'choice_')):
             os.remove(os.path.join(GFX, f))
 
 
@@ -986,7 +986,48 @@ def main():
     if npc_ids:
         print(f'  people sprites: {", ".join(npc_ids)}')
 
+    # Objects events show (a chest, a sign): one-frame sprites from the editor's baked prop pictures.
+    obj_ids, obj_heights = [], []
+    for m in maps:
+        for e in (m.get('saturn') or {}).get('events', []):
+            for pg in e.get('pages', []):
+                t = pg.get('sprite')
+                if not t or pg.get('gbaSprite') or t in obj_ids:
+                    continue
+                safe = ''.join(ch if ch.isalnum() or ch in '_.-' else '_' for ch in t)
+                path = os.path.join(PUBLIC, 'gba', 'props', safe + '.png')
+                if not os.path.exists(path):
+                    continue
+                im = hard_alpha(Image.open(path).convert('RGBA'))
+                size = next((n for n in (16, 32, 64) if im.width <= n and im.height <= n), 64)
+                if im.width > 64 or im.height > 64:
+                    im.thumbnail((64, 64), Image.NEAREST)
+                pad = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+                pad.alpha_composite(im, ((size - im.width) // 2, size - im.height))
+                k = len(obj_ids)
+                obj_ids.append(t)
+                obj_heights.append(size)
+                # 15 colours at most (the sprite's palette; 0 is see-through)
+                opaque = [(r, g, b) for (r, g, b, al) in pad.getdata() if al >= 128]
+                cols = sorted(set(opaque))
+                if len(cols) > 15:
+                    sample = Image.new('RGB', (len(opaque), 1))
+                    sample.putdata(opaque)
+                    qp = sample.quantize(colors=15, method=Image.Quantize.MEDIANCUT).getpalette()[:45]
+                    cols = [tuple(qp[i:i + 3]) for i in range(0, len(qp), 3)]
+                cols = cols or [(0, 0, 0)]
+                data = [0 if al < 128 else 1 + nearest((r, g, b), cols) for (r, g, b, al) in pad.getdata()]
+                out_im = Image.new('P', pad.size)
+                out_im.putdata(data)
+                put_palette(out_im, [(255, 0, 255)] + (cols + [(0, 0, 0)] * 15)[:15])
+                out_im.save(os.path.join(GFX, f'obj_{k}.bmp'))
+                write_json(os.path.join(GFX, f'obj_{k}.json'), {'type': 'sprite', 'height': size})
+    if obj_ids:
+        print(f'  event objects: {", ".join(obj_ids)}')
+
     def sprite_of(pg):
+        if pg.get('sprite') in obj_ids and not pg.get('gbaSprite'):
+            return -10 - obj_ids.index(pg['sprite'])   # an object: obj_sprites[-10 - n]
         if pg.get('gbaSprite') in npc_ids:
             return npc_ids.index(pg['gbaSprite'])
         if pg.get('gbaSprite') or pg.get('character'):
@@ -1010,6 +1051,8 @@ def main():
         w(f'#include "bn_regular_bg_items_world_ground_{i}.h"\n#include "bn_regular_bg_items_world_over_{i}.h"\n')
     for k in range(len(npc_ids)):
         w(f'#include "bn_sprite_items_npc_{k}.h"\n')
+    for k in range(len(obj_ids)):
+        w(f'#include "bn_sprite_items_obj_{k}.h"\n')
     w('\nnamespace mimas\n{\n')
     w(f'constexpr uint8_t solid = {SOLID};\nconstexpr uint8_t bridge = {BRIDGE};\n')
     w(f'constexpr uint8_t ledge_s = {LEDGE_S};\nconstexpr uint8_t ledge_e = {LEDGE_E};\nconstexpr uint8_t ledge_w = {LEDGE_W};\n')
@@ -1058,6 +1101,9 @@ def main():
     w(f'constexpr int start_gold = {gold0};\n')
     w('constexpr int16_t start_items[] = { ' + (', '.join(f'{a}, {b}' for a, b in start_items) or '-1, 0') + ' };\n')
     w(f'constexpr int start_item_count = {len(start_items)};\n')
+    w('// Objects events show (sprite -10 - k): one frame each, this tall.\n')
+    w('constexpr const bn::sprite_item* obj_sprites[] = { ' + (', '.join(f'&bn::sprite_items::obj_{k}' for k in range(len(obj_ids))) or 'nullptr') + ' };\n')
+    w('constexpr int obj_heights[] = { ' + (', '.join(str(x) for x in obj_heights) or '0') + ' };\n')
     w('constexpr const bn::sprite_item* npc_sprites[] = { ' +
       (', '.join(f'&bn::sprite_items::npc_{k}' for k in range(len(npc_ids))) or 'nullptr') + ' };\n\n')
 
