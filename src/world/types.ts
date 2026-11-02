@@ -1854,6 +1854,12 @@ export interface TurnBasedData {
   additions?: 'set' | 'choose';
   /** Additions' timing: pressed by the player, or automatic (every strike lands; for accessibility). */
   additionTiming?: 'press' | 'auto';
+  /**
+   * Mimas (GBA): Additions are the heroes' moves, four at most. 'forget' (default, Pokémon): learning a fifth asks
+   * which to forget, and that one is gone. 'equip': nothing is forgotten; the new one takes a slot and the heroes
+   * pick their four from everything they know (Party → Moves).
+   */
+  moveSlots?: 'forget' | 'equip';
   /** The battle screen's look: 'dragon' (default; Legend of Dragoon-like) or 'fantasy' (Final Fantasy-like). */
   layout?: 'dragon' | 'fantasy' | 'pocket';
   /** The hero always fights: can't be swapped onto the bench (default: anyone can). */

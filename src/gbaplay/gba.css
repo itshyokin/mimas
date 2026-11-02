@@ -30,3 +30,53 @@ body.gba-mode .battle .battle-cmd [aria-disabled="true"], body.gba-mode .battle 
 body.gba-mode .msg .msg-text, body.gba-mode .msg .msg-text * { color: #303038 !important; opacity: 1 !important; -webkit-text-fill-color: #303038 !important; }
 /* One pixel font for everything in the GBA game: text boxes, choices, menus, the battle log and its text box. */
 body.gba-mode, body.gba-mode .msg, body.gba-mode .msg *, body.gba-mode .battle, body.gba-mode .battle * { font-family: "Game Pixel", monospace !important; }
+
+/* ------------------------------------------------------------------ menus (Pokémon GB / GBA style) */
+body.gba-mode { --gba: min(calc(100vw / 240), calc(100vh / 160)); }
+.gba-ui { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+.gba-win { position: absolute; box-sizing: border-box; pointer-events: auto; background: #f8f8f8; color: #303038;
+  border: calc(var(--gba) * 2) solid #305090; border-radius: calc(var(--gba) * 3); box-shadow: inset 0 0 0 calc(var(--gba) * 1) #7090c8, calc(var(--gba) * 1.5) calc(var(--gba) * 1.5) 0 rgba(0, 0, 0, 0.25);
+  padding: calc(var(--gba) * 4) calc(var(--gba) * 6) calc(var(--gba) * 4) calc(var(--gba) * 4);
+  font-family: "Game Pixel", monospace; font-size: calc(var(--gba) * 8.5); line-height: 1; text-shadow: calc(var(--gba) * 0.6) calc(var(--gba) * 0.6) 0 #c8c8d0; }
+.gba-title { padding: 0 0 calc(var(--gba) * 4) calc(var(--gba) * 9); color: #305090; text-shadow: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gba-row { position: relative; display: flex; align-items: center; gap: calc(var(--gba) * 3); min-height: calc(var(--gba) * 15); padding-left: calc(var(--gba) * 9); cursor: pointer; white-space: nowrap; }
+.gba-row::before { content: ''; position: absolute; left: calc(var(--gba) * 1); top: 50%; transform: translateY(-50%); border-left: calc(var(--gba) * 5) solid transparent; border-top: calc(var(--gba) * 3.5) solid transparent; border-bottom: calc(var(--gba) * 3.5) solid transparent; }
+.gba-row.sel::before { border-left-color: #303038; }
+.gba-win:not(.active) .gba-row.sel::before { border-left-color: #a0a0a8; }
+.gba-row.off { color: #a8a8b0; }
+.gba-row img { width: calc(var(--gba) * 12); height: calc(var(--gba) * 12); image-rendering: pixelated; flex: none; object-fit: contain; }
+.gba-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.gba-right { flex: none; text-align: right; }
+.gba-two { flex: 1; min-width: 0; display: grid; gap: calc(var(--gba) * 1.5); padding: calc(var(--gba) * 1.5) 0; }
+.gba-two .gba-label { flex: none; }
+.gba-sub { font-size: calc(var(--gba) * 7); color: #606070; }
+.gba-bar { display: block; height: calc(var(--gba) * 3); width: calc(var(--gba) * 64); background: #404048; border: calc(var(--gba) * 0.75) solid #303038; border-radius: calc(var(--gba) * 1.5); overflow: hidden; }
+.gba-bar b { display: block; height: 100%; }
+.gba-bar b.hi { background: #58d080; } .gba-bar b.mid { background: #f8c040; } .gba-bar b.lo { background: #f05048; }
+.gba-more { text-align: center; color: #d04040; font-size: calc(var(--gba) * 6); line-height: 1; height: calc(var(--gba) * 6); text-shadow: none; }
+/* The description box: the bottom of the screen, like the bag's and the START menu's. */
+.gba-detail { left: calc(var(--gba) * 4); right: calc(var(--gba) * 4); bottom: calc(var(--gba) * 4); height: calc(var(--gba) * 36); padding: calc(var(--gba) * 6) calc(var(--gba) * 8); line-height: 1.5; white-space: normal; pointer-events: none; }
+.gba-detail:empty { display: none; }
+.gba-win.party .gba-row { min-height: calc(var(--gba) * 22); }
+.gba-win.party .gba-row img { width: calc(var(--gba) * 16); height: calc(var(--gba) * 16); }
+.gba-win.title { text-align: left; }
+.gba-win.title .gba-title { text-align: center; padding-left: 0; font-size: calc(var(--gba) * 12); }
+
+/* ------------------------------------------------------------------ battles: the command box and battle log, light too */
+body.gba-mode .battle.layout-pocket .battle-cmd.bar, body.gba-mode .battle.layout-pocket.list-mode .battle-cmd { background: #f8f8f8; border: max(2px, calc(var(--u) * 0.22)) solid #305090; box-shadow: inset 0 0 0 2px #7090c8, 3px 3px 0 rgba(0, 0, 0, 0.18); }
+body.gba-mode .battle.layout-pocket .bcmd-tile .bcmd-tile-label { color: #303038; text-shadow: 1px 1px 0 #c8c8d0; }
+body.gba-mode .battle.layout-pocket .bcmd-tile[aria-selected="true"] { border-color: transparent; background: none; }
+body.gba-mode .battle.layout-pocket .bcmd-tile[aria-selected="true"]::before { color: #303038; }
+body.gba-mode .battle.layout-pocket .bcmd-tile[aria-selected="true"] .bcmd-tile-label { color: #303038; }
+body.gba-mode .battle .battle-cmd-cap, body.gba-mode .battle .battle-cmd-title { color: #606070; }
+body.gba-mode .battle .bcmd { background: none; color: #303038; border-color: transparent; }
+body.gba-mode .battle .bcmd[aria-selected="true"] { background: #e0e8f8; border-color: #305090; }
+body.gba-mode .battle .bcmd .bcmd-right, body.gba-mode .battle .bcmd small { color: #606070; }
+body.gba-mode .battle .battle-log-lines, body.gba-mode .battle.layout-pocket .battle-log.focused .battle-log-lines { background: #f8f8f8; color: #303038; border: 3px solid #305090; -webkit-mask-image: none; mask-image: none; }
+body.gba-mode .battle .battle-log-lines div, body.gba-mode .battle .battle-log-lines div:last-child { color: #303038; }
+body.gba-mode .battle .battle-log-hint { color: #606070; }
+body.gba-mode .battle .pt-stats { background: #f8f8f8; color: #303038; border-color: #305090; }
+body.gba-mode .battle .pt-stats div { color: #303038; }
+body.gba-mode .battle .pocket-pick { background: #f8f8f8; color: #303038; }
+/* Moves play without button prompts (for now): no rings or buttons over the battle. */
+body.gba-mode .qte, body.gba-mode .qte-pads, body.gba-mode .spell-seq { display: none !important; }

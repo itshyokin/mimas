@@ -415,7 +415,7 @@ async function playGba(): Promise<void> {
     frame.style.height = `${160 * sc}px`;
   };
   shell.append(h('div', { class: 'gba-play-bar' }, h('strong', {}, 'GBA playtest'),
-    h('span', {}, 'Arrows / WASD walk · Z, Enter or Space = A · X = B (hold to run) · Esc stops'),
+    h('span', {}, 'Arrows walk · Z / Space = A · X = B (hold to run) · Enter = START (menu) · Esc stops'),
     h('button', { type: 'button', class: 'btn', onclick: close }, 'Stop')), frame);
   document.body.append(shell);
   fit();
@@ -447,6 +447,8 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
     }
   }
   for (const d of ['down', 'up', 'left', 'right']) want.add(`char:${store.db.player}:${d}`);
+  // The party's looks (party lists, battle backs).
+  for (const hero of store.db.heroes ?? []) if (hero.look) for (const d of ['down', 'up', 'left']) want.add(`char:${hero.look}:${d}`);
   for (const k of want) {
     const [kind, id, dir] = k.split(':');
     let c: HTMLCanvasElement | null = null, w = 0, hh = 0;

@@ -26,6 +26,8 @@ export interface TurnBasedConfig {
   guardHeal: number;
   additions: 'set' | 'choose';
   additionTiming: 'press' | 'auto';
+  /** Mimas (GBA): four move slots; a fifth Addition makes one be forgotten, or (equip) just moved off the four. */
+  moveSlots: 'forget' | 'equip';
   /** The battle screen: Dragon Legend (faces and numbers in a row, lists in the middle) or Forbidden Fantasy (bars in a box, lists at the side). */
   layout: 'dragon' | 'fantasy' | 'pocket';
   /** The hero always fights (can't be swapped onto the bench). */
@@ -45,7 +47,7 @@ export interface TurnBasedConfig {
   singlePick: EncounterPick;
 }
 
-export const DEFAULT_TURN_BASED: TurnBasedConfig = { order: 'ctb', flee: 50, joinRadius: 6, maxEnemies: 3, partyDamage: 1, enemyDamage: 1, grace: 3, guardHeal: 10, additions: 'set', additionTiming: 'press', layout: 'dragon', heroLocked: false, partyFollows: true, statBlocks: false, statusWords: 'short', statusPills: statusPills(), mode: 'group', singleParty: 3, singlePick: 'random' };
+export const DEFAULT_TURN_BASED: TurnBasedConfig = { order: 'ctb', flee: 50, joinRadius: 6, maxEnemies: 3, partyDamage: 1, enemyDamage: 1, grace: 3, guardHeal: 10, additions: 'set', additionTiming: 'press', moveSlots: 'forget', layout: 'dragon', heroLocked: false, partyFollows: true, statBlocks: false, statusWords: 'short', statusPills: statusPills(), mode: 'group', singleParty: 3, singlePick: 'random' };
 
 export interface CombatConfig {
   turnBased: TurnBasedConfig;
@@ -115,7 +117,7 @@ export function combatConfig(data?: CombatData): CombatConfig {
     turnBased: {
       ...tb, order: tb.order === 'rounds' ? 'rounds' : 'ctb',
       flee: Math.max(0, Math.min(100, tb.flee)), joinRadius: Math.max(0, tb.joinRadius), maxEnemies: Math.max(1, Math.min(MAX_FOES, Math.round(tb.maxEnemies))),
-      partyDamage: Math.max(0.1, tb.partyDamage), enemyDamage: Math.max(0.1, tb.enemyDamage), grace: Math.max(0, tb.grace), guardHeal: Math.max(0, Math.min(100, tb.guardHeal)), additions: tb.additions === 'choose' ? 'choose' : 'set', additionTiming: tb.additionTiming === 'auto' ? 'auto' : 'press', layout: tb.layout === 'fantasy' || tb.layout === 'pocket' ? tb.layout : 'dragon', heroLocked: !!tb.heroLocked, statBlocks: !!tb.statBlocks, statusWords: tb.statusWords === 'full' ? 'full' : 'short', statusPills: statusPills(s.turnBased?.statusPills), mode: tb.mode === 'single' ? 'single' : 'group', singleParty: Math.max(1, Math.min(4, Math.round(tb.singleParty ?? 3))), singlePick: tb.singlePick === 'full' || tb.singlePick === 'oneByOne' ? tb.singlePick : 'random',
+      partyDamage: Math.max(0.1, tb.partyDamage), enemyDamage: Math.max(0.1, tb.enemyDamage), grace: Math.max(0, tb.grace), guardHeal: Math.max(0, Math.min(100, tb.guardHeal)), additions: tb.additions === 'choose' ? 'choose' : 'set', additionTiming: tb.additionTiming === 'auto' ? 'auto' : 'press', moveSlots: tb.moveSlots === 'equip' ? 'equip' : 'forget', layout: tb.layout === 'fantasy' || tb.layout === 'pocket' ? tb.layout : 'dragon', heroLocked: !!tb.heroLocked, statBlocks: !!tb.statBlocks, statusWords: tb.statusWords === 'full' ? 'full' : 'short', statusPills: statusPills(s.turnBased?.statusPills), mode: tb.mode === 'single' ? 'single' : 'group', singleParty: Math.max(1, Math.min(4, Math.round(tb.singleParty ?? 3))), singlePick: tb.singlePick === 'full' || tb.singlePick === 'oneByOne' ? tb.singlePick : 'random',
     },
     unarmedDamage: s.unarmedDamage ?? d.unarmedDamage,
     classes,

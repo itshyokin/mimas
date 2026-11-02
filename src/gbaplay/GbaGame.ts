@@ -7,6 +7,7 @@
  * from its GBA layers on a 240×160 screen, with grid steps, running, ledge hops, props and events, as the ROM does.
  */
 import { AudioManager, setUiSound, type Sfx } from '../audio/sfx';
+import { findAddition, findSpell, learnSpell, rankName } from '../game/abilities';
 import { Interpreter, type EventContext } from '../events/Interpreter';
 import { BattleStatus } from '../game/battle/status';
 import { TurnBattle, type BattleEntry, type BattleHost } from '../game/battle/TurnBattle';
@@ -18,7 +19,6 @@ import { enemyElement } from '../game/combat/Combat';
 import { GameState } from '../game/GameState';
 import { Input } from '../game/Input';
 import { Inventory } from '../game/inventory';
-import { configFromDb } from '../game/stats';
 import { gbaView } from '../gba/layers';
 import { collision, drawMap, LEDGE_E, LEDGE_S, LEDGE_W, SOLID, type TileLookup } from '../gba/mapRender';
 import type { GbaData } from '../gba/types';
@@ -29,6 +29,9 @@ import { mainHero } from '../world/heroes';
 import { blockedTiles, PropCatalog } from '../world/props';
 import { pickTroop } from '../world/zones';
 import type { Command, Database, Dir, EnemyDef, EventData, EventPage, ItemDef, MapData } from '../world/types';
+import { Menus } from './menus';
+import { battleMoves, battleNumbers, battleSpells, gainXp, loadMember, master, MAX_PARTY, maxOf, newMember, saveMember, type Member, type MemberSave } from './party';
+import { GbaUi } from './ui';
 import './gba.css';
 
 const W = 240, H = 160, CELL = 16;
@@ -75,6 +78,7 @@ export async function startGbaGame(): Promise<void> {
   const pt = await waitForPlaytest(stamp, 15000);
   if (!pt || !pt.gba) { showError('The playtest data didn’t arrive. Close this and press ▶ Playtest again.'); return; }
   const game = new GbaGame(pt);
+  (window as unknown as { __gba: GbaGame }).__gba = game; // for tests
   await game.init();
   game.run();
 }
@@ -103,7 +107,15 @@ class GbaGame {
   // the player
   px = 0; pz = 0; cx = 0; cz = 0; dir: Dir = 'down';
   moving = 0; hop = 0; steps = 0; running = false; bump = 0;
-  hp = 100; mp = 100; level = 1; xp = 0;
+  /** The party (Pokémon style, up to six): the first who can fight goes out first. */
+  party: Member[] = [];
+  ui!: GbaUi;
+  menus!: Menus;
+  /** Play time before this session (from a save) and when this one began. */
+  playBefore = 0; playStart = performance.now();
+  /** In a battle: who's been out (they share the EXP), and what each has earned. */
+  battleWhos = new Set<number>();
+  earned = new Map<number, number>();
   // events and screen
   runningEvent: RtEvent | null = null;
   fade = 0; fadeTarget = 0; fadeSpeed = 0;
@@ -123,11 +135,17 @@ class GbaGame {
     this.inventory = new Inventory((id) => this.items.get(id));
     this.state.inventory = this.inventory;
     this.cfg = combatConfig(this.db.combat);
-    // Pokémon-style battles: the Pocket Handheld layout on the flat screen.
-    this.cfg.turnBased = { ...this.cfg.turnBased, layout: 'pocket' };
-    const pc = configFromDb(this.db);
-    this.hp = pc.max.hp; this.mp = pc.max.mp;
+    // Pokémon-style battles: the Pocket Handheld layout on the flat screen, one hero out at a time (the rest of the
+    // party can be sent in), the Additions as the FIGHT moves with no button prompts.
+    this.cfg.turnBased = { ...this.cfg.turnBased, layout: 'pocket', mode: 'single', singleParty: MAX_PARTY, additions: 'choose', additionTiming: 'auto', heroLocked: false };
+    // The hero, and everyone set to start in the party.
+    const heroes = this.db.heroes?.length ? this.db.heroes : [mainHero(this.db)];
+    this.party = heroes.filter((h, i) => i === 0 || h.startsInParty).slice(0, MAX_PARTY).map((h) => newMember(this.db, h, Math.max(1, h.joinLevel ?? 1)));
   }
+
+  get lead(): Member { return this.party[0]; }
+  itemDef = (id: string): ItemDef | undefined => this.items.get(id);
+  maxOf(m: Member): { hp: number; mp: number } { return maxOf(this.db, m, this.itemDef); }
 
   /**
    * Music on the GBA: the built-in chiptunes play on its sound chip. Music files can't go in a ROM as they are
@@ -138,8 +156,6 @@ class GbaGame {
     this.audio.music(s, fade);
   }
 
-  get maxHp(): number { return configFromDb(this.db).max.hp; }
-  get maxMp(): number { return configFromDb(this.db).max.mp; }
 
   async init(): Promise<void> {
     const pt = this.pt;
@@ -159,8 +175,9 @@ class GbaGame {
     this.canvas.className = 'gba-screen';
     document.body.append(this.canvas);
     this.input.setBindings({
-      keys: { ...this.input.current.keys, ok: ['Enter', 'NumpadEnter', 'KeyZ', 'Space'], jump: [], cancel: ['KeyX', 'Backspace'], run: ['ShiftLeft', 'ShiftRight', 'KeyX'], settings: [] },
-      pad: { ...this.input.current.pad, ok: [0], jump: [], backpack: [], cancel: [1], run: [1], settings: [] },
+      // A: Z / Space (Enter too, in menus and text); B: X / Backspace; START: Enter (the menu, on the map).
+      keys: { ...this.input.current.keys, ok: ['Enter', 'NumpadEnter', 'KeyZ', 'Space'], jump: [], cancel: ['KeyX', 'Backspace'], run: ['ShiftLeft', 'ShiftRight', 'KeyX'], settings: ['Enter', 'NumpadEnter'], party: [], backpack: [], worldmap: [] },
+      pad: { ...this.input.current.pad, ok: [0], jump: [], backpack: [], cancel: [1], run: [1], settings: [9], party: [], worldmap: [] },
     });
     window.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.parent?.postMessage('gba-play-close', '*'); }, true);
 
@@ -180,6 +197,16 @@ class GbaGame {
     this.battleScreen.onSound = (n) => this.audio.play(n);
     this.battle = new TurnBattle(this.battleScreen, this.battleHost());
     this.interp = new Interpreter(this.context());
+    this.ui = new GbaUi(document.body, this.input, this.message);
+    this.ui.sound = (n) => this.audio.play(n);
+    this.menus = new Menus({
+      db: this.db, cfg: this.cfg, ui: this.ui, party: this.party, inventory: this.inventory, items: this.items,
+      url: (p) => this.files.get(p) ?? p,
+      face: (m) => this.faceOf(m),
+      sound: (n) => this.audio.play(n as Sfx),
+      save: () => this.save(),
+      playTime: () => this.playBefore + (performance.now() - this.playStart) / 1000,
+    });
 
     // The open map: from the game's start when it's the start map, otherwise the walkable spot nearest its middle.
     const startMap = pt.mapName;
@@ -195,6 +222,19 @@ class GbaGame {
       }
     }
     this.enter(startMap, sx, sz, (st?.dir as Dir) ?? 'down');
+    this.healAll();
+    // A saved game: CONTINUE (where it was saved) or a NEW GAME (here).
+    const saved = this.readSave();
+    if (saved && this.maps.get(saved.map)?.gba) {
+      void this.ui.run(async () => {
+        const t = Math.floor((saved.time ?? 0) / 60);
+        const pick = await this.ui.choose({ x: 48, y: 30, w: 144, rows: [
+          { label: 'CONTINUE', sub: `${saved.party[0] ? this.db.heroes?.find((h) => h.id === saved.party[0].id)?.name ?? '' : ''}  ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}` },
+          { label: 'NEW GAME', sub: 'Start here, as the editor has it' },
+        ], title: 'MIMAS', cls: 'title' }, false);
+        if (pick === 0) this.loadSave();
+      });
+    }
   }
 
   run(): void {
@@ -293,7 +333,99 @@ class GbaGame {
 
   /* ------------------------------------------------------------------ events */
 
-  get busy(): boolean { return this.interp.running || this.message.isOpen || this.battle.active || this.battlePending || this.fade > 0 || this.fadeTarget > 0; }
+  get busy(): boolean { return this.interp.running || this.message.isOpen || this.ui.busy || this.battle.active || this.battlePending || this.fade > 0 || this.fadeTarget > 0; }
+
+  /** Everyone back to full (a rest, an inn, losing a battle). */
+  healAll(): void { for (const m of this.party) { const mx = this.maxOf(m); m.hp = mx.hp; m.mp = mx.mp; } }
+
+  /** The Party command: someone joins (at the lead's level unless they have their own) or leaves. */
+  async partyChange(op: 'add' | 'remove', id: string, quiet?: boolean): Promise<void> {
+    const def = this.db.heroes?.find((h) => h.id === id);
+    if (!def) return;
+    const at = this.party.findIndex((m) => m.id === id);
+    if (op === 'add') {
+      if (at >= 0) return;
+      if (this.party.length >= MAX_PARTY) { if (!quiet) await this.ui.say(`There’s no room in the party for ${def.name}.`); return; }
+      this.party.push(newMember(this.db, def, def.joinLevel ?? this.lead?.level ?? 1));
+      if (!quiet) { this.audio.play('questDone'); await this.ui.say(`${def.name} joined the party!`); }
+    } else if (at > 0) {
+      this.party.splice(at, 1);
+      if (!quiet) await this.ui.say(`${def.name} left the party.`);
+    }
+  }
+
+  /** The Learn command: a spell (learned at once) or an Addition (a move: four at most, Pokémon's questions). */
+  async learn(c: Extract<Command, { cmd: 'learn' }>): Promise<void> {
+    const who = !c.who || c.who === '@party' ? this.party : this.party.filter((m) => m.id === c.who);
+    const sp = findSpell(this.db, c.spell);
+    for (const m of who) {
+      if (sp && learnSpell(m.abil, sp, c.rank ?? 1)) {
+        this.audio.play('skill');
+        if (!c.silent) await this.ui.say(`${m.def.name} learned ${rankName(sp.name, m.abil.spells![sp.id])}!`);
+      }
+      if (c.addition && findAddition(this.db, c.addition)) await this.menus.learn(m, c.addition);
+    }
+  }
+
+  /** A hero's little picture: their character's front, cut to the head and shoulders. */
+  private faces = new Map<string, string>();
+  faceOf(m: Member): string | undefined {
+    const look = m.def.look ?? (m === this.party[0] ? this.db.player : undefined);
+    const key = `${m.id}:${look}`;
+    if (this.faces.has(key)) return this.faces.get(key);
+    const sp = m === this.party[0] ? this.gba.sprites.find((x) => x.id === this.gba.player && x.kind === 'overworld') : undefined;
+    const sheet = sp ? this.images.get(sp.image) : undefined;
+    const pic = this.pics.get(`char:${look}:down`)?.img;
+    const c = document.createElement('canvas');
+    c.width = 16; c.height = 16;
+    const g = c.getContext('2d')!;
+    g.imageSmoothingEnabled = false;
+    // The head: from the top of what's drawn in the front frame, a square as wide as the frame.
+    const src = sheet ? { img: sheet, w: 16, h: 32 } : pic ? { img: pic, w: pic.width, h: pic.height } : null;
+    if (!src) return undefined;
+    let top = 0;
+    const px = src.img.getContext('2d')!.getImageData(0, 0, src.w, src.h).data;
+    find: for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) if (px[(y * src.w + x) * 4 + 3] > 0) { top = y; break find; }
+    const side = Math.min(src.w, src.h - top);
+    g.drawImage(src.img, 0, top, src.w, side, 0, 0, 16, 16);
+    const url = c.toDataURL();
+    this.faces.set(key, url);
+    return url;
+  }
+
+  /* ------------------------------------------------------------------ saving */
+
+  get saveKey(): string { return `mimas-gba-save:${(this.db as { title?: string }).title ?? 'game'}`; }
+
+  save(): boolean {
+    try {
+      const data = {
+        v: 1, map: this.cur.name, x: this.cx, z: this.cz, dir: this.dir,
+        party: this.party.map(saveMember), inventory: this.inventory.toJSON(), state: this.state.toJSON(),
+        time: this.playBefore + (performance.now() - this.playStart) / 1000, at: Date.now(),
+      };
+      localStorage.setItem(this.saveKey, JSON.stringify(data));
+      return true;
+    } catch { return false; }
+  }
+
+  readSave(): { map: string; x: number; z: number; dir: Dir; party: MemberSave[]; inventory: unknown; state: unknown; time: number } | null {
+    try { const raw = localStorage.getItem(this.saveKey); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  }
+
+  /** CONTINUE: the saved game, where it was saved (if that map is still a GBA map). */
+  loadSave(): boolean {
+    const d = this.readSave();
+    if (!d || !this.maps.get(d.map)?.gba) return false;
+    const party = d.party.map((x) => loadMember(this.db, x)).filter((m): m is Member => !!m);
+    if (!party.length) return false;
+    this.party.splice(0, this.party.length, ...party);
+    this.inventory.load(d.inventory as never, this.inventory.size);
+    this.state.load(d.state as never);
+    this.playBefore = d.time ?? 0; this.playStart = performance.now();
+    this.enter(d.map, d.x, d.z, d.dir);
+    return true;
+  }
 
   runEvent(e: RtEvent): void {
     if (!e.page?.commands.length) return;
@@ -343,16 +475,19 @@ class GbaGame {
       isFading: () => Math.abs(this.fade - this.fadeTarget) > 0.001,
       refreshEvents: () => this.refreshEvents(),
       changeGauge: (gauge, op, value) => {
-        const max = gauge === 'hp' ? this.maxHp : this.maxMp;
-        const cur = gauge === 'hp' ? this.hp : gauge === 'mp' ? this.mp : 0;
-        const next = Math.max(0, Math.min(max, op === 'fill' ? max : op === 'set' ? value : cur + value));
-        if (gauge === 'hp') this.hp = next; else if (gauge === 'mp') this.mp = next;
+        // The whole party (the GBA has no one hero to single out).
+        for (const m of this.party) {
+          const mx = this.maxOf(m), max = gauge === 'hp' ? mx.hp : mx.mp;
+          const cur = gauge === 'hp' ? m.hp : gauge === 'mp' ? m.mp : 0;
+          const next = Math.max(0, Math.min(max, op === 'fill' ? max : op === 'set' ? value : cur + value));
+          if (gauge === 'hp') m.hp = next; else if (gauge === 'mp') m.mp = next;
+        }
       },
       tendFire: () => {},
-      fullRest: () => { this.hp = this.maxHp; this.mp = this.maxMp; },
+      fullRest: () => this.healAll(),
       ailment: () => {},
       transfer: (t) => this.transfer(t.map, t.x, t.z, (t.dir as Dir) ?? this.dir),
-      openSave: () => {},
+      openSave: () => { void this.ui.run(() => this.menus.saveFlow()); },
       items: {
         give: (id, n) => {
           if (!this.items.has(id)) return 'unknown';
@@ -365,11 +500,11 @@ class GbaGame {
         gold: (op, v) => { this.inventory.gold = Math.max(0, op === 'set' ? v : this.inventory.gold + v); },
         name: (id) => this.items.get(id)?.name ?? id,
       },
-      openShop: () => {},
+      openShop: (c) => { void this.ui.run(() => this.menus.shop(c.goods ?? [], c.canSell !== false, c.name)); },
       sound: (src) => this.audio.play(src),
       music: (src, fade) => this.music(src ?? this.cur.data.music, 'field', fade),
       ambience: () => {},
-      party: () => {},
+      party: (op, hero, quiet) => { void this.ui.run(() => this.partyChange(op, hero, quiet)); },
       weather: () => {},
       skillPoints: () => {},
       quest: () => {},
@@ -378,9 +513,9 @@ class GbaGame {
         this.battleRules = { lose: c.lose, resultVar: c.resultVar };
         this.startBattle(foes, c.canRun !== false, c.music);
       },
-      learn: () => null,
+      learn: (c) => { void this.ui.run(() => this.learn(c)); return null; },
       heroClass: () => null,
-      busy: () => this.battle.active || this.battlePending,
+      busy: () => this.battle.active || this.battlePending || this.ui.busy,
     } as EventContext;
     return ctx;
   }
@@ -398,35 +533,43 @@ class GbaGame {
 
   /* ------------------------------------------------------------------ battles */
 
-  heroEntry(): BattleEntry {
-    const hero = mainHero(this.db), c = this.cfg;
+  /** Party member `who` (their place in the party) as a fighter: their numbers, moves, spells and pictures. */
+  memberEntry(who: number): BattleEntry {
+    const m = this.party[who], c = this.cfg, n = battleNumbers(c, m, this.itemDef), mx = this.maxOf(m);
+    const w = m.equip.weapon ? this.items.get(m.equip.weapon) : undefined;
+    const key = `p${who}`;
     const battler: Battler = {
-      key: 'p0', side: 'party', name: hero.name, hp: Math.max(1, this.hp), maxHp: this.maxHp, mp: this.mp, maxMp: this.maxMp,
-      attack: c.unarmedDamage * c.classes.unarmed.damage * (1 + (this.level - 1) * 0.1), attackElement: 'neutral', attackMagic: false,
-      armour: (this.level - 1) * 2, magicArmour: (this.level - 1) * 2, agility: 10 + this.level, baseAgility: 10 + this.level, crit: 5,
-      defence: { elements: hero.elements, immune: hero.immune, absorb: hero.absorb }, spells: [], ct: 0, guarding: false,
-      status: new BattleStatus(hero.resists ?? []),
+      key, side: 'party', name: m.def.name, hp: Math.max(0, m.hp), maxHp: mx.hp, mp: m.mp, maxMp: mx.mp,
+      attack: n.attack, attackElement: w?.element ?? 'neutral', attackMagic: false,
+      armour: n.armour, magicArmour: n.magicArmour, agility: n.agility, baseAgility: n.agility, crit: n.crit,
+      evasion: n.evasion, spellEvasion: n.spellEvasion, resist: n.resist,
+      defence: { elements: m.def.elements, immune: m.def.immune, absorb: m.def.absorb }, spells: battleSpells(this.db, m, this.itemDef), ct: 0, guarding: false,
+      status: new BattleStatus([...(m.def.resists ?? []), ...Object.values(m.equip).flatMap((id) => (id ? this.items.get(id)?.protects ?? [] : []))] as never),
+      inflicts: w?.inflicts,
+      additions: m.def.noAdditions ? [] : battleMoves(this.db, m),
     };
-    const sp = this.gba.sprites.find((s) => s.id === this.gba.player && s.kind === 'overworld');
-    const back = this.gba.sprites.find((s) => s.kind === 'backsprite');
-    const sheet = sp ? this.images.get(sp.image) : undefined, backSheet = back ? this.images.get(back.image) : undefined;
-    const frame = (img: HTMLCanvasElement | undefined, sx: number, sy: number, w: number, h: number, scale: number) => {
+    const frame = (img: HTMLCanvasElement | undefined, sx: number, sy: number, fw: number, fh: number, scale: number) => {
       if (!img) return undefined;
       const c2 = document.createElement('canvas');
-      c2.width = w * scale; c2.height = h * scale;
+      c2.width = fw * scale; c2.height = fh * scale;
       const g = c2.getContext('2d')!;
       g.imageSmoothingEnabled = false;
-      g.drawImage(img, sx, sy, w, h, 0, 0, w * scale, h * scale);
+      g.drawImage(img, sx, sy, fw, fh, 0, 0, fw * scale, fh * scale);
       return c2;
     };
-    const charPic = this.pics.get(`char:${this.db.player}:up`)?.img;
-    const picture = frame(sheet, 0, 2 * 32, 16, 32, 3) ?? this.pics.get(`char:${this.db.player}:left`)?.img ?? document.createElement('canvas');
+    const look = m.def.look ?? (who === 0 || m === this.party[0] ? this.db.player : undefined);
+    const isHero = m.def.id === (this.db.heroes?.[0]?.id ?? 'hero');
+    const sp = isHero ? this.gba.sprites.find((s2) => s2.id === this.gba.player && s2.kind === 'overworld') : undefined;
+    const back = isHero ? this.gba.sprites.find((s2) => s2.kind === 'backsprite') : undefined;
+    const sheet = sp ? this.images.get(sp.image) : undefined, backSheet = back ? this.images.get(back.image) : undefined;
+    const charUp = this.pics.get(`char:${look}:up`)?.img, charSide = this.pics.get(`char:${look}:left`)?.img;
+    const picture = frame(sheet, 0, 2 * 32, 16, 32, 3) ?? (charSide ? frame(charSide, 0, 0, charSide.width, charSide.height, 2) : undefined) ?? document.createElement('canvas');
     const view: FighterView = {
-      key: 'p0', side: 'party', name: hero.name, picture, icon: '', level: this.level,
-      xp: { have: this.xp, next: xpToNext(this.cfg, this.level) },
-      back: frame(backSheet, 0, 0, 64, 64, 2) ?? (charPic ? frame(charPic, 0, 0, charPic.width, charPic.height, 2) : undefined),
+      key, side: 'party', name: m.def.name, picture, icon: this.faceOf(m) ?? '', level: m.level,
+      xp: { have: m.xp, next: xpToNext(this.cfg, m.level) },
+      back: frame(backSheet, 0, 0, 64, 64, 2) ?? (charUp ? frame(charUp, 0, 0, charUp.width, charUp.height, 2) : undefined),
     };
-    return { battler, view, who: 0 };
+    return { battler, view, who };
   }
 
   startBattle(foes: EnemyDef[], canRun = true, music?: string): void {
@@ -438,7 +581,12 @@ class GbaGame {
     this.flash = 30;
     window.setTimeout(() => {
       this.battlePending = false;
-      const entries: BattleEntry[] = [this.heroEntry()];
+      // The first in the party who can fight goes out.
+      const lead = Math.max(0, this.party.findIndex((m) => m.hp > 0));
+      this.battleWhos = new Set([lead]);
+      this.battleFoes.clear();
+      this.earned = new Map();
+      const entries: BattleEntry[] = [this.memberEntry(lead)];
       const counts = new Map<string, number>(), seen = new Map<string, number>();
       for (const d of foes) counts.set(d.id, (counts.get(d.id) ?? 0) + 1);
       foes.slice(0, 3).forEach((d, i) => {
@@ -462,6 +610,7 @@ class GbaGame {
         const g = big.getContext('2d')!;
         g.imageSmoothingEnabled = false;
         g.drawImage(pic, 0, 0, big.width, big.height);
+        this.battleFoes.set(battler.key, d);
         entries.push({ battler, view: { key: battler.key, side: 'enemy', name, level: d.level, picture: big, icon: '', scale: d.scale, elements: d.elements }, ref: d });
       });
       this.battle.start(entries, this.cfg.turnBased, 'normal', { canRun });
@@ -470,70 +619,112 @@ class GbaGame {
   flash = 0;
 
   battleHost(): BattleHost {
+    const earn = (who: number, xp: number) => this.earned.set(who, (this.earned.get(who) ?? 0) + xp);
     return {
       sound: (n) => this.audio.play(n),
       items: () => this.inventory.slots.flatMap((s, i) => {
         const d = s && this.items.get(s.id);
-        if (!s || !d || d.kind !== 'consumable' || !(d.restore || d.restorePct || d.cures?.length)) return [];
+        if (!s || !d || d.kind !== 'consumable' || !(d.restore || d.restorePct || d.cures?.length || d.revive)) return [];
         return [{ slot: i, name: d.name, count: s.n, detail: d.description, restore: { hp: d.restore?.hp, mp: d.restore?.mp }, pct: { hp: d.restorePct?.hp, mp: d.restorePct?.mp }, cures: d.cures as string[] | undefined, buffs: d.buffs }];
       }),
       useItem: (slot, who) => {
-        const s = this.inventory.slots[slot], d = s && this.items.get(s.id);
-        if (!s || !d || who !== 0) return null;
-        const heal = (d.restore?.hp ?? 0) + Math.round(((d.restorePct?.hp ?? 0) * this.maxHp) / 100);
-        const before = this.hp;
-        this.hp = Math.min(this.maxHp, this.hp + heal);
+        const s = this.inventory.slots[slot], d = s && this.items.get(s.id), m = this.party[who];
+        if (!s || !d || !m) return null;
+        const mx = this.maxOf(m);
+        const hp = (d.restore?.hp ?? 0) + Math.round(((d.restorePct?.hp ?? 0) * mx.hp) / 100);
+        const mp = (d.restore?.mp ?? 0) + Math.round(((d.restorePct?.mp ?? 0) * mx.mp) / 100);
+        const before = { hp: m.hp, mp: m.mp };
+        m.hp = Math.min(mx.hp, m.hp + hp); m.mp = Math.min(mx.mp, m.mp + mp);
         this.inventory.remove(s.id, 1);
-        return { text: `${mainHero(this.db).name} used ${d.name}! (+${this.hp - before} HP)`, used: true, cures: (d.cures ?? []) as never };
+        const got = [m.hp > before.hp ? `+${m.hp - before.hp} HP` : '', m.mp > before.mp ? `+${m.mp - before.mp} MP` : ''].filter(Boolean).join(', ');
+        return { text: `${m.def.name} used ${d.name}!${got ? ` (${got})` : ''}`, used: true, cures: (d.cures ?? []) as never, buffs: d.buffs };
       },
       spendItem: (slot) => { const s = this.inventory.slots[slot]; if (s) this.inventory.remove(s.id, 1); },
-      readVitals: () => ({ hp: this.hp, mp: this.mp }),
-      writeVitals: (_who, hp, mp) => { this.hp = hp; this.mp = mp; },
-      victory: (beaten) => {
-        const foes = beaten as EnemyDef[];
-        const xp = foes.reduce((n, d) => n + Math.max(0, d.xp ?? 0), 0);
-        const gold = foes.reduce((n, d) => n + Math.max(0, (d as { gold?: number }).gold ?? 0), 0);
-        const startLevel = this.level, startXp = this.xp;
-        const segments: VictoryReport['heroes'][number]['segments'] = [];
-        let level = this.level, have = this.xp, left = xp;
-        for (let guard = 0; guard < 50; guard++) {
+      readVitals: (who) => ({ hp: this.party[who]?.hp ?? 0, mp: this.party[who]?.mp ?? 0 }),
+      writeVitals: (who, hp, mp) => { const m = this.party[who]; if (m) { m.hp = Math.max(0, hp); m.mp = Math.max(0, mp); } },
+      // The rest of the party: sent in with PARTY (or when the one out falls).
+      reserves: () => this.party.flatMap((m, who) => {
+        if (this.battle.lineup().includes(who)) return [];
+        const mx = this.maxOf(m);
+        return [{ who, name: m.def.name, icon: this.faceOf(m) ?? '', hp: Math.max(0, m.hp), maxHp: mx.hp, mp: m.mp, maxMp: mx.mp, down: m.hp <= 0 }];
+      }),
+      swapIn: (_outKey, _outWho, inWho) => {
+        if (!this.party[inWho]) return null;
+        this.battleWhos.add(inWho);
+        return this.memberEntry(inWho);
+      },
+      heroColor: (who) => this.party[who]?.def.color ?? '#5a9cff',
+      // EXP as each foe falls, shared by everyone who's been out (Pokémon: each gets it in full).
+      foeDefeated: (key) => {
+        const d = this.battleFoes.get(key), xp = Math.max(0, d?.xp ?? 0);
+        if (!xp) return [];
+        const out = [...this.battleWhos].filter((w) => (this.party[w]?.hp ?? 0) > 0);
+        for (const w of out) earn(w, xp);
+        return out.map((who) => ({ who, xp }));
+      },
+      xpPreview: (who) => {
+        const m = this.party[who];
+        if (!m) return { level: 1, frac: 0 };
+        let level = m.level, have = m.xp, left = this.earned.get(who) ?? 0;
+        for (let guard = 0; guard < 100; guard++) {
           const need = xpToNext(this.cfg, level);
-          if (need <= 0) break;
-          if (have + left < need) { segments.push({ level, from: have / need, to: (have + left) / need, up: false, xp: have + left, toNext: need }); have += left; left = 0; break; }
-          segments.push({ level, from: have / need, to: 1, up: true, xp: need, toNext: need });
+          if (need <= 0) return { level, frac: 1 };
+          if (have + left < need) return { level, frac: (have + left) / need };
           left -= need - have; have = 0; level++;
         }
-        this.level = level; this.xp = have;
+        return { level, frac: 1 };
+      },
+      mastered: (who, id) => { const m = this.party[who]; return m ? master(this.db, m, id) : null; },
+      victory: (beaten) => {
+        const foes = beaten as EnemyDef[];
+        const gold = foes.reduce((n, d) => n + Math.max(0, (d as { gold?: number }).gold ?? 0), 0);
         this.inventory.gold += gold;
-        const hero = mainHero(this.db);
-        return {
-          xp,
-          heroes: [{ key: 'p0', name: hero.name, icon: '', level: startLevel, xp: startXp, toNext: xpToNext(this.cfg, startLevel), gained: xp, segments,
-            changes: level > startLevel ? [`Level ${startLevel} → ${level}`] : [], after: { level, xp: have, toNext: xpToNext(this.cfg, level) } }],
-          loot: gold ? [{ name: 'Gold', icon: '', count: gold, kind: 'gold' }] : [],
-        };
+        const heroes: VictoryReport['heroes'] = [];
+        let total = 0;
+        for (const [who, xp] of this.earned) {
+          const m = this.party[who];
+          if (!m || m.hp <= 0) continue;
+          total = Math.max(total, xp);
+          const startLevel = m.level, startXp = m.xp;
+          const segments: VictoryReport['heroes'][number]['segments'] = [];
+          let level = m.level, have = m.xp, left = xp;
+          for (let guard = 0; guard < 50; guard++) {
+            const need = xpToNext(this.cfg, level);
+            if (need <= 0) break;
+            if (have + left < need) { segments.push({ level, from: have / need, to: (have + left) / need, up: false, xp: have + left, toNext: need }); break; }
+            segments.push({ level, from: have / need, to: 1, up: true, xp: need, toNext: need });
+            left -= need - have; have = 0; level++;
+          }
+          gainXp(this.db, this.cfg, m, xp, this.itemDef);
+          heroes.push({ key: `p${who}`, name: m.def.name, icon: this.faceOf(m) ?? '', level: startLevel, xp: startXp, toNext: xpToNext(this.cfg, startLevel), gained: xp, segments,
+            changes: m.level > startLevel ? [`Level ${startLevel} → ${m.level}`] : [], after: { level: m.level, xp: m.xp, toNext: xpToNext(this.cfg, m.level) } });
+        }
+        return { xp: total, heroes, loot: gold ? [{ name: 'Gold', icon: '', count: gold, kind: 'gold' }] : [] };
       },
       fanfare: () => this.audio.music('builtin:victory', 0.2),
       finished: (outcome) => {
         this.grace = this.cfg.turnBased.grace || 3;
         this.walked = 0;
+        this.battleFoes.clear();
         const rules = this.battleRules;
         this.battleRules = {};
         if (rules.resultVar) { this.state.setVar(rules.resultVar, outcome === 'victory' ? 1 : outcome === 'fled' ? 2 : 0); this.refreshEvents(); }
         this.music(this.cur.data.music, 'field', 0.8);
         if (outcome === 'defeat') {
-          this.hp = Math.max(1, Math.round(this.maxHp * 0.5));
           if (rules.lose !== 'continue') {
+            // Whited out: back to the start, everyone patched up.
+            this.healAll();
             this.interp.stop();
             const st = this.db.start;
             this.transfer(this.db.startMap, st.x, st.z, (st.dir as Dir) ?? 'down');
-          }
+          } else for (const m of this.party) if (m.hp <= 0) m.hp = 1;
         }
-        if (this.hp <= 0) this.hp = 1;
       },
       log: () => {},
     };
   }
+  /** The foes in this battle by their key (for their EXP). */
+  battleFoes = new Map<string, EnemyDef>();
 
   /** Random battles: the zone painted under the player (Encounters layer), or the map's own table. */
   encounterStep(): void {
@@ -604,10 +795,13 @@ class GbaGame {
     if (!this.interp.running) this.runningEvent = null;
     this.message.update(dt);
     this.message.position();
+    this.ui.update();
     const free = !this.busy;
     this.input.mode = free ? 'field' : 'menu';
 
     if (free && this.moving === 0) {
+      // START: the menu.
+      if (this.input.consume('settings')) { this.input.consume('ok'); void this.menus.start(); this.input.endFrame(); return; }
       // autorun events
       const auto = this.cur.events.find((e) => e.page?.trigger === 'auto' && e.page.commands.length);
       if (auto) { this.runEvent(auto); this.input.endFrame(); return; }
@@ -651,6 +845,7 @@ class GbaGame {
         else this.encounterStep();
       }
     }
+    if (!free) this.input.consume('settings');
     this.input.endFrame();
   }
 

@@ -429,6 +429,8 @@ export class TurnBattle {
     ];
     // Pocket Handheld: a 3 × 2 grid, the actions on top (Attack, Magic, Items), the rest under them.
     if (this.screen.pocket) { const order = ['Attack', 'Magic', 'Items', 'Guard', 'Swap', 'Escape']; cmds = [...cmds].sort((x, y) => order.indexOf(x.label) - order.indexOf(y.label)); }
+    // Mimas: the handheld's words (FIGHT, BAG, PARTY, RUN).
+    if (this.screen.pocket) { const say: Record<string, string> = { Attack: 'Fight', Items: 'Bag', Swap: 'Party', Escape: 'Run' }; cmds = cmds.map((c) => ({ ...c, label: say[c.label] ?? c.label })); }
     this.screen.message(this.screen.pocket ? `What will ${b.name} do?` : `${b.name}’s turn`, true);
     this.screen.choose(b.name, cmds, (i) => { this.lastCommand = i; this.screen.message(''); cmds[i].run(); }, undefined, (i) => this.showOrder(cmds[i].rank), this.lastCommand, true);
   }
@@ -497,7 +499,7 @@ export class TurnBattle {
     // just attacks, above).
     const list: ChoiceItem[] = [
       ...adds.map((a) => ({ label: a.name, icon: 'attack', iconColor: '#ffc46e', right: `${a.strikes.length} hit${a.strikes.length === 1 ? '' : 's'} · Rank ${a.rank}`, detail: a.toNext === null ? 'Mastered' : `${a.toNext} more to rank ${a.rank + 1}`, rank: RANK.attack }))];
-    this.screen.choose('Attack', list, (i) => {
+    this.screen.choose(this.screen.pocket ? 'Fight' : 'Attack', list, (i) => {
       const a = adds[i];
       this.pickTarget(foes, (t) => (a ? this.doAddition(b, a, t) : this.doAttack(b, t)), () => this.attackMenu(b));
     }, () => this.commandMenu(b), () => this.showOrder(RANK.attack));
