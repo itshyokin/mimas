@@ -10,7 +10,10 @@ import { characterImage, enemyBattleImage, propSprite } from './editorArt';
 import { tintCanvas } from '../render/tint';
 import { builtinIcon, builtinIconName } from '../art/itemIcons';
 import { mainHero } from '../world/heroes';
-import { romGameData } from './gbaGame';
+import { romGameData, romSoundFile, romSounds } from './gbaGame';
+import { gba } from './gbaShared';
+import { makeChipSfx } from '../audio/chip';
+import { RATE, SFX_NAMES, type SfxName } from '../audio/synth';
 
 /** File name for a prop's GBA picture (public/gba/props/<name>.png). */
 export const propFile = (type: string): string => `gba/props/${type.replace(/[^A-Za-z0-9_.-]/g, '_')}.png`;
@@ -116,6 +119,7 @@ async function bakeGameArt(store: EditorStore): Promise<void> {
     c ??= builtinIcon(it.slot === 'ranged' ? 'bow' : it.slot === 'shield' ? 'shield' : it.slot ? 'sword' : 'potion');
     if (c.width && c.height) out.push([`gba/items/${it.id}.png`, fitInto(c, 16, 16, false)]);
   }
+  await bakeSounds(store);
   for (const [file, c] of out) {
     const key = c.toDataURL();
     if (bakedArt.get(file) === key) continue;
@@ -125,13 +129,64 @@ async function bakeGameArt(store: EditorStore): Promise<void> {
   }
 }
 
+/** 8-bit unsigned mono WAV at `rate` from samples (−1 … 1) at `from` Hz. */
+function wav8(samples: Float32Array, from: number, rate = 16000): Blob {
+  const n = Math.max(1, Math.floor((samples.length * rate) / from));
+  const buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+  const str = (o: number, t: string) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate, true);
+  v.setUint16(32, 1, true); v.setUint16(34, 8, true); str(36, 'data'); v.setUint32(40, n, true);
+  let peak = 0;
+  for (let i = 0; i < samples.length; i++) peak = Math.max(peak, Math.abs(samples[i]));
+  const gain = peak > 0.95 ? 0.95 / peak : 1;
+  for (let i = 0; i < n; i++) {
+    // averaged over the source samples this one covers (a simple low-pass against aliasing)
+    const a = Math.floor((i * from) / rate), b = Math.max(a + 1, Math.floor(((i + 1) * from) / rate));
+    let sum = 0;
+    for (let k = a; k < b && k < samples.length; k++) sum += samples[k];
+    const x = Math.max(-1, Math.min(1, (sum / (b - a)) * gain));
+    v.setUint8(44 + i, Math.round(128 + x * 127));
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+/**
+ * Mimas: the ROM's sounds, as 8-bit WAVs in public/gba/sounds: built-in sounds as their Game Boy-style chip versions
+ * (or the file Database → Audio swaps in for one), sound files decoded and converted.
+ */
+async function bakeSounds(store: EditorStore): Promise<void> {
+  const overrides = (store.db.audio?.sfx ?? {}) as Record<string, string | undefined>;
+  for (const name of romSounds(gba.data)) {
+    const file = romSoundFile(name);
+    const src = (SFX_NAMES as readonly string[]).includes(name) ? overrides[name] ?? name : name;
+    const key = `sound:${src}`;
+    if (bakedArt.get(file) === key) continue;
+    let blob: Blob | null = null;
+    try {
+      if ((SFX_NAMES as readonly string[]).includes(src)) blob = wav8(makeChipSfx(src as SfxName), RATE);
+      else {
+        let data: ArrayBuffer;
+        try { data = await (await store.project.readFile(src)).arrayBuffer(); } catch { data = await (await store.project.readFile(`assets/${src}`)).arrayBuffer(); }
+        const ctx = new OfflineAudioContext(1, 1, 22050);
+        const decoded = await ctx.decodeAudioData(data);
+        const mono = new Float32Array(decoded.length);
+        for (let c = 0; c < decoded.numberOfChannels; c++) { const d = decoded.getChannelData(c); for (let i = 0; i < d.length; i++) mono[i] += d[i] / decoded.numberOfChannels; }
+        blob = wav8(mono.subarray(0, Math.min(mono.length, decoded.sampleRate * 3)), decoded.sampleRate);
+      }
+    } catch { blob = null; }
+    if (!blob) continue;
+    try { await store.project.writeFile(file, blob); bakedArt.set(file, key); } catch { /* the ROM stays quiet for it */ }
+  }
+}
+
 export async function save(store: EditorStore): Promise<void> {
   // Mimas: what the ROM needs from the props, worked out here (their art and footprints live in the editor).
   if (store.map.gba && store.project.canSave) await bakeProps(store);
   if (store.map.gba && store.project.canSave) await bakeGameArt(store);
   const files: [string, string][] = [[`maps/${store.mapName}.json`, formatMap(store.map)]];
   // Mimas: the game's numbers for the ROM (battles, the party, items), from the Database.
-  if (store.map.gba && store.project.canSave) files.push(['gba_game.json', `${JSON.stringify(romGameData(store.db), null, 1)}\n`]);
+  if (store.map.gba && store.project.canSave) files.push(['gba_game.json', `${JSON.stringify(romGameData(store.db, gba.data), null, 1)}\n`]);
   if (store.dbDirty) files.push(['database.json', formatDatabase(store.db)]);
 
   if (store.project.canSave) {

@@ -19,3 +19,6 @@ game/*.elf
 game/*.map
 Mimas.gba
 __pycache__/
+
+# Sounds copied in by tools/gba_game.py (from public/gba/sounds)
+game/audio/sfx_*

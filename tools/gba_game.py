@@ -169,8 +169,113 @@ def ui_tiles(gfx):
 
 def clean(gfx):
     for f in os.listdir(gfx):
-        if f.split('.')[0].startswith(('enemy_', 'hback_', 'hface_', 'icon_', 'ui_tiles', 'ui_palette', 'cursor')):
+        if f.split('.')[0].startswith(('enemy_', 'hback_', 'hface_', 'icon_', 'ui_tiles', 'ui_palette', 'cursor', 'fx_', 'fxpal_', 'exclaim')):
             os.remove(os.path.join(gfx, f))
+
+
+ELEMENTS = ['neutral', 'water', 'fire', 'nature', 'earth', 'shock', 'light', 'dark']
+AILMENTS = ['poison', 'burn', 'paralyze', 'sleep', 'chill', 'confusion', 'blind', 'silence']
+# A hit's five greys, and each element's colours for them (must match ELEMENT_RAMPS in src/gba/effects.ts).
+HIT_GREYS = ['#f8f8f8', '#d0d0d8', '#a0a0b0', '#606070', '#303038']
+ELEMENT_RAMPS = {
+    'neutral': HIT_GREYS,
+    'fire': ['#fff8c0', '#f8c040', '#f08020', '#c03010', '#601008'],
+    'water': ['#e8f8ff', '#80c8f8', '#3880e0', '#2048a0', '#102050'],
+    'nature': ['#f0ffd0', '#a0e060', '#50a830', '#286818', '#103008'],
+    'earth': ['#f8e8c0', '#d0a060', '#a07038', '#604020', '#302010'],
+    'shock': ['#ffffe0', '#f8f060', '#e0c020', '#a08010', '#504008'],
+    'light': ['#ffffff', '#fff0a0', '#f8d850', '#c0a030', '#605018'],
+    'dark': ['#e0c8f8', '#a070d0', '#6838a0', '#381860', '#180828'],
+}
+
+
+def hex_rgb(h):
+    n = int(h.lstrip('#'), 16)
+    return ((n >> 16) & 255, (n >> 8) & 255, n & 255)
+
+
+def effect_sheets(public, gba, effects, gfx):
+    """
+    Each effect as a sprite (64 x 64, its frames one under another), in its GBA Studio palette's slots. Hits also get
+    one palette per element (fxpal_<element>): the same slots with colours 1-5 swapped for the element's.
+    """
+    pals = {p['id']: p for p in gba.get('palettes', [])}
+    sprites = {s['id']: s for s in gba.get('sprites', [])}
+    made = []
+    for k, e in enumerate(effects):
+        sp = sprites.get(e['id'])
+        img = load_png(public, e['image'])
+        pal = pals.get(sp.get('palette')) if sp else None
+        if img is None or not pal:
+            made.append(None)
+            continue
+        cols = [hex_rgb(c) for c in pal['colors'][:15]]
+        frames = max(1, min(6, int(e.get('frames', 6)), img.width // 64))
+        out = Image.new('P', (64, 64 * frames), 0)
+        src = img.load()
+        for f in range(frames):
+            for y in range(64):
+                for x in range(64):
+                    r, g, b, a = src[f * 64 + x, y]
+                    if a >= 128:
+                        out.putpixel((x, f * 64 + y), 1 + nearest((r, g, b), cols))
+        put_pal(out, [(255, 0, 255)] + (cols + [(0, 0, 0)] * 15)[:15])
+        out.save(os.path.join(gfx, f'fx_{k}.bmp'))
+        write_json(os.path.join(gfx, f'fx_{k}.json'), {'type': 'sprite', 'height': 64})
+        made.append({'frames': frames, 'hit': e.get('role') != 'burst', 'cols': cols})
+    # element palettes for the hits (built from the first hit's palette)
+    base = next((m['cols'] for m in made if m and m['hit']), [hex_rgb(c) for c in HIT_GREYS])
+    for el in ELEMENTS:
+        cols = list(base)
+        for i, c in enumerate(ELEMENT_RAMPS[el]):
+            if i < len(cols):
+                cols[i] = hex_rgb(c)
+        im = Image.new('P', (16, 16), 0)
+        put_pal(im, [(255, 0, 255)] + (cols + [(0, 0, 0)] * 15)[:15])
+        im.save(os.path.join(gfx, f'fxpal_{el}.bmp'))
+        write_json(os.path.join(gfx, f'fxpal_{el}.json'), {'type': 'sprite_palette', 'bpp_mode': 'bpp_4'})
+    return made
+
+
+def exclaim_sprite(gfx):
+    """A trainer's (!) bubble, 16 x 16."""
+    im = Image.new('P', (16, 16), 0)
+    for y in range(1, 15):
+        for x in range(3, 13):
+            edge = y in (1, 14) or x in (3, 12)
+            im.putpixel((x, y), 2 if edge else 1)
+    for y in range(3, 10):
+        im.putpixel((7, y), 3)
+        im.putpixel((8, y), 3)
+    for y in (11, 12):
+        im.putpixel((7, y), 3)
+        im.putpixel((8, y), 3)
+    put_pal(im, [(255, 0, 255), (248, 248, 248), (48, 48, 56), (208, 48, 48)] + [(0, 0, 0)] * 12)
+    im.save(os.path.join(gfx, 'exclaim.bmp'))
+    write_json(os.path.join(gfx, 'exclaim.json'), {'type': 'sprite', 'height': 16})
+
+
+def sounds_out(public, root, sounds):
+    """The baked sounds into game/audio (Maxmod): sfx_<name>.wav. Returns {name: item id}."""
+    adir = os.path.join(root, 'game', 'audio')
+    os.makedirs(adir, exist_ok=True)
+    for f in os.listdir(adir):
+        if f.startswith('sfx_'):
+            os.remove(os.path.join(adir, f))
+    ids = {}
+    for snd in sounds:
+        name, rel = snd['name'], snd['file']
+        path = os.path.join(public, rel)
+        if not os.path.exists(path):
+            continue
+        sid = 'sfx_' + ''.join(ch if ch.isalnum() else '_' for ch in os.path.splitext(os.path.basename(rel))[0]).lower()
+        if sid in ids.values():
+            ids[name] = sid
+            continue
+        with open(path, 'rb') as src, open(os.path.join(adir, sid + '.wav'), 'wb') as dst:
+            dst.write(src.read())
+        ids[name] = sid
+    return ids
 
 
 def export(root, public, data, gfx, inc, db, gba, maps, comp):
@@ -227,11 +332,28 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
         sprite_from(icon or stand_in(16, (220, 180, 120, 255)), 16, gfx, f'icon_{k}')
     if missing:
         print(f'  battle art not baked yet (save a GBA map in the editor): {", ".join(missing[:8])}{"…" if len(missing) > 8 else ""}')
+    effects = game.get('effects') or []
+    fx_made = effect_sheets(public, gba, effects, gfx)
+    fx_index = {e['id']: k for k, e in enumerate(effects) if fx_made[k]}
+    exclaim_sprite(gfx)
+    snd_ids = sounds_out(public, root, game.get('sounds') or [])
+    snd_names = list(snd_ids.keys())
+    snd_index = {n: i for i, n in enumerate(snd_names)}
+    if snd_names:
+        print(f'  sounds: {len(set(snd_ids.values()))}')
 
     out = []
     w = out.append
     w('// Generated by tools/gba_game.py from public/data - do not edit.\n')
-    w('#ifndef MIMAS_GAME_H\n#define MIMAS_GAME_H\n\n#include <cstdint>\n#include "bn_sprite_item.h"\n')
+    w('#ifndef MIMAS_GAME_H\n#define MIMAS_GAME_H\n\n#include <cstdint>\n#include "bn_sprite_item.h"\n#include "bn_sprite_palette_item.h"\n#include "bn_sound_item.h"\n')
+    if snd_ids:
+        w('#include "bn_sound_items.h"\n')
+    for k, m in enumerate(fx_made):
+        if m:
+            w(f'#include "bn_sprite_items_fx_{k}.h"\n')
+    for el in ELEMENTS:
+        w(f'#include "bn_sprite_palette_items_fxpal_{el}.h"\n')
+    w('#include "bn_sprite_items_exclaim.h"\n')
     for k in range(len(enemies)):
         w(f'#include "bn_sprite_items_enemy_{k}.h"\n')
     for k in range(len(heroes)):
@@ -243,25 +365,78 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w('enum stat { STR, DEX, AGI, END, DEF, MAG, MDF };\n')
     w('// Gear slots the ROM equips.\nenum slot { WEAPON, SHIELD, ARMOR, ACCESSORY };\n')
     w(f'constexpr int max_spells = {MAX_SPELLS};\nconstexpr int max_additions = {MAX_ADDITIONS};\n\n')
+    w(f'// Types (elements) and ailments, in this order.\nconstexpr int element_count = {len(ELEMENTS)};\nconstexpr int ailment_count = {len(AILMENTS)};\n')
+    w('enum ailment { POISON, BURN, PARALYZE, SLEEP, CHILL, CONFUSION, BLIND, SILENCE };\n')
+    w('constexpr const char* element_names[] = { ' + ', '.join(c_str(e.upper()) for e in ELEMENTS) + ' };\n')
+    w('// How much (%) an element does to each element.\n')
+    chart = game.get('chart') or [[100] * len(ELEMENTS) for _ in ELEMENTS]
+    w('constexpr int16_t chart[element_count][element_count] = {\n    ' + ',\n    '.join('{ ' + ', '.join(str(int(round(float(v) * 100 if float(v) < 20 else float(v)))) for v in row) + ' }' for row in chart) + '\n};\n')
+    w('// A move: an Addition (>= 0) or a spell (-(spell + 1)); a moveset: the moves from a level on.\n')
+    w('struct moveset { uint8_t level; uint8_t count; int16_t moves[4]; };\n')
+    w('// An effect: its sprite (64 x 64 frames), frames, whether it\'s a hit (recoloured by element), its sound (-1 none).\n')
+    w('struct effect_def { const bn::sprite_item* sprite; uint8_t frames; bool hit; int16_t sound; };\n')
     w('struct hero_def { const char* name; int16_t stats[7]; int8_t gains[7]; int8_t moves[4]; uint8_t move_count; uint8_t spells[max_spells];\n'
-      '    int16_t gear[4]; bool starts; uint8_t join_level; bool no_additions; const bn::sprite_item* back; const bn::sprite_item* face; };\n')
-    w('// power: the strikes\' powers added up, x100.\n')
-    w('struct addition_def { const char* name; const char* description; uint8_t hits; int16_t power; };\n')
+      '    int16_t gear[4]; bool starts; uint8_t join_level; bool no_additions; const bn::sprite_item* back; const bn::sprite_item* face; int8_t elements[2]; };\n')
+    w('// power: the strikes\' powers added up, x100. inflict: an ailment (-1 none) and its chance. hit / burst: effects (-1 none).\n')
+    w('struct addition_def { const char* name; const char* description; uint8_t hits; int16_t power; int8_t element; int8_t inflict; uint8_t chance; int8_t hit; int8_t burst; };\n')
     w('struct spell_rank { int16_t power; int16_t mp; };\n')
     w('// kind: 0 damage, 1 heal, 2 support (the ROM casts it as a small heal for now). power x10.\n')
-    w('struct spell_def { const char* name; const char* description; uint8_t kind; bool all; uint8_t rank_count; spell_rank ranks[5]; };\n')
+    w('struct spell_def { const char* name; const char* description; uint8_t kind; bool all; uint8_t rank_count; spell_rank ranks[5];\n'
+      '    int8_t element; int8_t inflict; uint8_t chance; int8_t hit; int8_t burst; };\n')
     w('// kind: 0 usable (restores), 1 key item, 2 gear, 3 other. slot: -1 none, else enum slot. attack x100.\n')
     w('struct item_def { const char* name; const char* description; uint8_t kind; int8_t slot; int16_t price; bool no_sell;\n'
       '    int16_t hp; int16_t mp; int16_t hp_pct; int16_t mp_pct; bool revive; int16_t attack; int16_t defense; int16_t magic_defense;\n'
       '    int8_t bonus[7]; int8_t crit; const bn::sprite_item* icon; };\n')
     w('// attack x100.\n')
+    w('// elements: up to two (-1 none); immune / absorb: element bits; resists: ailment bits; movesets: by level (the first is\n'
+      '// its own moves, level 0); element / inflict: its plain hit\'s.\n')
     w('struct enemy_def { const char* name; uint8_t level; int16_t hp; int16_t attack; bool magic; int16_t defense; int16_t magic_defense;\n'
-      '    int16_t agility; int16_t crit; int16_t xp; int16_t gold_min; int16_t gold_max; bool boss; const bn::sprite_item* sprite; };\n')
+      '    int16_t agility; int16_t crit; int16_t xp; int16_t gold_min; int16_t gold_max; bool boss; const bn::sprite_item* sprite;\n'
+      '    int8_t elements[2]; uint8_t immune; uint8_t absorb; uint8_t resists; int16_t mp; int8_t element; int8_t inflict; uint8_t chance;\n'
+      '    const moveset* movesets; uint8_t moveset_count; };\n')
     w('struct troop_member { int16_t enemy; uint8_t min; uint8_t max; };\n')
     w('struct troop_def { const troop_member* members; uint8_t count; bool random; bool no_run; };\n\n')
 
     def i16(v):
         return max(-32768, min(32767, int(round(v))))
+
+    el_index = {e: i for i, e in enumerate(ELEMENTS)}
+    ail_index = {a: i for i, a in enumerate(AILMENTS)}
+
+    def inflict_of(o):
+        l = [x for x in (o.get('inflicts') or []) if x.get('ailment') in ail_index]
+        return (ail_index[l[0]['ailment']], int(l[0].get('chance', 0))) if l else (-1, 0)
+
+    def fx_of(i):
+        return fx_index.get(i, -1) if i else -1
+
+    def move_code(r):
+        if r.get('addition') in add_index and add_index[r['addition']] < MAX_ADDITIONS:
+            return add_index[r['addition']]
+        if r.get('spell') in spell_index and spell_index[r['spell']] < MAX_SPELLS:
+            return -(spell_index[r['spell']] + 1)
+        return None
+
+    def moves_c(refs_):
+        codes = [c for c in (move_code(r) for r in (refs_ or [])) if c is not None][:4]
+        return len(codes), '{ ' + ', '.join(str(c) for c in (codes + [0] * 4)[:4]) + ' }'
+
+    # sounds and effects
+    w('constexpr const bn::sound_item* sounds[] = { ' + (', '.join(f'&bn::sound_items::{snd_ids[n]}' for n in snd_names) or 'nullptr') + ' };\n')
+    w(f'constexpr int sound_count = {len(snd_names)};\n')
+    for n in ['menuMove', 'menuOk', 'menuBack', 'encounter', 'hit', 'weak', 'thump', 'crit', 'defeat', 'levelUp', 'item', 'coin', 'save', 'target', 'dodge', 'jump', 'expDing', 'swing']:
+        w(f'constexpr int snd_{n} = {snd_index.get(n, -1)};\n')
+    erow = []
+    for k, e in enumerate(effects):
+        m = fx_made[k]
+        if not m:
+            erow.append('{ nullptr, 0, false, -1 }')
+        else:
+            erow.append(f'{{ &bn::sprite_items::fx_{k}, {m["frames"]}, {"true" if m["hit"] else "false"}, {snd_index.get(e.get("sound") or "", -1)} }}')
+    w('constexpr effect_def effects[] = {\n    ' + (',\n    '.join(erow) or '{ nullptr, 0, false, -1 }') + '\n};\n')
+    w('constexpr const bn::sprite_palette_item* effect_palettes[] = { ' + ', '.join(f'&bn::sprite_palette_items::fxpal_{el}' for el in ELEMENTS) + ' };\n')
+    w(f'constexpr int fx_hit_plain = {fx_index.get("fx_hit", -1)};\n')
+    w(f'constexpr int fx_sparkle = {fx_index.get("fx_sparkle", -1)};\n\n')
 
     # heroes
     rows = []
@@ -277,20 +452,27 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
         rows.append(f'{{ {c_str(h.get("name"))}, {{ {", ".join(str(i16(st.get(s, 10))) for s in STATS)} }}, {{ {", ".join(str(int(gn.get(s, 2))) for s in STATS)} }}, '
                     f'{{ {", ".join(str(x) for x in (mv + [-1] * 4)[:4])} }}, {len(mv)}, {{ {", ".join(str(x) for x in sp)} }}, {{ {", ".join(str(x) for x in gear)} }}, '
                     f'{"true" if h.get("startsInParty") else "false"}, {int(h.get("joinLevel", 0) or 0)}, {"true" if h.get("noAdditions") else "false"}, '
-                    f'&bn::sprite_items::hback_{k}, &bn::sprite_items::hface_{k} }}')
+                    f'&bn::sprite_items::hback_{k}, &bn::sprite_items::hface_{k}, '
+                    f'{{ {", ".join(str(el_index.get(x, -1)) for x in ((h.get("elements") or []) + [None, None])[:2])} }} }}')
     w('constexpr hero_def heroes[] = {\n    ' + ',\n    '.join(rows) + '\n};\n')
     w(f'constexpr int hero_count = {len(heroes)};\n\n')
 
-    w('constexpr addition_def additions[] = {\n    ' + (',\n    '.join(
-        f'{{ {c_str(a.get("name"))}, {c_str(a.get("description", ""))}, {int(a.get("hits", 1))}, {i16(float(a.get("power", 1)) * 100)} }}' for a in additions) or '{ "", "", 1, 100 }') + '\n};\n')
+    arows = []
+    for a in additions:
+        inf, ch = inflict_of(a)
+        arows.append(f'{{ {c_str(a.get("name"))}, {c_str(a.get("description", ""))}, {int(a.get("hits", 1))}, {i16(float(a.get("power", 1)) * 100)}, '
+                     f'{el_index.get(a.get("element") or "neutral", 0)}, {inf}, {ch}, {fx_of(a.get("hit", "fx_slash"))}, {fx_of(a.get("burst"))} }}')
+    w('constexpr addition_def additions[] = {\n    ' + (',\n    '.join(arows) or '{ "", "", 1, 100, 0, -1, 0, -1, -1 }') + '\n};\n')
     w(f'constexpr int addition_count = {len(additions)};\n')
     srows = []
     for s in spells:
         ranks = (s.get('ranks') or [{'power': 10, 'mp': 5}])[:5]
         kind = {'bolt': 0, 'heal': 1}.get(s.get('kind'), 2)
         rk = ', '.join(f'{{ {i16(float(r.get("power", 0)) * 10)}, {i16(r.get("mp", 0))} }}' for r in ranks)
-        srows.append(f'{{ {c_str(s.get("name"))}, {c_str(s.get("description", ""))}, {kind}, {"true" if s.get("targets") == "all" else "false"}, {len(ranks)}, {{ {rk} }} }}')
-    w('constexpr spell_def spells[] = {\n    ' + (',\n    '.join(srows) or '{ "", "", 0, false, 1, { { 0, 0 } } }') + '\n};\n')
+        inf, ch = inflict_of(s)
+        srows.append(f'{{ {c_str(s.get("name"))}, {c_str(s.get("description", ""))}, {kind}, {"true" if s.get("targets") == "all" else "false"}, {len(ranks)}, {{ {rk} }}, '
+                     f'{el_index.get(s.get("element") or "neutral", 0)}, {inf}, {ch}, {fx_of(s.get("hit"))}, {fx_of(s.get("burst"))} }}')
+    w('constexpr spell_def spells[] = {\n    ' + (',\n    '.join(srows) or '{ "", "", 0, false, 1, { { 0, 0 } }, 0, -1, 0, -1, -1 }') + '\n};\n')
     w(f'constexpr int spell_count = {len(spells)};\n\n')
 
     irows = []
@@ -308,11 +490,30 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
 
     erows = []
     for k, e in enumerate(enemies):
+        sets = [(0, e.get('moves') or [])] + [(int(ms.get('level', 1)), ms.get('moves') or []) for ms in (e.get('movesets') or [])]
+        w(f'constexpr moveset enemy{k}_movesets[] = {{ ' + ', '.join(f'{{ {lv}, {n}, {mc} }}' for lv, (n, mc) in ((lv, moves_c(r)) for lv, r in sets)) + ' };\n')
+    for k, e in enumerate(enemies):
         gold = e.get('gold') or [0, 0]
+        els = [el_index.get(x, -1) for x in ((e.get('elements') or []) + [None, None])[:2]]
+        mask = lambda l, idx: sum(1 << idx[x] for x in (l or []) if x in idx)
+        inf, ch = inflict_of(e)
+        extra = (f', {{ {els[0]}, {els[1]} }}, {mask(e.get("immune"), el_index)}, {mask(e.get("absorb"), el_index)}, {mask(e.get("resists"), ail_index)}, '
+                 f'{i16(e.get("mp", 0))}, {el_index.get(e.get("element") or "neutral", 0)}, {inf}, {ch}, enemy{k}_movesets, {1 + len(e.get("movesets") or [])}')
         erows.append(f'{{ {c_str(e.get("name"))}, {max(1, min(99, int(e.get("level", 1))))}, {i16(e.get("hp", 10))}, {i16(float(e.get("attack", 5)) * 100)}, {"true" if e.get("magic") else "false"}, '
                      f'{i16(e.get("defense", 0))}, {i16(e.get("magicDefense", 0))}, {i16(e.get("agility", 10))}, {i16(e.get("crit", 5))}, {i16(e.get("xp", 0))}, '
-                     f'{i16(gold[0])}, {i16(gold[-1])}, {"true" if e.get("boss") else "false"}, &bn::sprite_items::enemy_{k} }}')
-    w('constexpr enemy_def enemies[] = {\n    ' + (',\n    '.join(erows) or '{ "", 1, 1, 100, false, 0, 0, 10, 5, 0, 0, 0, false, nullptr }') + '\n};\n')
+                     f'{i16(gold[0])}, {i16(gold[-1])}, {"true" if e.get("boss") else "false"}, &bn::sprite_items::enemy_{k}{extra} }}')
+    w('constexpr enemy_def enemies[] = {\n    ' + (',\n    '.join(erows) or '{ "", 1, 1, 100, false, 0, 0, 10, 5, 0, 0, 0, false, nullptr, { -1, -1 }, 0, 0, 0, 0, 0, -1, 0, nullptr, 0 }') + '\n};\n')
+    growth = game.get('enemyGrowth') or {'hp': 12, 'attack': 7, 'defense': 6, 'xp': 12, 'gold': 8}
+    w('// Each level an enemy is above (or below) its own: these % more (or less) health, attack, defence, EXP and gold.\n')
+    w(f'constexpr int growth_hp = {int(growth.get("hp", 12))}, growth_attack = {int(growth.get("attack", 7))}, growth_defense = {int(growth.get("defense", 6))}, '
+      f'growth_xp = {int(growth.get("xp", 12))}, growth_gold = {int(growth.get("gold", 8))};\n')
+    # moves given to one fight (Start battle, trainers), and the trainers
+    w('constexpr moveset custom_moves[] = { ' + (', '.join(f'{{ 0, {n}, {mc} }}' for n, mc in (moves_c(r) for r in comp.custom_moves)) or '{ 0, 0, { 0, 0, 0, 0 } }') + ' };\n')
+    w('struct foe_def { int16_t enemy; uint8_t level; int16_t moves; };\n')
+    w('struct trainer_def { uint8_t range; uint8_t beaten; int16_t gold; int16_t intro; int16_t lose; const foe_def* team; uint8_t count; };\n')
+    for k, t in enumerate(comp.trainers):
+        w(f'constexpr foe_def trainer{k}_team[] = {{ ' + ', '.join(f'{{ {a}, {b}, {c} }}' for a, b, c in t[5]) + ' };\n')
+    w('constexpr trainer_def trainers[] = { ' + (', '.join(f'{{ {t[0]}, {t[1]}, {t[2]}, {t[3]}, {t[4]}, trainer{k}_team, {len(t[5])} }}' for k, t in enumerate(comp.trainers)) or '{ 0, 0, 0, -1, -1, nullptr, 0 }') + ' };\n')
     w(f'constexpr int enemy_count = {len(enemies)};\n\n')
 
     for k, t in enumerate(troops):

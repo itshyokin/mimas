@@ -72,7 +72,7 @@ const readBytes = (req) => new Promise((resolve, reject) => {
 });
 const readBody = async (req) => (await readBytes(req)).toString('utf8');
 /** Imported files: images under public/assets/(props|tiles|icons|characters)/, sounds under public/assets/audio/. */
-const ASSET_FILE = /^(?:gba\/(?:tiles|sprites|props|enemies|heroes|items)\/[A-Za-z0-9_.-]+\.png$)|^assets\/(?:(?:props|tiles|icons|characters|enemies|weapons\/custom)\/[A-Za-z0-9_.-]+\.png|props\/[A-Za-z0-9_.-]+\.(?:glb|fbx)|models\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+\.(?:glb|fbx)|audio\/[A-Za-z0-9_.-]+\.(?:ogg|mp3|wav|m4a))$/;
+const ASSET_FILE = /^(?:gba\/(?:tiles|sprites|props|enemies|heroes|items)\/[A-Za-z0-9_.-]+\.png$|gba\/sounds\/[A-Za-z0-9_]+\.wav$)|^assets\/(?:(?:props|tiles|icons|characters|enemies|weapons\/custom)\/[A-Za-z0-9_.-]+\.png|props\/[A-Za-z0-9_.-]+\.(?:glb|fbx)|models\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+\.(?:glb|fbx)|audio\/[A-Za-z0-9_.-]+\.(?:ogg|mp3|wav|m4a))$/;
 
 const AUDIO = path.join(ROOT, 'audio');
 /** Every sound under audio/ (any depth), as "audio/…" paths. */

@@ -89,6 +89,10 @@ namespace
     uint8_t bag[mimas::item_count] = {};
     int gold = 0;
     int16_t active[MAX_EVENTS];               // each event's page now (-1: none)
+    int16_t ev_x[MAX_EVENTS];                 // where each event stands now (trainers walk up to the player)
+    int16_t ev_y[MAX_EVENTS];
+
+    void place_events();
 
     [[nodiscard]] bool test(int cond, int self_id)
     {
@@ -136,6 +140,15 @@ namespace
         }
     }
 
+    void place_events()
+    {
+        for(int i = 0; i < M->event_count && i < MAX_EVENTS; ++i)
+        {
+            ev_x[i] = M->events[i].x;
+            ev_y[i] = M->events[i].y;
+        }
+    }
+
     [[nodiscard]] const mimas::page* page_of(int i)
     {
         return i >= 0 && i < MAX_EVENTS && active[i] >= 0 ? &M->pages[active[i]] : nullptr;
@@ -149,7 +162,7 @@ namespace
             const mimas::event& e = M->events[i];
             const mimas::page* pg = page_of(i);
 
-            if(pg && x >= e.x && y >= e.y && x < e.x + e.w && y < e.y + e.h && (trigger < 0 || pg->trigger == trigger))
+            if(pg && x >= ev_x[i] && y >= ev_y[i] && x < ev_x[i] + e.w && y < ev_y[i] + e.h && (trigger < 0 || pg->trigger == trigger))
             {
                 return i;
             }
@@ -165,7 +178,7 @@ namespace
             const mimas::event& e = M->events[i];
             const mimas::page* pg = page_of(i);
 
-            if(pg && pg->solid && x >= e.x && y >= e.y && x < e.x + e.w && y < e.y + e.h)
+            if(pg && pg->solid && x >= ev_x[i] && y >= ev_y[i] && x < ev_x[i] + e.w && y < ev_y[i] + e.h)
             {
                 return true;
             }
@@ -273,6 +286,7 @@ namespace
             ground.reset();
             over.reset();
             M = &mimas::maps[map];
+            place_events();
             ground = M->ground->create_bg(0, 0);
             over = M->over->create_bg(0, 0);
             ground->set_priority(3);
@@ -317,8 +331,8 @@ namespace
                 bn::sprite_ptr s = item.create_sprite(0, 0);
                 s.set_camera(camera);
                 s.set_bg_priority(2);
-                s.set_position(world_x(e.x * CELL + e.w * CELL / 2), object ? world_y((e.y + e.h) * CELL - mimas::obj_heights[-10 - pg->sprite] / 2) : world_y((e.y + e.h - 1) * CELL));
-                s.set_z_order(-(e.y + e.h - 1));
+                s.set_position(world_x(ev_x[i] * CELL + e.w * CELL / 2), object ? world_y((ev_y[i] + e.h) * CELL - mimas::obj_heights[-10 - pg->sprite] / 2) : world_y((ev_y[i] + e.h - 1) * CELL));
+                s.set_z_order(-(ev_y[i] + e.h - 1));
                 people.push_back(s);
                 people_event.push_back(i);
                 people_dir.push_back(pg->dir);
@@ -666,8 +680,8 @@ namespace
                         if(who >= 0 && who < M->event_count)
                         {
                             const mimas::event& sp = M->events[who];
-                            x = sp.x * CELL + sp.w * CELL / 2;
-                            y = sp.y * CELL - (w.has_person(who) ? CELL : 0);
+                            x = ev_x[who] * CELL + sp.w * CELL / 2;
+                            y = ev_y[who] * CELL - (w.has_person(who) ? CELL : 0);
                         }
 
                         ax = world_x(x) - w.camera.x().right_shift_integer();
@@ -779,18 +793,19 @@ namespace
                 {
                     view = text_view();
                     banner.hide();
-                    int n = code[at + 1];
-                    int16_t foes[6];
+                    int n = bn::min(int(code[at + 1]), 6);
+                    foe_spec foes[6];
 
-                    for(int k = 0; k < n && k < 6; ++k) { foes[k] = code[at + 2 + k]; }
+                    for(int k = 0; k < n; ++k) { foes[k] = { code[at + 2 + k * 3], code[at + 3 + k * 3], code[at + 4 + k * 3] }; }
 
-                    bool can_run = code[at + 2 + n] != 0;
-                    int var = code[at + 3 + n], lose = code[at + 4 + n];
-                    int r = battle(w, foes, bn::min(n, 6), can_run, false);
+                    int tail = at + 2 + code[at + 1] * 3;
+                    bool can_run = code[tail] != 0;
+                    int var = code[tail + 1], lose = code[tail + 2];
+                    int r = battle(w, foes, n, can_run, false);
 
                     if(var >= 0) { vars[var] = r == WON ? 1 : r == RAN ? 2 : 0; }
 
-                    at += 5 + n;
+                    at = tail + 3;
 
                     if(r == LOST)
                     {
@@ -973,6 +988,16 @@ int main()
             if(ar >= 0)
             {
                 run_event(ar, w, box_text, banner);
+                bn::core::update();
+                continue;
+            }
+
+            // A trainer who sees the player walks up and battles.
+            int tr = spotted(w);
+
+            if(tr >= 0)
+            {
+                trainer_battle(w, tr, box_text, banner);
                 bn::core::update();
                 continue;
             }

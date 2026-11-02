@@ -16,6 +16,15 @@
 
 // ------------------------------------------------------------------------------------------------ the party
 
+// Sounds: the baked chip sounds (game/audio), by their index in mimas::sounds (-1: none).
+void sfx(int k)
+{
+    if(k >= 0 && k < mimas::sound_count && mimas::sounds[k])
+    {
+        mimas::sounds[k]->play();
+    }
+}
+
 constexpr int MAX_PARTY = 6;
 constexpr int MAX_MOVES = 4;
 
@@ -508,6 +517,7 @@ struct row
 {
     char label[24];
     char right[14];
+    char sub[14];      // (the FIGHT box: a move's type)
     int16_t icon;      // an item's icon (k), -100 - h a hero's face, -1 none
     int16_t bar;       // health bar: have (bar_max > 0)
     int16_t bar_max;
@@ -636,12 +646,12 @@ int pick(const row* rows, int n, const list_spec& s, int start = 0)
 
         bn::core::update();
 
-        if(bn::keypad::up_pressed()) { at = (at + n - 1) % n; }
-        else if(bn::keypad::down_pressed()) { at = (at + 1) % n; }
-        else if(s.sides && bn::keypad::left_pressed()) { result = -2; break; }
-        else if(s.sides && bn::keypad::right_pressed()) { result = -3; break; }
-        else if(bn::keypad::a_pressed() && ! rows[at].off) { result = at; break; }
-        else if(bn::keypad::b_pressed() && s.cancel) { result = -1; break; }
+        if(bn::keypad::up_pressed()) { at = (at + n - 1) % n; sfx(mimas::snd_menuMove); }
+        else if(bn::keypad::down_pressed()) { at = (at + 1) % n; sfx(mimas::snd_menuMove); }
+        else if(s.sides && bn::keypad::left_pressed()) { result = -2; sfx(mimas::snd_menuMove); break; }
+        else if(s.sides && bn::keypad::right_pressed()) { result = -3; sfx(mimas::snd_menuMove); break; }
+        else if(bn::keypad::a_pressed() && ! rows[at].off) { result = at; sfx(mimas::snd_menuOk); break; }
+        else if(bn::keypad::b_pressed() && s.cancel) { result = -1; sfx(mimas::snd_menuBack); break; }
     }
 
     sprites.clear();
@@ -1379,6 +1389,7 @@ void shop(const int16_t* goods, int n, bool can_sell)
                 if(ask(t))
                 {
                     gold -= price * cnt;
+                    sfx(mimas::snd_coin);
                     bag[item] = uint8_t(bag[item] + cnt);
                     money_box(money);
                     say("Here you are! Thank you!");
@@ -1415,6 +1426,7 @@ void shop(const int16_t* goods, int n, bool can_sell)
                 {
                     bag[item] = uint8_t(bag[item] - many);
                     gold += each * many;
+                    sfx(mimas::snd_coin);
                     money_box(money);
                     t = "Turned over the ";
                     t += mimas::items[item].name;
@@ -1509,6 +1521,7 @@ bool save_flow(int map, int x, int y, int dir)
     }
 
     write_save(map, x, y, dir);
+    sfx(mimas::snd_save);
     bn::string<64> t = name_of(party[0]);
     t += " saved the game!";
     say(t);
@@ -1517,6 +1530,109 @@ bool save_flow(int map, int x, int y, int dir)
 
 // ------------------------------------------------------------------------------------------------ battles
 
+// A foe for a battle: which enemy, its level (0: its own) and its moves (a custom_moves index, or -1: its own).
+struct foe_spec
+{
+    int16_t enemy;
+    int16_t level;
+    int16_t moves;
+};
+
+// An ailment on someone (-1: none) and the turns it has left (sleep, confusion, blind, silence).
+struct ailing
+{
+    int8_t ailment = -1;
+    uint8_t turns = 0;
+};
+
+constexpr const char* AIL_TAG[] = { "PSN", "BRN", "PAR", "SLP", "FRZ", "CNF", "BLD", "SIL" };
+constexpr const char* AIL_GOT[] = { " was poisoned!", " was burned!", " is paralyzed! It may be unable to move!", " fell asleep!",
+                                    " was frozen solid!", " became confused!", " was blinded!", " was silenced!" };
+
+// An enemy in battle: its numbers at its level, its moves, its magic, its ailment.
+struct foe_rt
+{
+    int id = 0, level = 1, hp = 1, max = 1, attack = 100, defense = 0, magic_defense = 0, agility = 10, crit = 5, xp = 0, gold = 0, mp = 0;
+    int scale = 100;          // its attack growth (%), for its spells
+    int16_t moves[4] = {};
+    int count = 0;
+    ailing st;
+};
+
+[[nodiscard]] int grow(int v, int pct, int levels)
+{
+    return v * bn::max(20, 100 + pct * levels) / 100;
+}
+
+[[nodiscard]] foe_rt make_foe(const foe_spec& f)
+{
+    const mimas::enemy_def& e = mimas::enemies[f.enemy];
+    foe_rt r;
+    r.id = f.enemy;
+    r.level = f.level > 0 ? f.level : e.level;
+    int d = r.level - e.level;
+    r.hp = r.max = bn::max(1, grow(e.hp, mimas::growth_hp, d));
+    r.attack = grow(e.attack, mimas::growth_attack, d);
+    r.scale = grow(100, mimas::growth_attack, d);
+    r.defense = grow(e.defense, mimas::growth_defense, d);
+    r.magic_defense = grow(e.magic_defense, mimas::growth_defense, d);
+    r.agility = e.agility;
+    r.crit = e.crit;
+    r.xp = grow(e.xp, mimas::growth_xp, d);
+    int g = e.gold_min + (e.gold_max > e.gold_min ? rng.get_int(e.gold_max - e.gold_min + 1) : 0);
+    r.gold = grow(g, mimas::growth_gold, d);
+    r.mp = e.mp;
+    // Its moves: for this fight, else the last set at or below its level.
+    const mimas::moveset* ms = nullptr;
+
+    if(f.moves >= 0)
+    {
+        ms = &mimas::custom_moves[f.moves];
+    }
+    else
+    {
+        for(int k = 0; k < e.moveset_count; ++k)
+        {
+            if(e.movesets[k].level <= r.level && e.movesets[k].count)
+            {
+                ms = &e.movesets[k];
+            }
+        }
+    }
+
+    if(ms)
+    {
+        r.count = ms->count;
+
+        for(int k = 0; k < ms->count; ++k) { r.moves[k] = ms->moves[k]; }
+    }
+
+    return r;
+}
+
+// Types: how much an element does to someone with these elements (%), 0 if they're immune, -1 if they absorb it.
+[[nodiscard]] int type_mult(int el, const int8_t* els, uint8_t immune, uint8_t absorb)
+{
+    if((absorb >> el) & 1) { return -1; }
+    if((immune >> el) & 1) { return 0; }
+
+    int m = 100;
+
+    for(int k = 0; k < 2; ++k)
+    {
+        if(els[k] >= 0) { m = m * mimas::chart[el][els[k]] / 100; }
+    }
+
+    return bn::max(25, bn::min(300, m));
+}
+
+// The battle's text box (the whole bottom), waiting for A.
+void bsay(const bn::string_view& text)
+{
+    ui::say(text);
+    ui::box(0, 14, 30, 6);
+}
+
 // The scene: the plain white screen, the foe across from the hero, their panels and the text box.
 struct battle_scene
 {
@@ -1524,20 +1640,21 @@ struct battle_scene
     bn::optional<bn::sprite_ptr> back;
     bn::vector<bn::sprite_ptr, 24> foe_text;
     bn::vector<bn::sprite_ptr, 24> hero_text;
-    int foe_id = 0, foe_hp = 0, foe_max = 1, foe_level = 1;
+    foe_rt f;
+    ailing hero_st[MAX_PARTY];
     int who = 0;
 
     void draw_foe()
     {
         foe_text.clear();
         ui::box(0, 1, 15, 5);
-        const mimas::enemy_def& e = mimas::enemies[foe_id];
+        const mimas::enemy_def& e = mimas::enemies[f.id];
         ui::text(12, 12, e.name, foe_text);
         bn::string<12> lv = "Lv";
-        lv += bn::to_string<4>(foe_level);
+        lv += bn::to_string<4>(f.level);
         ui::text_right(15 * 8 - 10, 12, lv, foe_text);
-        ui::text(12, 26, "HP", foe_text);
-        ui::bar(5, 4, foe_hp, foe_max);
+        ui::text(12, 26, f.st.ailment >= 0 ? AIL_TAG[f.st.ailment] : "HP", foe_text);
+        ui::bar(5, 4, f.hp, f.max);
     }
 
     void draw_hero()
@@ -1549,7 +1666,7 @@ struct battle_scene
         bn::string<12> lv = "Lv";
         lv += bn::to_string<4>(m.level);
         ui::text_right(30 * 8 - 10, 8 * 8 + 4, lv, hero_text);
-        ui::text(14 * 8 + 12, 8 * 8 + 18, "HP", hero_text);
+        ui::text(14 * 8 + 12, 8 * 8 + 18, hero_st[who].ailment >= 0 ? AIL_TAG[hero_st[who].ailment] : "HP", hero_text);
         ui::bar(19, 11, m.hp, max_hp(m));
         bn::string<24> hp = bn::to_string<6>(bn::max(0, int(m.hp)));
         hp += "/";
@@ -1560,12 +1677,10 @@ struct battle_scene
         ui::text_right(30 * 8 - 10, 8 * 8 + 30, mp, hero_text);
     }
 
-    void set_foe(int id, int level, int hp)
+    void set_foe(const foe_spec& spec)
     {
-        foe_id = id;
-        foe_level = level;
-        foe_hp = foe_max = hp;
-        foe = mimas::enemies[id].sprite->create_sprite(176 - HALF_W, 44 - HALF_H);
+        f = make_foe(spec);
+        foe = mimas::enemies[f.id].sprite->create_sprite(176 - HALF_W, 34 - HALF_H);
         foe->set_bg_priority(1);
         draw_foe();
     }
@@ -1581,13 +1696,13 @@ struct battle_scene
     // Health going down (or up) a little at a time.
     void drain_foe(int to)
     {
-        to = bn::max(0, to);
+        to = bn::max(0, bn::min(f.max, to));
 
-        while(foe_hp != to)
+        while(f.hp != to)
         {
-            int step = bn::max(1, foe_max / 48);
-            foe_hp = foe_hp > to ? bn::max(to, foe_hp - step) : bn::min(to, foe_hp + step);
-            ui::bar(5, 4, foe_hp, foe_max);
+            int step = bn::max(1, f.max / 48);
+            f.hp = f.hp > to ? bn::max(to, f.hp - step) : bn::min(to, f.hp + step);
+            ui::bar(5, 4, f.hp, f.max);
             bn::core::update();
         }
     }
@@ -1614,7 +1729,46 @@ struct battle_scene
         {
             s->set_visible(k % 2 != 0);
 
-            for(int f = 0; f < 4; ++f) { bn::core::update(); }
+            for(int fr = 0; fr < 3; ++fr) { bn::core::update(); }
+        }
+    }
+
+    // An effect over the foe (at_foe) or the hero: its frames five game frames each, its sound with the first.
+    void play_fx(int fx, int element, bool at_foe)
+    {
+        if(fx < 0 || ! mimas::effects[fx].sprite)
+        {
+            return;
+        }
+
+        const mimas::effect_def& e = mimas::effects[fx];
+        bn::sprite_ptr s = e.sprite->create_sprite(at_foe ? 176 - HALF_W : 60 - HALF_W, at_foe ? 34 - HALF_H : 80 - HALF_H);
+        s.set_bg_priority(0);
+
+        if(e.hit && element >= 0 && element < mimas::element_count)
+        {
+            s.set_palette(*mimas::effect_palettes[element]);
+        }
+
+        sfx(e.sound);
+
+        for(int fr = 0; fr < e.frames; ++fr)
+        {
+            s.set_tiles(e.sprite->tiles_item(), fr);
+
+            for(int k = 0; k < 5; ++k) { bn::core::update(); }
+        }
+    }
+
+    // A move's look: its hit (in its element's colours), then its burst.
+    void play_move(int hit, int burst, int element, bool at_foe)
+    {
+        play_fx(hit, element, at_foe);
+        play_fx(burst, 0, at_foe);
+
+        if(hit < 0 && burst < 0)
+        {
+            sfx(mimas::snd_hit);
         }
     }
 };
@@ -1622,13 +1776,6 @@ struct battle_scene
 [[nodiscard]] int spread(int v)
 {
     return v * (90 + rng.get_int(21)) / 100;
-}
-
-// The battle's text box (the whole bottom), waiting for A.
-void bsay(const bn::string_view& text)
-{
-    ui::say(text);
-    ui::box(0, 14, 30, 6);
 }
 
 enum outcome { LOST, WON, RAN };
@@ -1641,7 +1788,7 @@ int grid_pick(const row* rows, int n)
     {
         list_spec s;
         s.x = 0; s.w = 30; s.visible = 4;
-        s.y = 20 - (4 * 16 + 8 + 7) / 8;
+        s.y = 20 - (4 * 16 + 8 + 8 + 7) / 8;
         return pick(rows, n, s);
     }
 
@@ -1667,15 +1814,16 @@ int grid_pick(const row* rows, int n)
             shown = at;
             info.clear();
             ui::text(20 * 8 + 10, 118, rows[at].right, info);
+            ui::text(20 * 8 + 10, 134, rows[at].sub, info);
         }
 
         cur.set_position(8 + (at % 2) * 76 - HALF_W, 118 + (at / 2) * 16 + 8 - HALF_H);
         bn::core::update();
 
-        if(bn::keypad::left_pressed() || bn::keypad::right_pressed()) { int k = at ^ 1; if(k < n) { at = k; } }
-        else if(bn::keypad::up_pressed() || bn::keypad::down_pressed()) { int k = at ^ 2; if(k < n) { at = k; } }
-        else if(bn::keypad::a_pressed() && ! rows[at].off) { result = at; break; }
-        else if(bn::keypad::b_pressed()) { break; }
+        if(bn::keypad::left_pressed() || bn::keypad::right_pressed()) { int k = at ^ 1; if(k < n) { at = k; sfx(mimas::snd_menuMove); } }
+        else if(bn::keypad::up_pressed() || bn::keypad::down_pressed()) { int k = at ^ 2; if(k < n) { at = k; sfx(mimas::snd_menuMove); } }
+        else if(bn::keypad::a_pressed() && ! rows[at].off) { result = at; sfx(mimas::snd_menuOk); break; }
+        else if(bn::keypad::b_pressed()) { sfx(mimas::snd_menuBack); break; }
     }
 
     labels.clear();
@@ -1686,8 +1834,89 @@ int grid_pick(const row* rows, int n)
     return result;
 }
 
-// A battle against these foes, one at a time. `can_run`: Run works (never from a boss).
-int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild)
+// An ailment landing (its chance, unless they resist it or already have one): true if it took hold.
+bool give_ailment(ailing& st, int ail, int chance, uint8_t resists, const char* name)
+{
+    if(ail < 0 || st.ailment >= 0 || ((resists >> ail) & 1) || rng.get_int(100) >= chance)
+    {
+        return false;
+    }
+
+    st.ailment = int8_t(ail);
+    st.turns = uint8_t(ail == mimas::SLEEP ? 1 + rng.get_int(3) : ail == mimas::CONFUSION ? 2 + rng.get_int(3) : ail >= mimas::BLIND ? 3 : 0);
+    bn::string<96> t = name;
+    t += AIL_GOT[ail];
+    bsay(t);
+    return true;
+}
+
+// Before acting: asleep, frozen, paralyzed or confused (it may hit itself: `hurt` is set). True if they act.
+bool can_act(ailing& st, const char* name, bool& hurt)
+{
+    bn::string<96> t = name;
+    hurt = false;
+
+    switch(st.ailment)
+    {
+        case mimas::SLEEP:
+            if(st.turns > 0) { --st.turns; }
+            if(st.turns == 0) { st.ailment = -1; t += " woke up!"; bsay(t); return true; }
+            t += " is fast asleep.";
+            bsay(t);
+            return false;
+
+        case mimas::CHILL:
+            if(rng.get_int(5) == 0) { st.ailment = -1; t += " thawed out!"; bsay(t); return true; }
+            t += " is frozen solid!";
+            bsay(t);
+            return false;
+
+        case mimas::PARALYZE:
+            if(rng.get_int(4) == 0) { t += " is paralyzed! It can't move!"; bsay(t); return false; }
+            return true;
+
+        case mimas::CONFUSION:
+            if(st.turns > 0) { --st.turns; }
+            if(st.turns == 0) { st.ailment = -1; t += " snapped out of its confusion!"; bsay(t); return true; }
+            t += " is confused!";
+            bsay(t);
+            if(rng.get_int(3) == 0) { bsay("It hurt itself in its confusion!"); hurt = true; return false; }
+            return true;
+
+        default:
+            return true;
+    }
+}
+
+// After their turn: poison and burns hurt; blindness and silence wear off. The damage (0: none).
+int after_turn(ailing& st, int max, const char* name)
+{
+    bn::string<96> t = name;
+
+    if(st.ailment == mimas::POISON) { t += " is hurt by poison!"; bsay(t); return bn::max(1, max / 8); }
+    if(st.ailment == mimas::BURN) { t += " is hurt by its burn!"; bsay(t); return bn::max(1, max / 16); }
+
+    if((st.ailment == mimas::BLIND || st.ailment == mimas::SILENCE) && st.turns > 0 && --st.turns == 0)
+    {
+        t += st.ailment == mimas::BLIND ? " can see again!" : " can use spells again!";
+        st.ailment = -1;
+        bsay(t);
+    }
+
+    return 0;
+}
+
+// What a type match did ("It's super effective!").
+void say_type(int mult, const char* target)
+{
+    if(mult == 0) { bn::string<64> t = "It doesn't affect "; t += target; t += "..."; bsay(t); }
+    else if(mult > 100) { sfx(mimas::snd_weak); bsay("It's super effective!"); }
+    else if(mult > 0 && mult < 100) { bsay("It's not very effective..."); }
+}
+
+// A battle against these foes, one at a time. `can_run`: Run works (never from a boss). `prize`: a trainer's money
+// (-1: the foes' own).
+int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wild, int prize = -1)
 {
     // The field goes away: the plain white screen.
     w.people.clear();
@@ -1697,6 +1926,7 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
     w.ground->set_visible(false);
     w.over->set_visible(false);
     bn::bg_palettes::set_transparent_color(bn::color(31, 31, 31));
+    sfx(mimas::snd_encounter);
     fade(0, 1);
     ui::open();
     ui::clear_all();
@@ -1709,12 +1939,11 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
         int lead = bn::max(0, first_standing());
         sc.set_hero(lead);
         fought[lead] = true;
-        bool guard = false;
 
-        for(int f = 0; f < foe_count && result == WON; ++f)
+        for(int fi = 0; fi < foe_count && result == WON; ++fi)
         {
-            const mimas::enemy_def& e = mimas::enemies[foes[f]];
-            sc.set_foe(foes[f], e.level, e.hp);
+            sc.set_foe(foes[fi]);
+            const mimas::enemy_def& e = mimas::enemies[sc.f.id];
             bn::string<64> t;
 
             if(wild) { t = "A wild "; t += e.name; t += " appeared!"; }
@@ -1722,7 +1951,7 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
 
             bsay(t);
 
-            if(f == 0)
+            if(fi == 0)
             {
                 t = "Go! ";
                 t += name_of(party[sc.who]);
@@ -1732,9 +1961,10 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
 
             int cmd_at = 0;
 
-            while(sc.foe_hp > 0 && result == WON)
+            while(sc.f.hp > 0 && result == WON)
             {
                 member& m = party[sc.who];
+                ailing& hst = sc.hero_st[sc.who];
                 // ---- the hero's choice
                 int choice = -1, arg = -1;   // 0 move, 1 spell, 2 item, 3 guard, 4 switch, 5 run
 
@@ -1763,10 +1993,10 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                         cur.set_position(11 * 8 + 8 + (cmd_at % 3) * 44 - HALF_W, 118 + (cmd_at / 3) * 16 + 8 - HALF_H);
                         bn::core::update();
 
-                        if(bn::keypad::left_pressed()) { cmd_at = (cmd_at / 3) * 3 + (cmd_at % 3 + 2) % 3; }
-                        else if(bn::keypad::right_pressed()) { cmd_at = (cmd_at / 3) * 3 + (cmd_at % 3 + 1) % 3; }
-                        else if(bn::keypad::up_pressed() || bn::keypad::down_pressed()) { cmd_at = (cmd_at + 3) % 6; }
-                        else if(bn::keypad::a_pressed()) { break; }
+                        if(bn::keypad::left_pressed()) { cmd_at = (cmd_at / 3) * 3 + (cmd_at % 3 + 2) % 3; sfx(mimas::snd_menuMove); }
+                        else if(bn::keypad::right_pressed()) { cmd_at = (cmd_at / 3) * 3 + (cmd_at % 3 + 1) % 3; sfx(mimas::snd_menuMove); }
+                        else if(bn::keypad::up_pressed() || bn::keypad::down_pressed()) { cmd_at = (cmd_at + 3) % 6; sfx(mimas::snd_menuMove); }
+                        else if(bn::keypad::a_pressed()) { sfx(mimas::snd_menuOk); break; }
                     }
 
                     q.clear();
@@ -1788,6 +2018,8 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                             bn::string<12> h = bn::to_string<4>(a.hits);
                             h += a.hits == 1 ? " HIT" : " HITS";
                             set_row(ROWS_B[k], a.name, h.c_str());
+                            bn::string_view el(mimas::element_names[a.element]);
+                            for(int c = 0; c < el.size() && c < 13; ++c) { ROWS_B[k].sub[c] = el[c]; }
                         }
 
                         int k = grid_pick(ROWS_B, m.move_count);
@@ -1805,7 +2037,7 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                                 const mimas::spell_rank& r = mimas::spells[sp].ranks[m.spells[sp] - 1];
                                 bn::string<12> cost = bn::to_string<4>(r.mp);
                                 cost += " MP";
-                                set_row(ROWS_B[c], mimas::spells[sp].name, cost.c_str(), -1, r.mp > m.mp);
+                                set_row(ROWS_B[c], mimas::spells[sp].name, cost.c_str(), -1, r.mp > m.mp || hst.ailment == mimas::SILENCE);
                                 ids[c++] = sp;
                             }
                         }
@@ -1816,7 +2048,15 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                             continue;
                         }
 
+                        if(hst.ailment == mimas::SILENCE)
+                        {
+                            bsay("Silenced: no spells!");
+                            continue;
+                        }
+
                         int k = grid_pick(ROWS_B, c);
+                        sc.draw_foe();
+                        sc.draw_hero();
                         if(k >= 0) { choice = 1; arg = ids[k]; }
                     }
                     else if(cmd_at == 2)
@@ -1843,7 +2083,7 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
 
                         list_spec s;
                         s.x = 0; s.w = 30; s.visible = bn::min(4, c);
-                        s.y = 20 - (s.visible * 16 + 8 + 7) / 8;
+                        s.y = 20 - (s.visible * 16 + 8 + (c > 4 ? 8 : 0) + 7) / 8;
                         int k = pick(ROWS_B, c, s);
                         sc.draw_foe();
                         sc.draw_hero();
@@ -1883,14 +2123,14 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                 }
 
                 ui::box(0, 14, 30, 6);
-                guard = choice == 3;
+                bool guard = choice == 3;
                 totals tm = totals_of(m);
-                bool hero_first = tm.attrs[mimas::AGI] > e.agility || (tm.attrs[mimas::AGI] == e.agility && rng.get_int(2));
+                bool hero_first = tm.attrs[mimas::AGI] > sc.f.agility || (tm.attrs[mimas::AGI] == sc.f.agility && rng.get_int(2));
 
                 // ---- running, switching and items come first
                 if(choice == 5)
                 {
-                    int chance = bn::max(5, bn::min(95, mimas::flee_chance + (tm.attrs[mimas::AGI] - e.agility) * 2));
+                    int chance = bn::max(5, bn::min(95, mimas::flee_chance + (tm.attrs[mimas::AGI] - sc.f.agility) * 2));
 
                     if(rng.get_int(100) < chance)
                     {
@@ -1915,6 +2155,7 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                 }
                 else if(choice == 2)
                 {
+                    sfx(mimas::snd_item);
                     use_item(arg, sc.who);
                     ui::box(0, 14, 30, 6);
                     sc.draw_hero();
@@ -1927,9 +2168,10 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                 }
 
                 // ---- the attacks, faster first
-                for(int turn = 0; turn < 2 && result == WON && sc.foe_hp > 0; ++turn)
+                for(int turn = 0; turn < 2 && result == WON && sc.f.hp > 0; ++turn)
                 {
                     member& hm = party[sc.who];
+                    ailing& hs = sc.hero_st[sc.who];
                     bool heroes_turn = (turn == 0) == hero_first;
 
                     if(heroes_turn)
@@ -1939,27 +2181,58 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                             continue;
                         }
 
+                        bool hurt;
+
+                        if(! can_act(hs, name_of(hm), hurt))
+                        {
+                            if(hurt) { sc.blink(sc.back); sc.drain_hero(hm.hp - bn::max(1, attack_of(hm) / 200)); }
+                            sc.draw_hero();
+                            continue;
+                        }
+
                         totals th = totals_of(hm);
 
                         if(choice == 0)
                         {
-                            int power = arg >= 0 ? mimas::additions[hm.moves[arg]].power : 100;
-                            int hits = arg >= 0 ? mimas::additions[hm.moves[arg]].hits : 1;
+                            const mimas::addition_def* a = arg >= 0 ? &mimas::additions[hm.moves[arg]] : nullptr;
+                            int power = a ? a->power : 100, hits = a ? a->hits : 1, el = a ? a->element : 0;
                             t = name_of(hm);
-                            t += arg >= 0 ? " used " : " attacks";
-                            if(arg >= 0) { t += mimas::additions[hm.moves[arg]].name; }
+                            t += a ? " used " : " attacks";
+                            if(a) { t += a->name; }
                             t += "!";
                             bsay(t);
+
+                            if(hs.ailment == mimas::BLIND && rng.get_int(2) == 0)
+                            {
+                                sfx(mimas::snd_dodge);
+                                t = name_of(hm);
+                                t += "'s attack missed!";
+                                bsay(t);
+                                continue;
+                            }
+
+                            sc.play_move(a ? a->hit : mimas::fx_hit_plain, a ? a->burst : -1, el, true);
+                            int mult = type_mult(el, e.elements, e.immune, e.absorb);
                             int32_t dmg = int32_t(attack_of(hm)) * power / 100 * 110 / 100;
                             dmg = spread(dmg);
                             bool crit = rng.get_int(100) < th.crit;
                             if(crit) { dmg = dmg * 3 / 2; }
-                            dmg = dmg * 50 / bn::max(1, e.defense + 50) * mimas::party_damage / 100;
-                            dmg = bn::max(1, int(dmg / 100));
-                            sc.blink(sc.foe);
-                            sc.drain_foe(sc.foe_hp - dmg);
+                            dmg = dmg * 50 / bn::max(1, sc.f.defense + 50) * mimas::party_damage / 100;
 
-                            if(hits > 1)
+                            if(mult < 0)
+                            {
+                                sc.drain_foe(sc.f.hp + bn::max(1, int(dmg / 100)));
+                                t = e.name;
+                                t += " absorbed it!";
+                                bsay(t);
+                                continue;
+                            }
+
+                            dmg = dmg * mult / 100;
+                            dmg = mult ? bn::max(1, int(dmg / 100)) : 0;
+                            if(dmg) { sc.blink(sc.foe); sc.drain_foe(sc.f.hp - dmg); }
+
+                            if(hits > 1 && dmg)
                             {
                                 t = "Hit ";
                                 t += bn::to_string<4>(hits);
@@ -1967,7 +2240,9 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                                 bsay(t);
                             }
 
-                            if(crit) { bsay("A critical hit!"); }
+                            if(crit && dmg) { sfx(mimas::snd_crit); bsay("A critical hit!"); }
+                            say_type(mult, e.name);
+                            if(a && dmg && sc.f.hp > 0) { give_ailment(sc.f.st, a->inflict, a->chance, e.resists, e.name); sc.draw_foe(); }
                         }
                         else
                         {
@@ -1990,13 +2265,28 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
 
                             if(sp.kind == 0)
                             {
-                                int dmg = spread(power) * 50 / bn::max(1, e.magic_defense + 50) * mimas::party_damage / 100 / 10;
-                                dmg = bn::max(1, dmg);
-                                sc.blink(sc.foe);
-                                sc.drain_foe(sc.foe_hp - dmg);
+                                sc.play_move(sp.hit, sp.burst, sp.element, true);
+                                int mult = type_mult(sp.element, e.elements, e.immune, e.absorb);
+                                int dmg = spread(power) * 50 / bn::max(1, sc.f.magic_defense + 50) * mimas::party_damage / 100 / 10;
+
+                                if(mult < 0)
+                                {
+                                    sc.drain_foe(sc.f.hp + bn::max(1, dmg));
+                                    t = e.name;
+                                    t += " absorbed it!";
+                                    bsay(t);
+                                }
+                                else
+                                {
+                                    dmg = mult ? bn::max(1, dmg * mult / 100) : 0;
+                                    if(dmg) { sc.blink(sc.foe); sc.drain_foe(sc.f.hp - dmg); }
+                                    say_type(mult, e.name);
+                                    if(dmg && sc.f.hp > 0) { give_ailment(sc.f.st, sp.inflict, sp.chance, e.resists, e.name); sc.draw_foe(); }
+                                }
                             }
                             else
                             {
+                                sc.play_move(sp.hit >= 0 ? sp.hit : mimas::fx_sparkle, sp.burst, sp.element, false);
                                 int heal = bn::max(1, spread(power) / 10);
                                 sc.drain_hero(hm.hp + heal);
                                 t = name_of(hm);
@@ -2014,21 +2304,123 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                             continue;
                         }
 
-                        t = e.name;
-                        t += " attacks!";
-                        bsay(t);
-                        int32_t dmg = spread(e.attack);
-                        bool crit = rng.get_int(100) < e.crit;
-                        if(crit) { dmg = dmg * 3 / 2; }
-                        totals th = totals_of(hm);
-                        int armour = e.magic ? th.magic_armour : th.armour;
-                        dmg = dmg * 50 / bn::max(1, armour + 50) * mimas::enemy_damage / 100;
-                        if(guard) { dmg /= 2; }
-                        dmg = bn::max(1, int(dmg / 100));
-                        sc.blink(sc.back);
-                        sc.drain_hero(hm.hp - dmg);
+                        bool hurt;
 
-                        if(crit) { bsay("A critical hit!"); }
+                        if(! can_act(sc.f.st, e.name, hurt))
+                        {
+                            if(hurt) { sc.blink(sc.foe); sc.drain_foe(sc.f.hp - bn::max(1, sc.f.attack / 200)); }
+                            sc.draw_foe();
+                            continue;
+                        }
+
+                        // Its move: one it can use (spells need its MP, and it can't be silenced), else a plain hit.
+                        int usable[4];
+                        int u = 0;
+
+                        for(int k = 0; k < sc.f.count; ++k)
+                        {
+                            int mv = sc.f.moves[k];
+
+                            if(mv < 0)
+                            {
+                                const mimas::spell_def& sp = mimas::spells[-mv - 1];
+                                if(sp.ranks[0].mp > sc.f.mp || sc.f.st.ailment == mimas::SILENCE) { continue; }
+                            }
+
+                            usable[u++] = mv;
+                        }
+
+                        totals th = totals_of(hm);
+                        const int8_t* hel = mimas::heroes[hm.hero].elements;
+
+                        if(u == 0)
+                        {
+                            t = e.name;
+                            t += " attacks!";
+                            bsay(t);
+                            sc.play_move(mimas::fx_hit_plain, -1, e.element, false);
+                            int mult = type_mult(e.element, hel, 0, 0);
+                            int32_t dmg = spread(sc.f.attack);
+                            bool crit = rng.get_int(100) < sc.f.crit;
+                            if(crit) { dmg = dmg * 3 / 2; }
+                            dmg = dmg * 50 / bn::max(1, (e.magic ? th.magic_armour : th.armour) + 50) * mimas::enemy_damage / 100 * mult / 100;
+                            if(guard) { dmg /= 2; }
+                            dmg = bn::max(1, int(dmg / 100));
+                            sc.blink(sc.back);
+                            sc.drain_hero(hm.hp - dmg);
+                            if(crit) { sfx(mimas::snd_crit); bsay("A critical hit!"); }
+                            say_type(mult, name_of(hm));
+                            if(hm.hp > 0) { give_ailment(hs, e.inflict, e.chance, 0, name_of(hm)); sc.draw_hero(); }
+                        }
+                        else
+                        {
+                            int mv = usable[rng.get_int(u)];
+
+                            if(mv >= 0)
+                            {
+                                const mimas::addition_def& a = mimas::additions[mv];
+                                t = e.name;
+                                t += " used ";
+                                t += a.name;
+                                t += "!";
+                                bsay(t);
+
+                                if(sc.f.st.ailment == mimas::BLIND && rng.get_int(2) == 0)
+                                {
+                                    sfx(mimas::snd_dodge);
+                                    t = e.name;
+                                    t += "'s attack missed!";
+                                    bsay(t);
+                                    continue;
+                                }
+
+                                sc.play_move(a.hit, a.burst, a.element, false);
+                                int mult = type_mult(a.element, hel, 0, 0);
+                                int32_t dmg = spread(int32_t(sc.f.attack) * a.power / 100);
+                                bool crit = rng.get_int(100) < sc.f.crit;
+                                if(crit) { dmg = dmg * 3 / 2; }
+                                dmg = dmg * 50 / bn::max(1, th.armour + 50) * mimas::enemy_damage / 100 * mult / 100;
+                                if(guard) { dmg /= 2; }
+                                dmg = bn::max(1, int(dmg / 100));
+                                sc.blink(sc.back);
+                                sc.drain_hero(hm.hp - dmg);
+                                if(a.hits > 1) { t = "Hit "; t += bn::to_string<4>(a.hits); t += " times!"; bsay(t); }
+                                if(crit) { sfx(mimas::snd_crit); bsay("A critical hit!"); }
+                                say_type(mult, name_of(hm));
+                                if(hm.hp > 0) { give_ailment(hs, a.inflict, a.chance, 0, name_of(hm)); sc.draw_hero(); }
+                            }
+                            else
+                            {
+                                const mimas::spell_def& sp = mimas::spells[-mv - 1];
+                                sc.f.mp -= sp.ranks[0].mp;
+                                t = e.name;
+                                t += " cast ";
+                                t += sp.name;
+                                t += "!";
+                                bsay(t);
+
+                                if(sp.kind == 0)
+                                {
+                                    sc.play_move(sp.hit, sp.burst, sp.element, false);
+                                    int mult = type_mult(sp.element, hel, 0, 0);
+                                    int dmg = spread(sp.ranks[0].power * sc.f.scale / 100) * 50 / bn::max(1, th.magic_armour + 50) * mimas::enemy_damage / 100 * mult / 100 / 10;
+                                    if(guard) { dmg /= 2; }
+                                    dmg = bn::max(1, dmg);
+                                    sc.blink(sc.back);
+                                    sc.drain_hero(hm.hp - dmg);
+                                    say_type(mult, name_of(hm));
+                                    if(hm.hp > 0) { give_ailment(hs, sp.inflict, sp.chance, 0, name_of(hm)); sc.draw_hero(); }
+                                }
+                                else
+                                {
+                                    sc.play_move(sp.hit >= 0 ? sp.hit : mimas::fx_sparkle, sp.burst, sp.element, true);
+                                    sc.drain_foe(sc.f.hp + bn::max(1, sc.f.max * 35 / 100));
+                                    t = e.name;
+                                    t += " recovered health!";
+                                    bsay(t);
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -2037,9 +2429,25 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                     break;
                 }
 
-                // ---- the foe falls: EXP for everyone who fought it
-                if(sc.foe_hp <= 0)
+                // ---- poison and burns, end of the round
+                if(sc.f.hp > 0)
                 {
+                    int d = after_turn(sc.f.st, sc.f.max, e.name);
+                    if(d) { sc.drain_foe(sc.f.hp - d); }
+                    sc.draw_foe();
+                }
+
+                if(party[sc.who].hp > 0)
+                {
+                    int d = after_turn(sc.hero_st[sc.who], max_hp(party[sc.who]), name_of(party[sc.who]));
+                    if(d) { sc.drain_hero(party[sc.who].hp - d); }
+                    sc.draw_hero();
+                }
+
+                // ---- the foe falls: EXP for everyone who fought it
+                if(sc.f.hp <= 0)
+                {
+                    sfx(mimas::snd_defeat);
                     sc.foe->set_visible(false);
                     t = wild ? "The wild " : "";
                     t += e.name;
@@ -2048,20 +2456,21 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
 
                     for(int i = 0; i < party_count; ++i)
                     {
-                        if(! fought[i] || party[i].hp <= 0 || ! e.xp)
+                        if(! fought[i] || party[i].hp <= 0 || ! sc.f.xp)
                         {
                             continue;
                         }
 
                         t = name_of(party[i]);
                         t += " gained ";
-                        t += bn::to_string<6>(e.xp);
+                        t += bn::to_string<6>(sc.f.xp);
                         t += " EXP!";
                         bsay(t);
-                        int ups = gain_xp(party[i], e.xp);
+                        int ups = gain_xp(party[i], sc.f.xp);
 
                         if(ups)
                         {
+                            sfx(mimas::snd_levelUp);
                             t = name_of(party[i]);
                             t += " grew to Lv. ";
                             t += bn::to_string<4>(party[i].level);
@@ -2072,8 +2481,7 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                         if(i == sc.who) { sc.draw_hero(); }
                     }
 
-                    total_gold += e.gold_min + (e.gold_max > e.gold_min ? rng.get_int(e.gold_max - e.gold_min + 1) : 0);
-                    fought[sc.who] = true;
+                    total_gold += sc.f.gold;
 
                     for(int i = 0; i < MAX_PARTY; ++i) { fought[i] = i == sc.who; }
 
@@ -2084,6 +2492,7 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
                 if(party[sc.who].hp <= 0)
                 {
                     sc.back->set_visible(false);
+                    sc.hero_st[sc.who] = ailing();
                     t = name_of(party[sc.who]);
                     t += " fainted!";
                     bsay(t);
@@ -2113,13 +2522,19 @@ int battle(world& w, const int16_t* foes, int foe_count, bool can_run, bool wild
             }
         }
 
-        if(result == WON && total_gold > 0)
+        if(result == WON)
         {
-            gold += total_gold;
-            bn::string<64> t = "Got $";
-            t += bn::to_string<8>(total_gold);
-            t += " for winning!";
-            bsay(t);
+            int got = prize >= 0 ? prize : total_gold;
+
+            if(got > 0)
+            {
+                gold += got;
+                sfx(mimas::snd_coin);
+                bn::string<64> t = "Got $";
+                t += bn::to_string<8>(got);
+                t += " for winning!";
+                bsay(t);
+            }
         }
 
         fade(16, 12);
@@ -2195,7 +2610,7 @@ void encounter_step(world& w, int map)
         return zone.picks[0];
     };
 
-    int16_t foes[6];
+    foe_spec foes[6];
     int n = 0;
     bool can_run = true;
 
@@ -2205,7 +2620,7 @@ void encounter_step(world& w, int map)
 
         for(int k = 0; k < count && n < 6; ++k)
         {
-            foes[n++] = int16_t(-pick_one().troop - 1);
+            foes[n++] = { int16_t(-pick_one().troop - 1), 0, -1 };
         }
     }
     else
@@ -2218,7 +2633,7 @@ void encounter_step(world& w, int map)
             const mimas::troop_member& tm = tr.members[k];
             int c = tm.min + rng.get_int(tm.max - tm.min + 1);
 
-            for(int j = 0; j < c && n < 6; ++j) { foes[n++] = tm.enemy; }
+            for(int j = 0; j < c && n < 6; ++j) { foes[n++] = { tm.enemy, 0, -1 }; }
         }
 
         if(tr.random && n > 1)
@@ -2331,4 +2746,127 @@ bool title_menu()
     }
 
     return false;
+}
+
+// ------------------------------------------------------------------------------------------------ trainers
+
+// A trainer who sees the player: in a straight line the way it faces, within its range, nothing solid between (-1: none).
+[[nodiscard]] int spotted(const world& w)
+{
+    for(int i = 0; i < M->event_count && i < MAX_EVENTS; ++i)
+    {
+        const mimas::page* pg = page_of(i);
+
+        if(! pg || pg->trainer < 0)
+        {
+            continue;
+        }
+
+        const mimas::trainer_def& t = mimas::trainers[pg->trainer];
+
+        if((selfs[M->events[i].self_id] >> t.beaten) & 1)
+        {
+            continue;
+        }
+
+        int x = ev_x[i], y = ev_y[i], d = pg->dir;
+
+        for(int k = 1; k <= t.range; ++k)
+        {
+            x += DX[d];
+            y += DY[d];
+
+            if(x == w.cell_x && y == w.cell_y)
+            {
+                return i;
+            }
+
+            if(! inside(x, y) || (M->collision[cell_index(x, y)] & mimas::solid))
+            {
+                break;
+            }
+        }
+    }
+
+    return -1;
+}
+
+// A (!) over it, it walks up to the player, says its line, the battle; beaten: its self switch and its line.
+void trainer_battle(world& w, int ev, bn::sprite_text_generator& gen, name_banner& banner)
+{
+    const mimas::page* pg = page_of(ev);
+    const mimas::trainer_def& t = mimas::trainers[pg->trainer];
+    int d = pg->dir;
+    int k = -1;
+
+    for(int j = 0; j < w.people.size(); ++j)
+    {
+        if(w.people_event[j] == ev) { k = j; }
+    }
+
+    banner.hide();
+
+    if(k >= 0)
+    {
+        bn::sprite_ptr ex = bn::sprite_items::exclaim.create_sprite(w.people[k].x(), w.people[k].y() - 26);
+        ex.set_camera(w.camera);
+        ex.set_bg_priority(0);
+        sfx(mimas::snd_target);
+
+        for(int f = 0; f < 45; ++f) { bn::core::update(); }
+    }
+
+    // Walk up, one cell at a time, until it's next to the player.
+    const bn::sprite_item& item = pg->sprite >= 0 ? *mimas::npc_sprites[pg->sprite] : bn::sprite_items::hero;
+
+    while(bn::abs(ev_x[ev] - w.cell_x) + bn::abs(ev_y[ev] - w.cell_y) > 1)
+    {
+        for(int f = 0; f < CELL; ++f)
+        {
+            if(k >= 0 && pg->sprite > -10)
+            {
+                w.people[k].set_position(w.people[k].x() + DX[d], w.people[k].y() + DY[d]);
+                int col = f < CELL / 2 ? 1 + ((ev_x[ev] + ev_y[ev]) & 1) : 0;
+                w.people[k].set_tiles(item.tiles_item(), SHEET_ROW[d] * mimas::hero_frames + col);
+            }
+
+            bn::core::update();
+        }
+
+        ev_x[ev] = int16_t(ev_x[ev] + DX[d]);
+        ev_y[ev] = int16_t(ev_y[ev] + DY[d]);
+    }
+
+    w.facing = OPPOSITE[d];
+    w.place();
+    w.make_people();
+    text_view view;
+
+    if(t.intro >= 0)
+    {
+        show_text(mimas::strings[t.intro], gen, banner, view);
+    }
+
+    foe_spec team[6];
+    int n = bn::min(int(t.count), 6);
+
+    for(int j = 0; j < n; ++j) { team[j] = { t.team[j].enemy, t.team[j].level, t.team[j].moves }; }
+
+    int r = battle(w, team, n, false, false, t.gold > 0 ? t.gold : -1);
+
+    if(r == LOST)
+    {
+        whited_out(w);
+        return;
+    }
+
+    selfs[M->events[ev].self_id] |= uint8_t(1 << t.beaten);
+    w.make_people();
+
+    if(t.lose >= 0)
+    {
+        show_text(mimas::strings[t.lose], gen, banner, view);
+    }
+
+    grace_steps = 3;
 }

@@ -144,6 +144,17 @@ function chipSfx(name: SfxName): Float32Array {
     case 'lockOpen': return render([{ wave: 'noise', f: 7000, dur: 0.02, vol: 9, fade: 1 }, { wave: 'p25', f: note('E6'), dur: 0.06, vol: 8, fade: 1, at: 0.04 }, { wave: 'p25', f: note('A6'), dur: 0.1, vol: 8, fade: 1, at: 0.11 }]);
     case 'lockBreak': return render([{ wave: 'noise', f: 8000, to: 3000, dur: 0.12, vol: 10, fade: 1 }]);
     case 'lowHp': return render([{ wave: 'p25', f: note('B5'), dur: 0.1, vol: 10, fade: 1 }, { wave: 'p25', f: note('G5'), dur: 0.1, vol: 10, fade: 1, at: 0.15 }]);
+    // Mimas battle effects.
+    case 'slash': return render([{ wave: 'noise', f: 12000, to: 4000, dur: 0.12, vol: 13, fade: 1 }, { wave: 'p12', f: 2400, to: 900, dur: 0.08, vol: 7, fade: 1, at: 0 }]);
+    case 'ding': return render([{ wave: 'p25', f: note('A6'), dur: 0.5, vol: 12, fade: 4 }, { wave: 'p12', f: note('E7'), dur: 0.35, vol: 7, fade: 3, at: 0.01 }]);
+    case 'zap': return render([{ wave: 'p12', f: 1600, to: 300, dur: 0.12, vol: 12, fade: 1 }, { wave: 'p12', f: 1400, to: 200, dur: 0.12, vol: 11, fade: 1, at: 0.1 }, step(6000, 0.2, 10, 2, 'metal', 0.02)]);
+    case 'freeze': return render([{ wave: 'p25', f: note('E7'), to: note('B6'), dur: 0.4, vol: 9, fade: 3 }, step(12000, 0.3, 9, 3, 'metal', 0.05)]);
+    case 'bubble': return render([0, 0.1, 0.2, 0.32].map((at, k): Seg => ({ wave: 'p50', f: 300 + k * 70, to: 900 + k * 90, dur: 0.07, vol: 10 - k, fade: 1, at })));
+    case 'rumble': return render([step(600, 0.55, 15, 4), { wave: 'tri', f: 70, to: 45, dur: 0.5, vol: 15, fade: 4, at: 0 }]);
+    case 'shine': return render(arp(['E6', 'G6', 'B6', 'E7'], 0.05, 0.4));
+    case 'gloom': return render([{ wave: 'p50', f: 220, to: 70, dur: 0.6, vol: 12, fade: 4, vib: [0.6, 6] }, step(1200, 0.5, 6, 4, 'noise', 0.05)]);
+    case 'leaves': return render([step(7000, 0.08, 9, 1), step(5000, 0.08, 7, 1, 'noise', 0.1), step(6500, 0.08, 6, 1, 'noise', 0.2), step(5500, 0.1, 5, 1, 'noise', 0.3)]);
+    case 'burn': return render([{ wave: 'noise', f: 1200, to: 3500, dur: 0.5, vol: 13, fade: 4 }]);
     case 'thump': return render([{ wave: 'tri', f: 110, to: 45, dur: 0.18, vol: 15, fade: 2 }, step(1200, 0.03, 7, 1)]);
     case 'hit': return render([step(3000, 0.07, 14, 1), { wave: 'p50', f: 220, to: 70, dur: 0.08, vol: 12, fade: 1, at: 0 }]);
     case 'crit': return render([{ wave: 'p25', f: 1700, to: 380, dur: 0.16, vol: 13, fade: 2 }, step(5000, 0.05, 14, 1)]);

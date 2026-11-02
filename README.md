@@ -105,6 +105,24 @@ editor, with your unsaved changes. Saturn's own systems run it:
   to stats and armour.
 - **Shops** (BUY / SELL / QUIT with "how many?") and **saving** (kept in the
   browser; the next playtest offers CONTINUE).
+- **Enemy moves**: Database → Enemies → *Moves (GBA)*: four moves each
+  (Additions or spells; spells use the enemy's MP, so give it at least one
+  Addition), and *+ New moves from a level* for movesets it "learns" as it
+  levels. Foes fight at their level (Combat's enemy growth) with those moves.
+- **Types and ailments**: Additions have a type (Saturn's elements), ailments
+  and an animation; "It's super effective!", poison, burns, sleep and the rest
+  work as in Saturn's battles.
+- **Trainers**: an event page's *Trainer (GBA)* box: how far it sees, its team
+  (each enemy's level, and its own moves for this fight if you like), what it
+  says before and after, prize money, and the self switch it sets when beaten.
+  Walk into its line of sight and a (!) pops up, it walks over and the battle
+  starts. *Start battle* has the same per-foe level and moves.
+- **Battle animations**: GBA Studio → Sprites has *Battle effects* (64×64, 6
+  frames): 10 hits (slash, double slash, claw, hit, punch, pierce, ding, bite,
+  slam, sparkle) drawn in greys that take each move's element colours, and 9
+  bursts (fire, water, ice, lightning, rocks, leaves, poison, holy light, dark).
+  Each has a sound. Additions and spells pick a hit and a burst (by default,
+  their element's burst), with a live preview. Repaint them or add your own.
 - **Sound**: Saturn's sound effects (your files and the built-in ones) and the
   built-in chiptune music, as the GBA's sound chip will play it. Music files
   play as the built-in field or battle theme for now (a GBA ROM can't hold
@@ -214,6 +232,17 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 - **Learn** gives moves and spells; a fifth move asks which to forget (or,
   with *Equip* moves, which to put away). **Shops**, **Save**, **Full rest**
   and **Change HP / MP** work too. Saves go to the cartridge.
+- **Enemy moves, types and ailments**: foes use their four moves (or their
+  level's moveset, or a fight's own), spells cost their MP; type matchups
+  (super effective / not very effective / doesn't affect / absorbs) and
+  poison, burn, paralysis, sleep, freeze, confusion, blindness and silence.
+  The panels show PSN, BRN… Support spells work as small heals for now.
+- **Trainers** spot you, show a (!), walk up, say their line and battle (one
+  foe at a time, no running); beaten, their self switch turns on.
+- **Animations and sound**: each move plays its hit (in its type's colours)
+  and burst over whoever it hits, with its sound; menus, battles, saving and
+  shops have sound effects (the Game Boy-style chip versions, baked into
+  `public/gba/sounds/` when a GBA map is saved). Music comes later.
 
 - Every GBA map is in the ROM; it starts on the game's start map (Database
   → start; now **Starter Meadow**). Maps are built from your tiles with
@@ -242,7 +271,7 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 - With no GBA map set, it plays the Saturn map in `public/data/mimas.json`
   instead (the old Monolith Woods export).
 
-Next up: people walking around, Surf, battle animations, sound. See [NOTES.md](NOTES.md).
+Next up: music, people walking around, Surf. See [NOTES.md](NOTES.md).
 
 ## Building the ROM yourself
 

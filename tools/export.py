@@ -1064,7 +1064,8 @@ def main():
       'OP_TRANSFER, OP_WAIT, OP_FADEOUT, OP_FADEIN, OP_BATTLE, OP_PARTY, OP_LEARN, OP_SHOP, OP_SAVE, OP_GAUGE, OP_HEAL };\n')
     w('struct condition { uint8_t type; uint8_t op; int16_t a; int16_t b; };\n')
     w('// sprite: -1 none, -2 the player\'s sprite (a stand-in), k = npc_sprites[k]. trigger: 0 action, 1 touch, 2 autorun, 3 none.\n')
-    w('struct page { int16_t cond; int8_t sprite; uint8_t dir; uint8_t trigger; bool solid; bool face; int16_t code; };\n')
+    w('// trainer: an index into trainers[] (mimas_game.h), or -1.\n')
+    w('struct page { int16_t cond; int8_t sprite; uint8_t dir; uint8_t trigger; bool solid; bool face; int16_t code; int16_t trainer; };\n')
     w('struct event { uint8_t x; uint8_t y; uint8_t w; uint8_t h; int16_t first_page; uint8_t page_count; int16_t self_id; };\n\n')
     w('struct map_info\n{\n    int width; int height; int bg_width; int bg_height; const char* name;\n'
       '    const uint8_t* collision; const int8_t* heights; const event* events; int event_count; const page* pages; const int16_t* code;\n'
@@ -1080,7 +1081,7 @@ def main():
         w(c_array(f'map{i}_code', 'int16_t', code, 24))
         if pages:
             w(f'constexpr page map{i}_pages[] = {{\n    ' + ',\n    '.join(
-                f'{{ {c}, {sp}, {d}, {t}, {"true" if so else "false"}, {"true" if fa else "false"}, {cd} }}' for c, sp, d, t, so, fa, cd in pages) + '\n};\n')
+                f'{{ {c}, {sp}, {d}, {t}, {"true" if so else "false"}, {"true" if fa else "false"}, {cd}, {tr} }}' for c, sp, d, t, so, fa, cd, tr in pages) + '\n};\n')
         if events:
             w(f'constexpr event map{i}_events[] = {{\n    ' + ',\n    '.join(
                 f'{{ {x}, {z}, {ew}, {eh}, {fp}, {pc}, {sid} }}' for x, z, ew, eh, fp, pc, sid in events) + '\n};\n')

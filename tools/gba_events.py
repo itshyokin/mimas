@@ -21,7 +21,9 @@ The script (game/src/main.cpp runs it; keep the two in step, and the op numbers 
   WAIT frames
   FADEOUT frames
   FADEIN frames
-  BATTLE n enemy*n run var lose    a battle (Pokémon style: the foes come out one at a time); run 1: can run away;
+  BATTLE n (enemy level moves)*n run var lose
+                                   a battle (Pokémon style: the foes come out one at a time); level 0: its own;
+                                   moves: a custom moveset (custom_moves[k]) or -1: its own; run 1: can run away;
                                    var: the result variable (-1 none: 1 won, 2 ran, 0 lost); lose 0: back to the
                                    start (healed), 1: the event goes on
   PARTY op hero quiet              op 0: joins, 1: leaves
@@ -85,6 +87,9 @@ class Compiler:
         self.cond_index = {(0, 0, 0, 0): 0}
         self.self_count = 0
         self.warnings = []
+        # Mimas: moves given to one fight (Start battle, trainers): lists of {'addition'|'spell': id}; and trainers.
+        self.custom_moves = []
+        self.trainers = []   # (range, beaten letter, gold, intro str, lose str, [(enemy, level, moves)])
         self.where = ''
 
     # ------------------------------------------------------------- names
@@ -118,6 +123,27 @@ class Compiler:
 
     def message(self, text, bubble=False):
         return self.text('\f'.join('\n'.join(p) for p in self.wrap(self.plain(text), bubble)))
+
+    def foe(self, enemy, m):
+        """(enemy, level, custom moves) for a foe: level 0 is its own; moves -1 its own."""
+        moves = -1
+        if m.get('moves'):
+            moves = len(self.custom_moves)
+            self.custom_moves.append(m['moves'][:4])
+        return (self.enemy_index[enemy], int(m.get('level') or 0), moves)
+
+    def trainer(self, t):
+        """A trainer page's index in the trainers table (-1: none)."""
+        if not t or not t.get('team'):
+            return -1
+        team = [self.foe(m['enemy'], m) for m in t['team'][:6] if m.get('enemy') in self.enemy_index]
+        if not team:
+            self.warn('a trainer whose team has no enemies from the Database')
+            return -1
+        intro = self.message(t['intro']) if t.get('intro') else -1
+        lose = self.message(t['lose']) if t.get('lose') else -1
+        self.trainers.append((max(1, min(10, int(t.get('range', 4)))), SELF_LETTERS.get(t.get('beaten', 'D'), 3), int(t.get('gold', 0) or 0), intro, lose, team))
+        return len(self.trainers) - 1
 
     def cond(self, c):
         """A condition's index (0: always). Ones the GBA can't check count as met, with a warning."""
@@ -233,12 +259,18 @@ class Compiler:
             elif k in ('fadeOut', 'fadeIn'):
                 emit(OP['FADEOUT' if k == 'fadeOut' else 'FADEIN'], max(1, round(float(c.get('seconds', 0.5) or 0.5) * 60)))
             elif k == 'battle':
-                foes = [self.enemy_index[e] for e in c.get('enemies', []) if e in self.enemy_index][:6]
+                team = c.get('team') or []
+                foes = []
+                for i, e in enumerate(c.get('enemies', [])[:6]):
+                    if e not in self.enemy_index:
+                        continue
+                    m = team[i] if i < len(team) and isinstance(team[i], dict) else {}
+                    foes.append(self.foe(e, m))
                 if not foes:
                     self.warn('Start battle with no enemies from the Database: skipped')
                     return
                 rv = self.var(c['resultVar']) if c.get('resultVar') else -1
-                emit(OP['BATTLE'], len(foes), *foes, 0 if c.get('canRun') is False else 1, rv, 1 if c.get('lose') == 'continue' else 0)
+                emit(OP['BATTLE'], len(foes), *[v for f in foes for v in f], 0 if c.get('canRun') is False else 1, rv, 1 if c.get('lose') == 'continue' else 0)
             elif k == 'party':
                 if c.get('hero') not in self.hero_index:
                     self.warn(f'Party: “{c.get("hero")}” isn\'t a hero in the Database')
@@ -286,7 +318,8 @@ class Compiler:
                     block(cmds)
                     emit(OP['END'])
                 pages_out.append((self.cond(pg.get('condition')), sprite_of(pg), DIRS.get(pg.get('dir', 'down'), 0),
-                                  TRIGGERS.get(pg.get('trigger', 'action'), 0), bool(pg.get('solid')), bool(pg.get('facePlayer')), start))
+                                  TRIGGERS.get(pg.get('trigger', 'action'), 0), bool(pg.get('solid')), bool(pg.get('facePlayer')), start,
+                                  self.trainer(pg.get('trainer'))))
             events_out.append((e['x'], e['z'], max(1, int(e.get('w', 1))), max(1, int(e.get('h', 1))), first,
                                len(pages_out) - first, self.self_count))
             self.self_count += 1

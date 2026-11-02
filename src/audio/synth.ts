@@ -16,6 +16,7 @@ export const SFX_NAMES = [
   'hitFlesh', 'hitPlant', 'hitMetal', 'hitStone', 'hitWood', 'hitBone', 'hitLiquid', 'hitGel', 'hitCrystal', 'hitSpirit', 'hitCloth',
   'critBig', 'thump', 'rustle', 'lowHp',
   'hoof', 'horseSnort', 'horseNeigh', 'lockClick', 'lockTurn', 'lockOpen', 'lockBreak',
+  'slash', 'ding', 'zap', 'freeze', 'bubble', 'rumble', 'shine', 'gloom', 'leaves', 'burn',
 ] as const;
 export type SfxName = typeof SFX_NAMES[number];
 
@@ -36,6 +37,9 @@ export const SFX_LABELS: Record<SfxName, string> = {
   lootGold: 'Loot: gold', lootPotion: 'Loot: potion / consumable', lootKey: 'Loot: key item', lootMaterial: 'Loot: material', lootGear: 'Loot: weapon / armour', lootItem: 'Loot: other item', achievement: 'Achievement unlocked',
   hitFlesh: 'Hit: flesh', hitPlant: 'Hit: plant', hitMetal: 'Hit: metal', hitStone: 'Hit: stone', hitWood: 'Hit: wood', hitBone: 'Hit: bone',
   hitLiquid: 'Hit: liquid', hitGel: 'Hit: gel / slime', hitCrystal: 'Hit: crystal', hitSpirit: 'Hit: spirit', hitCloth: 'Hit: cloth',
+  slash: 'Battle effect: slash', ding: 'Battle effect: ding', zap: 'Battle effect: electric zap', freeze: 'Battle effect: ice freeze',
+  bubble: 'Battle effect: poison bubbles', rumble: 'Battle effect: earth rumble', shine: 'Battle effect: holy shine', gloom: 'Battle effect: dark gloom',
+  leaves: 'Battle effect: leaves', burn: 'Battle effect: flames',
   critBig: 'Battle: CRITICAL crack', thump: 'Battle: weak / immune thump', rustle: 'Tall grass rustle', lowHp: 'Battle: low health alert',
 };
 
@@ -246,6 +250,17 @@ export function makeSfx(name: SfxName): Float32Array {
     // Weapons and armour: a ringing steel shing.
     case 'lootGear': return make(0.9, (t) => highpass1(noise(), 0) * 0.25 * env(t, 0.06, 0.08) + (Math.sin(2 * Math.PI * 2210 * t) * 0.18 + Math.sin(2 * Math.PI * 3320 * t) * 0.1) * env(Math.max(0, t - 0.05), 0.01, 0.3) * (t > 0.05 ? 1 : 0));
     case 'lootItem': return arpeggio([784, 988, 1175], 0.07, 0.5, true);
+    // Mimas battle effects.
+    case 'slash': return highpass(make(0.24, (t) => noise() * env(t, 0.005, 0.07) * 0.8 + Math.sin(2 * Math.PI * sweep(t, 2600, 900, 0.12) * t) * 0.2 * env(t, 0.003, 0.05)), 900);
+    case 'ding': return make(0.6, (t) => (Math.sin(2 * Math.PI * 1760 * t) * 0.35 + Math.sin(2 * Math.PI * 2637 * t) * 0.18) * env(t, 0.001, 0.18));
+    case 'zap': return make(0.4, (t) => (Math.sign(Math.sin(2 * Math.PI * (sweep(t, 1400, 300, 0.3) + 120 * Math.sin(t * 260)) * t)) * 0.3 + noise() * 0.25) * env(t, 0.002, 0.12));
+    case 'freeze': return make(0.7, (t) => (Math.sin(2 * Math.PI * sweep(t, 3200, 1800, 0.5) * t) * 0.2 + highpass1(noise(), 0) * 0.2) * env(t, 0.01, 0.2));
+    case 'bubble': return make(0.6, (t) => [0, 0.12, 0.22, 0.35].reduce((a, at, k) => a + (t >= at ? Math.sin(2 * Math.PI * sweep(t - at, 300 + k * 60, 900 + k * 80, 0.08) * (t - at)) * 0.25 * env(t - at, 0.002, 0.04) : 0), 0));
+    case 'rumble': return lowpass(make(0.7, (t) => (noise() * 0.7 + Math.sin(2 * Math.PI * 55 * t) * 0.4) * env(t, 0.01, 0.25)), 500);
+    case 'shine': return arpeggio([1319, 1568, 1976, 2637], 0.05, 0.6, true);
+    case 'gloom': return lowpass(make(0.8, (t) => (Math.sin(2 * Math.PI * sweep(t, 220, 80, 0.7) * t) * 0.5 + noise() * 0.2) * env(t, 0.05, 0.3)), 1200);
+    case 'leaves': return lowpass(make(0.45, (t) => noise() * 0.5 * env(t, 0.02, 0.12) * (0.6 + 0.4 * Math.sin(t * 70))), 4000);
+    case 'burn': return lowpass(make(0.6, (t) => noise() * 0.8 * env(t, 0.01, 0.2) * (0.7 + 0.3 * Math.sin(t * 40))), 2200);
   }
 }
 
