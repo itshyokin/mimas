@@ -7,7 +7,10 @@ import './editor.css';
 import { writePlaytest } from '../shared/playtest';
 import { loadEnemyImages } from './CombatEditor';
 import { openDatabase } from './DatabaseEditor';
-import { openGbaStudio, playGbaStartMap } from './GbaStudio';
+import { openGbaStudio } from './GbaStudio';
+import { gba, gbaSprite, loadGba, tileLookup } from './gbaShared';
+import { blankLayers, gbaView } from '../gba/layers';
+import { openGbaPlaytest } from './GbaPlaytest';
 import { setCombatPreview } from './combatPreview';
 import { openWorldLayout } from './WorldEditor';
 import type { MapData } from '../world/types';
@@ -27,7 +30,8 @@ import { migrateItems } from '../world/items';
 import { BudgetMeter } from '../ui/BudgetMeter';
 import type { LightCounts } from '../shared/lightBudget';
 import { MapView, isTyping } from './MapView';
-import { MODE_HINTS, Palette, setMapPropertiesOpener } from './Palette';
+import { MODE_HINTS, MODES, Palette, setMapPropertiesOpener } from './Palette';
+import { isGbaMode } from './gbaPaint';
 import { EditorStore, type Mode } from './store';
 import {
   type DirHandle, type Project, canOpenFolders, devServerProject, ensurePermission, findDataDir, folderProject,
@@ -52,6 +56,7 @@ async function boot(): Promise<void> {
   const first = wanted && store.maps.includes(wanted) ? wanted : store.maps.includes(store.db.startMap) ? store.db.startMap : store.maps[0];
   const map = await project.readMap(first);
   await loadProjectAssets(store);
+  await loadGba(project);
   await loadCharacterSheets(store);
   await loadEnemyImages(store);
   await loadItemIconFiles(store);
@@ -169,6 +174,11 @@ function buildUI(): void {
       playBtn.href = `${PLAYTEST_URL}=${stamp}`;
       void playtest(stamp);
     } }, '▶ Saturn playtest');
+  // Mimas: GBA maps play right here on a GBA screen; old Saturn maps still open the Saturn game.
+  const gbaPlayBtn = h('button', { type: 'button', class: 'btn play', title: 'Play this map on a GBA screen, right here (includes unsaved changes)', onclick: () => playGba() }, '▶ Playtest');
+  const updatePlayButtons = () => { const g = !!store.map?.gba; gbaPlayBtn.hidden = !g; playBtn.hidden = g; };
+  store.on('meta', updatePlayButtons);
+  store.on('map', updatePlayButtons);
   const toggleLeft = h('button', { type: 'button', class: 'btn ghost panel-toggle', 'aria-expanded': 'false', onclick: () => togglePanel('left') }, 'Tools');
 
   const toolbar = h('header', { class: 'toolbar' },
@@ -180,14 +190,14 @@ function buildUI(): void {
       mapSelect, h('button', { type: 'button', class: 'btn ghost', onclick: newMapDialog }, 'New map'),
       h('button', { type: 'button', class: 'btn ghost', title: 'Player stats, speeds and stamina costs', onclick: () => openDatabase(store) }, 'Database'),
       h('button', { type: 'button', class: 'btn ghost gba-btn', title: 'Paint GBA tiles and sprites with real GBA palettes', onclick: () => void openGbaStudio(store) }, 'GBA Studio'),
-      h('button', { type: 'button', class: 'btn play', title: 'Play the GBA map the ROM starts on, right here (open GBA Studio to play other maps)', onclick: () => void playGbaStartMap(store) }, '▶ Play GBA'),
+
       h('button', { type: 'button', class: 'btn ghost', title: 'Lay the maps out as one world: the world map in the pause menu, and seamless edges', onclick: () => void openWorldLayout(store) }, 'World')),
     h('div', { class: 'tb-group' }, undoBtn, redoBtn),
     h('div', { class: 'tb-group zoom' }, zoomOut, fitBtn, zoomIn),
     h('div', { class: 'tb-group' }, toggle3d),
     h('div', { class: 'tb-spacer' }),
     h('div', { class: 'tb-group' }, toggleLeft),
-    h('div', { class: 'tb-group' }, saveState, saveBtn, playBtn));
+    h('div', { class: 'tb-group' }, saveState, saveBtn, gbaPlayBtn, playBtn));
   // Opened by "Start Map Editor.bat": the Character Builder (characters and weapons) is served alongside.
   if (store.project.kind === 'dev') {
     void fetch('/__editor/builder', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((b: { builder?: boolean; library?: boolean } | null) => {
@@ -204,12 +214,12 @@ function buildUI(): void {
   const statusZoom = h('span', { class: 'st-zoom' });
   const meter = new BudgetMeter(false);
   const status = h('footer', { class: 'statusbar' }, statusPos, statusHint, meter.el, statusZoom);
-  const updateBudget = () => meter.setCounts(countLights(store));
+  const updateBudget = () => { meter.el.hidden = !!store.map?.gba; meter.setCounts(countLights(store)); };
   store.on('map', updateBudget);
   updateBudget();
-  view.onHover = (info) => { statusPos.textContent = info ? `${info.x}, ${info.z} · ${info.terrain ? tileName(info.terrain) : ''} · height ${info.height}${store.rampAt(info.x, info.z) ? ` (${store.rampAt(info.x, info.z)!.style})` : ''}${info.water ? ` · ${info.water}` : ''}${info.passage ? ` · ${info.passage}` : ''}${info.zone ? ` · zone ${info.zone}` : ''}` : '—'; };
+  view.onHover = (info) => { if (info && store.map.gba) { statusPos.textContent = `${info.x}, ${info.z}${info.zone ? ` · zone ${info.zone}` : ''}`; return; } statusPos.textContent = info ? `${info.x}, ${info.z} · ${info.terrain ? tileName(info.terrain) : ''} · height ${info.height}${store.rampAt(info.x, info.z) ? ` (${store.rampAt(info.x, info.z)!.style})` : ''}${info.water ? ` · ${info.water}` : ''}${info.passage ? ` · ${info.passage}` : ''}${info.zone ? ` · zone ${info.zone}` : ''}` : '—'; };
   const updateStatus = () => {
-    const tool = store.mode === 'terrain' ? store.terrainTool : store.mode === 'water' ? store.waterMode : store.mode === 'height' ? store.heightTool : store.mode === 'props' ? store.propTool : store.mode === 'lights' ? store.lightTool : store.mode === 'buildings' ? store.buildingTool : store.mode === 'zones' && store.isBattleMap() ? 'markers' : store.mode === 'passage' || store.mode === 'zones' ? 'paint' : 'select';
+    const tool = isGbaMode(store.mode) ? store.gbaTool : store.mode === 'terrain' ? store.terrainTool : store.mode === 'water' ? store.waterMode : store.mode === 'height' ? store.heightTool : store.mode === 'props' ? store.propTool : store.mode === 'lights' ? store.lightTool : store.mode === 'buildings' ? store.buildingTool : store.mode === 'zones' && store.isBattleMap() ? 'markers' : store.mode === 'passage' || store.mode === 'zones' ? 'paint' : 'select';
     statusHint.textContent = MODE_HINTS[`${store.mode}:${tool}`] ?? '';
     statusZoom.textContent = `${view.zoomPercent}%`;
   };
@@ -385,10 +395,28 @@ async function switchMap(name: string): Promise<void> {
   store.emit('meta');
 }
 
+/** Mimas: play the open GBA map (the events and battles come with the next update). */
+function playGba(): void {
+  const m = store.map;
+  if (!m.gba) return;
+  const view = gbaView(m, store.mapName);
+  const sp = gbaSprite(gba.data.player ?? '');
+  const start = store.db.startMap === store.mapName ? { x: Math.floor(store.db.start.x), y: Math.floor(store.db.start.z) } : undefined;
+  openGbaPlaytest({
+    maps: new Map([[store.mapName, { ...view, start: start ? [start.x, start.y] : [Math.floor(m.width / 2), Math.floor(m.height / 2)] }]]),
+    look: tileLookup,
+    sprite: (id) => { const x = gbaSprite(id); return x ? gba.images.get(x.image) ?? null : null; },
+    player: sp ? gba.images.get(sp.image) ?? null : null,
+    itemName: (id) => store.db.items?.find((i) => i.id === id)?.name ?? id,
+    troop: () => null,
+  }, store.mapName);
+}
+
 function newMapDialog(): void {
   let n = store.maps.length + 1;
   while (store.maps.includes(`map${String(n).padStart(3, '0')}`)) n++;
-  const data = { file: `map${String(n).padStart(3, '0')}`, name: 'New Map', width: 24, height: 18, base: '.', kind: 'field' as 'field' | 'battle' };
+  const grounds = gba.data.tiles.filter((t) => t.type === 'ground');
+  const data = { file: `map${String(n).padStart(3, '0')}`, name: 'New Map', width: 30, height: 20, base: grounds[0]?.id ?? '', kind: 'field' as 'field' | 'battle' };
   const err = h('p', { class: 'form-error', role: 'alert' });
   const body = h('div', { class: 'form' },
     field('File name', textInput(data.file, (v) => (data.file = v.trim())), 'Letters, numbers, - and _ only. Saved as public/data/maps/<name>.json'),
@@ -396,9 +424,11 @@ function newMapDialog(): void {
     field('Kind', select([['field', 'Map (to walk around)'], ['battle', 'Battle map (a stage for turn-based battles)']], data.kind, (v) => (data.kind = v as 'field' | 'battle')),
       'Battle maps are listed apart and start with party and enemy markers.'),
     h('div', { class: 'field-row' },
-      field('Width', numberInput(data.width, (v) => (data.width = Math.round(Math.min(128, Math.max(8, v)))), { min: 8, max: 128 })),
-      field('Height', numberInput(data.height, (v) => (data.height = Math.round(Math.min(128, Math.max(8, v)))), { min: 8, max: 128 }))),
-    field('Fill with', select(store.tiles.all().map((t) => [t.key, t.name] as [string, string]), data.base, (v) => (data.base = v))),
+      field('Width', numberInput(data.width, (v) => (data.width = Math.round(Math.min(128, Math.max(15, v)))), { min: 15, max: 128 })),
+      field('Height', numberInput(data.height, (v) => (data.height = Math.round(Math.min(128, Math.max(10, v)))), { min: 10, max: 128 }))),
+    grounds.length ? field('Fill with', select(grounds.map((t) => [t.id, t.name] as [string, string]), data.base, (v) => (data.base = v)), 'A Ground tile from GBA Studio.')
+      : h('p', { class: 'note' }, 'Tip: make a Ground tile in GBA Studio first, so new maps start filled with it.'),
+    h('p', { class: 'note' }, 'The GBA screen shows 15 × 10 tiles, so maps at least that big fill the screen.'),
     err);
   openModal('New map', body, [
     { label: 'Cancel' },
@@ -408,8 +438,9 @@ function newMapDialog(): void {
       const create = () => {
         const map: MapData = {
           name: data.name || data.file, width: data.width, height: data.height,
-          terrain: Array.from({ length: data.height }, () => data.base.repeat(data.width)),
-          props: [], lights: [], events: [], border: { kind: 'forest', seed: Math.floor(Math.random() * 1000) },
+          terrain: Array.from({ length: data.height }, () => '.'.repeat(data.width)),
+          props: [], lights: [], events: [],
+          gba: blankLayers(data.width, data.height, data.base || undefined),
         };
         if (data.kind === 'battle') {
           // Three party markers near the bottom middle, three enemies above them.
@@ -459,13 +490,14 @@ function bindShortcuts(updateStatus: () => void): void {
     }
     if (mod || e.altKey) return;
     const k = e.key.toLowerCase();
-    const modes: Record<string, Mode> = { '1': 'terrain', '2': 'height', '3': 'passage', '4': 'props', '5': 'lights', '6': 'events', '7': 'buildings', '8': 'water', '9': 'zones' };
+    const modes: Record<string, Mode> = Object.fromEntries(MODES.map(([m, , key]) => [key, m]));
     if (modes[k]) { store.mode = modes[k]; store.select(null); store.emit('ui'); return; }
     if (store.mode === 'height' && k === 'e') { store.heightTool = 'ramp'; store.rampTool = 'erase'; store.emit('ui'); return; }
     if (store.mode === 'water' && 'fpxrg'.includes(k) && k.length === 1) { store.waterMode = ({ f: 'fill', p: 'paint', x: 'remove', r: 'style', g: 'fish' } as const)[k as 'f' | 'p' | 'x' | 'r' | 'g']; store.emit('ui'); return; }
     if (store.mode === 'height' && k === 'w') { store.mode = 'water'; store.emit('ui'); return; }
     if (store.mode === 'height' && 'rlsagy'.includes(k) && k.length === 1) { store.heightTool = ({ r: 'raise', l: 'lower', s: 'set', a: 'ramp', g: 'fill', y: 'style' } as const)[k as 'r' | 'l' | 's' | 'a' | 'g' | 'y']; if (k === 'a') store.rampTool = 'place'; store.emit('ui'); return; }
     if (store.mode === 'passage' && 'clxoe'.includes(k) && k.length === 1) { store.passageFlag = k === 'e' ? '.' : (k as 'c' | 'l' | 'x' | 'o'); store.emit('ui'); return; }
+    if (isGbaMode(store.mode) && (k === 'b' || k === 'r' || k === 'g' || k === 'e')) { store.gbaTool = ({ b: 'pencil', r: 'rect', g: 'fill', e: 'erase' } as const)[k]; store.emit('ui'); return; }
     if (store.mode === 'terrain' && (k === 'b' || k === 'r' || k === 'g')) { store.terrainTool = k === 'b' ? 'pencil' : k === 'r' ? 'rect' : 'fill'; store.emit('ui'); return; }
     if (store.mode === 'props' && 'psve'.includes(k) && k.length === 1) { store.propTool = ({ p: 'place', s: 'scatter', v: 'select', e: 'erase' } as const)[k as 'p' | 's' | 'v' | 'e']; store.emit('ui'); return; }
     if (store.mode === 'buildings' && (k === 'd' || k === 'v')) { store.buildingTool = k === 'd' ? 'draw' : 'select'; store.emit('ui'); return; }

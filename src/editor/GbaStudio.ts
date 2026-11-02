@@ -14,17 +14,15 @@ import './gbaStudio.css';
 import { checkbox, confirmModal, field, h, numberInput, openModal, select, textInput, toast } from './dom';
 import type { EditorStore } from './store';
 import { SAMPLE_SHAPE, drawQuarters, quarters } from '../gba/autotile';
-import { MapEditor } from './GbaMapEditor';
-import { openGbaPlaytest } from './GbaPlaytest';
+import { loadGba, setGba } from './gbaShared';
 import { openDatabase } from './DatabaseEditor';
 import { saveDatabase } from './io';
-import { runCombatPreview } from './combatPreview';
 import {
   CELL, SPRITE_KINDS, TILE_TYPES, defaultGbaData, gbaColor, hexToRgb, ledgeCell, tileSize,
-  type Facing, type GbaData, type GbaMap, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
+  type GbaData, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
 } from '../gba/types';
 
-type Tab = 'maps' | 'tiles' | 'sprites' | 'palettes';
+type Tab = 'tiles' | 'sprites' | 'palettes';
 type Tool = 'pencil' | 'erase' | 'fill' | 'pick' | 'line' | 'rect' | 'cell';
 type Item = { kind: 'tile'; t: GbaTile } | { kind: 'sprite'; s: GbaSprite };
 
@@ -39,19 +37,6 @@ const TOOLS: [Tool, string, string, string][] = [
 ];
 
 let open = false;
-
-/** The toolbar's “Play GBA”: plays the map the ROM starts on, from the files (no studio needed). */
-export async function playGbaStartMap(store: EditorStore): Promise<void> {
-  try {
-    const studio = new Studio(store);
-    await studio.load();
-    const id = studio.data.startMap ?? studio.data.maps?.[0];
-    if (!id) { toast('No GBA maps yet. Make one in GBA Studio → Maps.', 'error'); return; }
-    await studio.playtest(id);
-  } catch (err) {
-    toast(`Couldn’t start the GBA playtest: ${(err as Error).message}`, 'error');
-  }
-}
 
 export async function openGbaStudio(store: EditorStore): Promise<void> {
   if (open) return;
@@ -144,10 +129,7 @@ class Studio {
   images = new Map<string, HTMLCanvasElement>();
   dirtyImages = new Set<string>();
   dirtyJson = false;
-  maps = new Map<string, GbaMap>();
-  dirtyMaps = new Set<string>();
-  tab: Tab = 'maps';
-  mapEditor!: MapEditor;
+  tab: Tab = 'tiles';
   sel: { tiles?: string; sprites?: string; palettes?: string } = {};
   tool: Tool = 'pencil';
   color = 1;                 // 0 = transparent, 1..15 = palette slot
@@ -180,7 +162,7 @@ class Studio {
   stroke: { start: [number, number]; last: [number, number]; erase: boolean; before: ImageData } | null = null;
   hover: [number, number] | null = null;
   onKey = (e: KeyboardEvent) => this.key(e);
-  onResize = () => { if (this.tab === 'maps') { if (!this.mapEditor.zoom) this.mapEditor.draw(); } else if (!this.zoom) this.drawDisplay(); };
+  onResize = () => { if (!this.zoom) this.drawDisplay(); };
 
   constructor(public store: EditorStore) {}
 
@@ -189,7 +171,7 @@ class Studio {
     openDatabase(this.store);
     // the Database window closes on its own; refresh the event card's lists afterwards
     const watch = window.setInterval(() => {
-      if (!document.querySelector('.overlay')) { clearInterval(watch); this.renderStatus(); if (this.tab === 'maps') this.mapEditor.render(); }
+      if (!document.querySelector('.overlay')) { clearInterval(watch); this.renderStatus(); }
     }, 400);
   }
 
@@ -206,34 +188,7 @@ class Studio {
     await Promise.all(paths.map(async (p) => {
       try { this.images.set(p, await blobToCanvas(await project.readFile(p))); } catch { /* made below */ }
     }));
-    await Promise.all((this.data.maps ?? []).map(async (id) => {
-      try { this.maps.set(id, JSON.parse(await (await project.readFile(`data/gbamaps/${id}.json`)).text()) as GbaMap); } catch { /* missing file: dropped from the list on save */ }
-    }));
-    this.data.maps = (this.data.maps ?? []).filter((id) => this.maps.has(id));
     this.migrateLedges();
-    const studio = this;
-    this.mapEditor = new MapEditor({
-      tiles: () => studio.data.tiles,
-      tileImage: (t) => studio.ensureTileImage(t),
-      maps: this.maps,
-      mapIds: () => studio.data.maps ?? [],
-      addMapId: (id) => { studio.data.maps = [...(studio.data.maps ?? []), id]; },
-      removeMapId: (id) => { studio.data.maps = (studio.data.maps ?? []).filter((m) => m !== id); },
-      startMap: () => studio.data.startMap,
-      setStartMap: (id) => { studio.data.startMap = id; },
-      touchMap: (id) => { studio.dirtyMaps.add(id); studio.renderStatus(); },
-      touchData: () => studio.touch(),
-      get listEl() { return studio.listEl; },
-      get centerEl() { return studio.centerEl; },
-      get sideEl() { return studio.sideEl; },
-      goToTiles: () => { studio.tab = 'tiles'; studio.render(); },
-      sprites: () => studio.data.sprites,
-      spriteImage: (s) => studio.images.get(s.image),
-      playtest: (id, at) => void studio.playtest(id, at),
-      items: () => (studio.store.db.items ?? []).map((i) => ({ id: i.id, name: i.name })),
-      troops: () => (studio.store.db.troops ?? []).map((t) => ({ id: t.id, name: t.name })),
-      openDatabase: () => studio.openDb(),
-    });
     for (const s of this.data.sprites) await this.ensureSpriteImage(s);
     this.sel.tiles = this.data.tiles[0]?.id;
     this.sel.sprites = this.data.sprites[0]?.id;
@@ -258,40 +213,9 @@ class Studio {
         }
         this.images.set(t.image, img);
         this.dirtyImages.add(t.image);
-        for (const [id, m] of this.maps) {
-          const v = m.tiles.indexOf(t.id) + 1;
-          if (!v) continue;
-          for (const o of m.objects) if (o.t === v && (o.p === 3 || o.p === 4)) { o.p = o.p === 3 ? 4 : 7; this.dirtyMaps.add(id); }
-        }
       }
       this.ensureTileImage(t);
     }
-  }
-
-  /** Play a GBA map in the editor, with everything as it is now (saved or not). */
-  async playtest(mapId: string, at?: { x: number; y: number; dir?: Facing }): Promise<void> {
-    const sprite = this.data.sprites.find((s) => s.id === this.data.player && s.kind === 'overworld');
-    let player = sprite ? this.images.get(sprite.image) ?? null : null;
-    if (!player) {
-      try { player = await blobToCanvas(await this.store.project.readFile('gba/bases/overworld_base.png')); } catch { player = null; }
-    }
-    openGbaPlaytest({
-      maps: this.maps,
-      look: this.mapEditor.lookup,
-      sprite: (id) => { const s = this.data.sprites.find((x) => x.id === id); return s ? this.images.get(s.image) ?? null : null; },
-      player,
-      itemName: (id) => this.store.db.items?.find((i) => i.id === id)?.name ?? id,
-      troop: (id) => {
-        const t = this.store.db.troops?.find((x) => x.id === id);
-        if (!t) return null;
-        const names = (t.members ?? []).map((mb) => this.store.db.enemies?.find((e) => e.id === mb.enemy)?.name ?? mb.enemy);
-        const pick = (): string[] => (t.members ?? []).flatMap((mb) => {
-          const lo = mb.min ?? 1, hi = Math.max(lo, mb.max ?? lo);
-          return Array.from({ length: lo + Math.floor(Math.random() * (hi - lo + 1)) }, () => mb.enemy);
-        });
-        return { name: t.name, members: names, fight: () => runCombatPreview(pick()) };
-      },
-    }, mapId, at);
   }
 
   ensureTileImage(t: GbaTile): HTMLCanvasElement {
@@ -335,11 +259,9 @@ class Studio {
         if (c) await project.writeFile(p, await canvasBlob(c));
         this.dirtyImages.delete(p);
       }
-      for (const id of [...this.dirtyMaps]) {
-        const m = this.maps.get(id);
-        if (m) await project.write(`gbamaps/${id}.json`, JSON.stringify(m) + '\n');
-        this.dirtyMaps.delete(id);
-      }
+      // GBA maps live with the other maps now (public/data/maps); these were GBA Studio's own map list
+      delete this.data.maps;
+      delete this.data.startMap;
       await project.write('gba.json', JSON.stringify(this.data, null, 2) + '\n');
       this.dirtyJson = false;
       if (this.store.dbDirty && (await saveDatabase(this.store)) === 'failed') throw new Error('the Database didn’t save');
@@ -352,7 +274,7 @@ class Studio {
     }
   }
 
-  get dirty(): boolean { return this.dirtyJson || this.dirtyImages.size > 0 || this.dirtyMaps.size > 0 || this.store.dbDirty; }
+  get dirty(): boolean { return this.dirtyJson || this.dirtyImages.size > 0 || this.store.dbDirty; }
 
   /* ----------------------------------------------------------------- shell */
 
@@ -362,10 +284,10 @@ class Studio {
     this.sideEl = h('div', { class: 'gs-side' });
     this.statusEl = h('span', { class: 'gs-status', role: 'status' });
     const tabs = h('div', { class: 'gs-tabs', role: 'tablist' },
-      ...(['maps', 'tiles', 'sprites', 'palettes'] as Tab[]).map((t) => h('button', {
+      ...(['tiles', 'sprites', 'palettes'] as Tab[]).map((t) => h('button', {
         type: 'button', role: 'tab', class: 'gs-tab', 'data-tab': t,
         onclick: () => { this.tab = t; this.render(); },
-      }, t === 'maps' ? 'Maps' : t === 'tiles' ? 'Tiles' : t === 'sprites' ? 'Sprites' : 'Palettes')));
+      }, t === 'tiles' ? 'Tiles' : t === 'sprites' ? 'Sprites' : 'Palettes')));
     this.root = h('div', { class: 'gba-studio', role: 'dialog', 'aria-label': 'GBA Studio' },
       h('header', { class: 'gs-head' },
         h('span', { class: 'brand-mark' }, 'GBA Studio'),
@@ -383,18 +305,20 @@ class Studio {
   }
 
   close(): void {
-    const finish = () => {
+    const finish = (keep: boolean) => {
+      // the map editor shows the latest art (as saved; or as loaded, after closing without saving)
+      if (keep) setGba(this.data, this.images); else void loadGba(this.store.project);
       clearInterval(this.previewTimer);
       document.removeEventListener('keydown', this.onKey, true);
       window.removeEventListener('resize', this.onResize);
       this.root.remove();
       open = false;
     };
-    if (!this.dirty) return finish();
+    if (!this.dirty) return finish(true);
     openModal('Unsaved changes', h('p', { class: 'modal-text' }, 'Save your tiles and sprites before closing?'), [
       { label: 'Keep editing' },
-      { label: 'Close without saving', danger: true, onClick: finish },
-      { label: 'Save and close', primary: true, onClick: () => { void this.save().then((ok) => { if (ok) finish(); }); } },
+      { label: 'Close without saving', danger: true, onClick: () => finish(false) },
+      { label: 'Save and close', primary: true, onClick: () => { void this.save().then((ok) => { if (ok) finish(true); }); } },
     ]);
   }
 
@@ -412,7 +336,6 @@ class Studio {
   render(): void {
     this.root.querySelectorAll<HTMLElement>('.gs-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === this.tab)));
     clearInterval(this.previewTimer);
-    if (this.tab === 'maps') { this.mapEditor.render(); this.renderStatus(); return; }
     this.renderList();
     if (this.tab === 'palettes') this.renderPalettes();
     else this.renderPainter();
@@ -1500,7 +1423,6 @@ class Studio {
     const typing = e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.stopPropagation(); void this.save(); return; }
     if (typing) return;
-    if (this.tab === 'maps') { if (this.mapEditor.key(e)) e.preventDefault(); if (e.key !== 'Escape') { e.stopPropagation(); return; } }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.stopPropagation(); if (e.shiftKey) this.doRedo(); else this.doUndo(); return; }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); e.stopPropagation(); this.doRedo(); return; }
     const cur = this.tab === 'tiles' || this.tab === 'sprites' ? this.current() : null;

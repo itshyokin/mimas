@@ -29,6 +29,9 @@ import { PASSAGE_FLAGS, type PassageFlag } from '../world/passage';
 import { passageThumb } from './passageIcons';
 import { MARKER_COLORS, WEEKDAY_SHORT, ZONE_LETTERS, zoneColor } from '../world/zones';
 import { ABILITIES } from '../world/types';
+import { gbaPanel } from './gbaPalette';
+import { isGbaMode } from './gbaPaint';
+import { openGbaStudio } from './GbaStudio';
 import { ABILITY_NAMES } from './CommandEditor';
 import { MAX_HEIGHT, MIN_HEIGHT } from '../world/heights';
 import { BUILDING_PRESETS, drawBuildingTop } from './buildingPresets';
@@ -70,20 +73,26 @@ function groupModal(store: EditorStore, kind: 'tile' | 'prop', ids: string[], do
   ]);
 }
 
-const MODES: [Mode, string, string][] = [
-  ['terrain', 'Terrain', '1'], ['height', 'Height', '2'], ['passage', 'Passage', '3'], ['props', 'Props', '4'], ['lights', 'Lights', '5'], ['events', 'Events', '6'], ['buildings', 'Buildings', '7'], ['water', 'Water', '8'], ['zones', 'Spawns', '9'],
+/** Mimas: the GBA layers replace Saturn's terrain, heights, water, buildings and lights; props, events and encounter zones stay. */
+export const MODES: [Mode, string, string][] = [
+  ['gground', 'Ground', '1'], ['gpath', 'Paths & water', '2'], ['gcliff', 'Cliffs', '3'], ['gobjects', 'Objects', '4'], ['props', 'Props', '5'], ['events', 'Events', '6'], ['zones', 'Encounters', '7'], ['gpass', 'Passability', '8'],
 ];
 /** Layer icons (24 × 24 line drawings): the tabs show these, the name in a tooltip and beside them. */
 const MODE_ICONS: Record<string, string> = {
   terrain: '<path d="M3 17l5-6 4 4 3-3 6 5"/><path d="M3 20h18"/>',
   height: '<path d="M4 20h4v-5h4v-5h4V5h4"/>',
   passage: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/><path d="M7 7l3 3M14 14l3 3"/>',
-  props: '<path d="M12 3l5 8h-3l4 6H6l4-6H7z"/><path d="M12 17v4"/>',
+  props: '<path d="M6 20V9l6-5 6 5v11z"/><path d="M10 20v-6h4v6"/>',
   lights: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
   events: '<path d="M4 5h16v11H10l-4 4v-4H4z"/><path d="M12 8v3M12 13.5v.5"/>',
   buildings: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
   water: '<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',
   zones: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+  gground: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 15l2-2M12 9l2-2M15 16l2-2"/>',
+  gpath: '<path d="M8 3c0 6 8 6 8 12v6"/><path d="M4 21c4-2 4-6 2-9"/>',
+  gcliff: '<path d="M3 20h18"/><path d="M5 20V10h6v4h8v6"/><path d="M5 10l3-4h3"/>',
+  gobjects: '<path d="M12 3l5 8h-3l4 6H6l4-6H7z"/><path d="M12 17v4"/>',
+  gpass: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/>',
 };
 const iconSvg = (path: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 
@@ -152,7 +161,9 @@ export class Palette {
       h('div', { class: 'layer-name' }, current ? `${current[1]} · key ${current[2]}` : ''));
 
     const body: Node[] = [];
-    if (s.mode === 'terrain') {
+    if (isGbaMode(s.mode)) {
+      body.push(...gbaPanel(s, () => void openGbaStudio(s)));
+    } else if (s.mode === 'terrain') {
       const blendSummary = (key: string) => { const b = s.tiles.blendFor(key); return b.blend ? `priority ${Math.round(b.priority)}` : 'off'; };
       body.push(this.tools(TERRAIN_TOOLS, s.terrainTool, (t) => (s.terrainTool = t)));
       // Update 147: the lower (ground) or upper layer, like RPG Maker's.

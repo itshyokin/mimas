@@ -15,7 +15,9 @@ import { eventCovers, eventH, eventW, eventsOverlap } from '../world/eventArea';
 import { setPropCatalog, setTileCatalog } from './editorArt';
 import { LIGHT_PRESETS, type LightPreset } from './lightPresets';
 
-export type Mode = 'terrain' | 'height' | 'passage' | 'props' | 'lights' | 'buildings' | 'events' | 'water' | 'zones';
+export type Mode = 'terrain' | 'height' | 'passage' | 'props' | 'lights' | 'buildings' | 'events' | 'water' | 'zones'
+  /** Mimas: the GBA layers (Ground, Paths & water, Cliffs, Objects, Passability). */
+  | 'gground' | 'gpath' | 'gcliff' | 'gobjects' | 'gpass';
 export type BuildingTool = 'select' | 'draw';
 export type HeightTool = 'raise' | 'lower' | 'set' | 'fill' | 'ramp' | 'water' | 'style';
 export type WaterMode = 'fill' | 'paint' | 'remove' | 'style' | 'fish';
@@ -63,7 +65,15 @@ export class EditorStore {
   dirty = false;
   dbDirty = false;
 
-  mode: Mode = 'terrain';
+  mode: Mode = 'gground';
+  /** Mimas: GBA layer painting (the brush tile per layer, the tool, cliff tier, ledge piece, passability mark). */
+  gbaBrush: Partial<Record<Mode, string>> = {};
+  gbaTool: 'pencil' | 'rect' | 'fill' | 'erase' = 'pencil';
+  gbaTier = 1;
+  ledgePiece = 1;
+  gbaPass: 'O' | 'X' | '.' = 'X';
+  /** Tint every cell the player can't walk on, as the ROM sees it. */
+  showBlocked = false;
   /** Key of the tile being painted. */
   terrain = '.';
   terrainTool: TerrainTool = 'pencil';

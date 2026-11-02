@@ -1,11 +1,10 @@
 {
   "title": "Titamas",
-  "startMap": "map010",
+  "startMap": "starter_meadow",
   "start": {
-    "x": 7.71,
-    "z": 2.94,
-    "dir": "up",
-    "y": 0.34
+    "x": 16.5,
+    "z": 20.5,
+    "dir": "up"
   },
   "startHour": 8,
   "stats": {

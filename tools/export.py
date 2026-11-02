@@ -825,21 +825,40 @@ def main():
     # The ROM plays the GBA Studio maps when one is set as the start map (all of them go in, so doors work);
     # otherwise the Saturn map in mimas.json.
     arg = sys.argv[1] if len(sys.argv) > 1 else None
-    start_id = arg[4:] if arg and arg.startswith('gba:') else (None if arg else gba.get('startMap'))
+    try:
+        db = load_json(os.path.join(DATA, 'database.json'))
+    except (OSError, ValueError):
+        db = {}
+    # The ROM plays the GBA maps (maps painted with GBA Studio tiles: a "gba" block in public/data/maps/<id>.json),
+    # starting on the game's start map (Database: startMap / start). Without GBA maps: the Saturn map in mimas.json.
+    gba_maps = {}
+    maps_dir = os.path.join(DATA, 'maps')
+    for f in sorted(os.listdir(maps_dir)) if os.path.isdir(maps_dir) else []:
+        if f.endswith('.json'):
+            try:
+                mp = load_json(os.path.join(maps_dir, f))
+            except (OSError, ValueError):
+                continue
+            if isinstance(mp.get('gba'), dict):
+                gba_maps[f[:-5]] = mp
+    start_id = arg if arg in gba_maps else (db.get('startMap') if db.get('startMap') in gba_maps else next(iter(gba_maps), None))
+    if arg and arg not in gba_maps:
+        start_id = None
     maps = []   # dicts: id, name, W, H, ground, over, coll, hgrid, start, dir, events
     if start_id:
-        ids = [start_id] + [m for m in gba.get('maps', []) if m != start_id]
-        for mid in ids:
-            path = os.path.join(DATA, 'gbamaps', mid + '.json')
-            if not os.path.exists(path):
-                continue
-            mp = load_json(path)
-            W, H = mp['width'], mp['height']
-            print(f'Exporting GBA map "{mp.get("name", mid)}" ({W} x {H})')
+        for mid in [start_id] + [m for m in gba_maps if m != start_id]:
+            sm = gba_maps[mid]
+            W, H = sm['width'], sm['height']
+            mp = dict(sm['gba'], width=W, height=H, name=sm.get('name', mid))
+            print(f'Exporting GBA map "{mp["name"]}" ({W} x {H})')
             ground, over, coll, hgrid = build_gba_map(gba, mp)
-            maps.append({'id': mid, 'name': mp.get('name', mid), 'W': W, 'H': H, 'ground': ground, 'over': over,
-                         'coll': coll, 'hgrid': hgrid, 'start': mp.get('start'), 'dir': mp.get('dir', 'down'),
-                         'events': mp.get('events', [])})
+            start = None
+            if mid == db.get('startMap') and db.get('start'):
+                start = [int(db['start'].get('x', 0)), int(db['start'].get('z', 0))]
+            # Saturn events go into the ROM with the next update (pages, switches, commands)
+            maps.append({'id': mid, 'name': mp['name'], 'W': W, 'H': H, 'ground': ground, 'over': over,
+                         'coll': coll, 'hgrid': hgrid, 'start': start, 'dir': (db.get('start') or {}).get('dir', 'down'),
+                         'events': []})
     else:
         map_id = arg or cfg['map']
         mp = load_json(os.path.join(DATA, 'maps', map_id + '.json'))

@@ -492,6 +492,7 @@ class Playtest {
     v.textAlign = align;
     v.textBaseline = 'middle';
     v.lineWidth = 3 * s;
+    v.lineJoin = 'round';
     v.strokeStyle = '#000';
     v.strokeText(text, x * s, y * s);
     v.fillStyle = '#fff';

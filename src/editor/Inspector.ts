@@ -1,4 +1,6 @@
 import { switchInput } from './switchPicker';
+import { blankLayers, fitLayers } from '../gba/layers';
+import { gba as gbaArt } from './gbaShared';
 import { build3D } from '../game/World3D';
 import { readGroundModel } from '../world/groundModel';
 import { modelExt } from '../render/models';
@@ -29,6 +31,8 @@ import { markerIcon, markerKinds } from '../world/landmarks';
 import { CORNER_NAMES, type CornerName, type RampData, WEATHER_KINDS, type MistWhen, type BuildingData, type BuildingSide, type WeatherKind } from '../world/types';
 import { BUILDING_DEFAULTS, doorstep, resolveBuilding } from '../world/buildingShape';
 import { ROOF_CHOICES, WALL_CHOICES } from './buildingPresets';
+
+const gbaGrounds = () => gbaArt.data.tiles.filter((t) => t.type === 'ground');
 
 const DIRS: [Dir, string][] = [['down', 'Down'], ['left', 'Left'], ['right', 'Right'], ['up', 'Up']];
 const TRIGGERS: [Trigger, string][] = [
@@ -350,6 +354,7 @@ export class Inspector {
           const rows = Array.from({ length: hgt }, (_, z) => (m.safeGrid![z] ?? '').padEnd(w, '.').slice(0, w));
           m.safeGrid = rows.some((r) => /[^.]/.test(r)) ? rows : undefined;
         }
+        if (m.gba) m.gba = fitLayers(m.gba, w, hgt);
         m.width = w; m.height = hgt;
         m.props = m.props.filter((p) => p.x < w && p.z < hgt);
         m.lights = m.lights.filter((l) => l.x < w && l.z < hgt);
@@ -376,6 +381,15 @@ export class Inspector {
         field('Height', numberInput(m.height, (v) => (hgt = Math.round(Math.min(128, Math.max(8, v)))), { min: 8, max: 128, step: 1 }))),
       h('button', { type: 'button', class: 'btn small', onclick: resize }, 'Apply size'),
       h('p', { class: 'hint' }, 'Resizing keeps the top-left corner. Anything outside the new size is removed.'),
+      // Mimas: an old Saturn map becomes a GBA map: its events, props and encounter zones stay; the ground starts empty.
+      m.gba ? h('p', { class: 'hint' }, 'A GBA map: painted with GBA Studio tiles (the Ground, Paths & water, Cliffs, Objects and Passability layers).')
+        : h('div', {}, h('p', { class: 'hint' }, 'An old Saturn map (Saturn tiles, heights, water). Convert it to paint it with GBA Studio tiles. Its events, props and encounter zones stay; its houses and lights go (paint houses as GBA objects).'),
+          h('button', { type: 'button', class: 'btn small primary', onclick: () => {
+            const ground = gbaGrounds()[0]?.id;
+            // Houses and lights are Saturn's 3D look: GBA maps draw houses as objects (GBA Studio) instead.
+            this.edit(() => { m.gba = blankLayers(m.width, m.height, ground); delete m.buildings; m.lights = []; }, true);
+            s.emit('ui');
+          } }, 'Convert to GBA map')),
       field('Theme', select([['', 'None'], ...mapThemes(s.db.mapThemes).map((t) => [t.id, t.name] as [string, string])], m.theme ?? '', (v) => this.edit(() => { if (v) m.theme = v; else delete m.theme; }, true)),
         'Database → Map themes: the edges, cliffs, lighting, music, sounds, wind, weather and air this kind of map has. Settings left on “Theme default” follow the theme; change one to override it here.'),
       // Update 148: height implied by the tiles (RPG Maker) or real 3D heights.
@@ -1128,11 +1142,13 @@ export class Inspector {
       }, true) }, 'Delete page'));
 
     const enemies = (s.db.enemies ?? []).map((d) => [d.id, d.name] as [string, string]);
-    const appearance = page.enemy ? 'enemy' : page.character ? 'character' : page.sprite ? 'sprite' : 'none';
+    const appearance = page.enemy ? 'enemy' : page.gbaSprite ? 'gba' : page.character ? 'character' : page.sprite ? 'sprite' : 'none';
+    const gbaPeople = gbaArt.data.sprites.filter((x) => x.kind === 'overworld').map((x) => [x.id, x.name] as [string, string]);
     const chars = Object.entries(s.db.characters).map(([k, c]) => [k, c.name] as [string, string]);
     const lookControls: HTMLElement[] = [
-      field('Appearance', select([['none', 'Invisible'], ['character', 'Character'], ['sprite', 'Object sprite'], ['enemy', 'Enemy']], appearance, (v) => this.edit(() => {
-        delete page.character; delete page.sprite; delete page.enemy;
+      field('Appearance', select([['none', 'Invisible'], ['gba', 'GBA sprite (GBA Studio)'], ['character', 'Character (placeholder on GBA maps)'], ['sprite', 'Object sprite'], ['enemy', 'Enemy']], appearance, (v) => this.edit(() => {
+        delete page.character; delete page.sprite; delete page.enemy; delete page.gbaSprite;
+        if (v === 'gba') page.gbaSprite = gbaPeople[0]?.[0] ?? '';
         if (v === 'enemy') { page.enemy = enemies[0]?.[0] ?? ''; page.trigger = 'none'; delete page.solid; }
         if (v === 'character') page.character = chars[0]?.[0];
         if (v === 'sprite') page.sprite = 'sign';
@@ -1144,6 +1160,12 @@ export class Inspector {
       lookControls.push(field('Enemy', select(opts, page.enemy, (v) => this.edit(() => (page.enemy = v)))),
         levelRangeField('Its level', () => page.enemyLevels, (v) => this.edit(() => { if (v) page.enemyLevels = v; else delete page.enemyLevels; }), 'Rolled each time it appears (0: its own level). The event command Enemy levels can make map enemies follow the party’s level instead.'),
         h('p', { class: 'hint' }, 'It fights instead of talking. The commands below run when it’s defeated (open a gate, set a switch). Beaten enemies come back when the player returns to the map; for one that stays beaten, set a switch here and give the event a later page for it.'));
+    } else if (page.gbaSprite !== undefined) {
+      const opts = gbaPeople.length ? gbaPeople : [['', '(no overworld sprites yet: make one in GBA Studio → Sprites)'] as [string, string]];
+      lookControls.push(h('div', { class: 'field-row' },
+        field('GBA sprite', select(opts, page.gbaSprite, (v) => this.edit(() => (page.gbaSprite = v)))),
+        field('Facing', select(DIRS, page.dir ?? 'down', (v) => this.edit(() => (page.dir = v as Dir))))));
+      lookControls.push(checkbox('Turn to face the player', !!page.facePlayer, (v) => this.edit(() => (page.facePlayer = v || undefined))));
     } else if (page.character) {
       lookControls.push(h('div', { class: 'field-row' },
         field('Character', select(chars, page.character, (v) => this.edit(() => (page.character = v)))),

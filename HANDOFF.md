@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 1, 2026, after Update 5)
+# Handoff: where Mimas stands (Nov 1, 2026, after Update 6)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -19,8 +19,6 @@ Flaming fists, Rapier, Claws; RPG Maker passability stays as an override; GBA St
   1-wide strips work; mirrored by `quarters` / `compose` in tools/export.py) and the preview shape.
 - `src/gba/mapRender.ts`: draws a GBA map and computes its collision. Must match `build_gba_map` in tools/export.py
   (same layer order and rules); collision bits SOLID 1, LEDGE_S 4, LEDGE_E 8, LEDGE_W 16, WATER 32, GRASS 64.
-- `src/editor/GbaMapEditor.ts`: the Maps tab (layers, tools, tile picker, tiers, ledge pieces, Show blocked, Events
-  layer with the event card and Pick-the-spot for transfers).
 - `src/editor/GbaPlaytest.ts`: the in-editor GBA playtest (same rules as main.cpp: steps, run, hops, events, text,
   transfers). Text wrapping: `textPages` in types.ts = `text_pages` in export.py (30 characters, 2 lines a page).
 - Ledges: 9 pieces, `ledgeCell` / `ledgeDir` in types.ts (0-2 south, 3-5 east, 6-8 west; sheet 5×3). Old 5×1
@@ -42,7 +40,19 @@ Flaming fists, Rapier, Claws; RPG Maker passability stays as an override; GBA St
   Later: a public GBA Studio page (separate public repo, no art) that loads / saves the private repo through the
   GitHub API with a token kept in the tablet's browser.
 
+## The plan the owner agreed (Nov 1)
+Saturn is the game; GBA Studio is the art department. Everything must work in a GBA ROM: Saturn features that can't
+are removed or adjusted. Maps: Saturn map files with a `gba` block (src/gba/layers.ts) painted in the Mimas Map
+Editor (GBA layers + Saturn's props, events, encounter zones). Next: the playtest runs Saturn's Interpreter
+(src/events/Interpreter.ts, an EventContext) on a GBA screen, battles via TurnBattle with a white Gold/Silver
+screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy chip versions of the built-in
+sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
+
 ## Things to know
+- Map editor (Update 6): store modes gground / gpath / gcliff / gobjects / gpass (src/editor/gbaPaint.ts paints,
+  gbaPalette.ts is the left panel, MapView draws with mapRender.drawMap). GBA Studio art is shared through
+  src/editor/gbaShared.ts (loaded at start, handed back when the studio closes). Old Saturn modes still exist in the
+  code but have no tabs.
 - Mimas's editor server is on 5274+ and checks `project: 'mimas'` in the ping before reusing a running server;
   Saturn's is on 5174+. Vite dev: 5273. IndexedDB names are `mimas-editor` / `mimas-playtest`. Keep them apart.
 - Event commands: text (speaker '' / 'player' / 'ev:<id>', bubble), transfer, item (Database item, count), battle

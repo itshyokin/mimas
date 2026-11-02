@@ -501,6 +501,8 @@ export interface EventPage {
   sprite?: string;
   /** Character key from database.json, drawn with a walking sprite sheet. */
   character?: string;
+  /** Mimas: a GBA Studio overworld sprite (16×32 frames). On GBA maps it's what shows; `character` is a placeholder. */
+  gbaSprite?: string;
   dir?: Dir;
   /** Turn to face the player when activated. */
   facePlayer?: boolean;
@@ -749,6 +751,11 @@ export interface MapData {
   name: string;
   width: number;
   height: number;
+  /**
+   * Mimas: the map's GBA layers (ground, paths & water, cliffs, objects, passability), painted with GBA Studio tiles.
+   * A map with this is a GBA map: its Saturn terrain, heights, water, buildings and lights aren't used.
+   */
+  gba?: import('../gba/layers').GbaLayers;
   terrain: string[];
   /**
    * Upper terrain layer (Update 147): one row per line, one tile key per cell (a space: nothing), painted over the

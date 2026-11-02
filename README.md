@@ -41,77 +41,57 @@ also has `map-preview.png`, a picture of the exported map.
 - The repo is private, so there's no online/tablet editor for now. A public
   GBA Studio page that saves into this private repo is planned for later.
 
-Everything from Saturn is still there (maps, Database, World). The full
-guide to those tools is in [docs/saturn/README.md](docs/saturn/README.md).
+### The map editor
+
+Maps are painted with your GBA Studio tiles; everything else is Saturn's.
+The layer tabs on the left:
+
+| Layer | What it's for |
+|---|---|
+| Ground (1) | The base: grass, sand, floors |
+| Paths & water (2) | Paths and ponds; edges, corners and one-tile-wide strips are picked for you |
+| Cliffs (3) | The *area* of a raised plateau, by tier. The ring of cliff edges is drawn around it and the top stays walkable. Tier 2 inside tier 1 is a higher level; right up to its edge, a taller cliff |
+| Objects (4) | Trees (click where the trunk goes), ledges (pick the piece), stairs and ladders (the way through cliffs), signs, flowers, tall grass, doors |
+| Props (5) | Saturn's props, as before |
+| Events (6) | Saturn's events, with everything they had: pages, conditions, switches, variables, every command, and big events covering an area (drag across empty tiles) |
+| Encounters (7) | Saturn's encounter zones: paint regions, each with its own troops (Map Properties → Random battles for the whole map) |
+| Passability (8) | RPG Maker-style overrides: O walkable, ✕ blocked |
+
+Tools for the GBA layers: Paint (B), Rectangle (R, great for tall grass and
+ledge rows), Fill (G), Erase (E). **Show blocked** tints every cell the player
+can't walk on, as the ROM sees it (red blocked, blue water, orange arrows for
+ledges). Paths and water are built from four 8×8 quarters of your 13 pieces
+(the RPG Maker trick), so strips, ends, T-junctions and crossings all work.
+
+An event's *Appearance* can be a **GBA sprite** (an overworld sprite from GBA
+Studio). Saturn characters still work as placeholders until their GBA sprites
+are painted.
+
+**New map** makes a GBA map. Old Saturn maps open as they were; *⚙ Map
+Properties → Convert to GBA map* turns one into a GBA map, keeping its events,
+props and encounter zones (its houses and lights go: paint houses as GBA
+objects). Maps are saved in `public/data/maps/` as before, with the GBA
+layers in a `gba` block.
+
+**▶ Playtest** plays the open map on a GBA screen (240×160) right in the
+editor, with your unsaved changes: arrows or WASD walk, Z / Space = A, hold X
+or Shift = B (run), Esc stops; a gamepad works too. It walks the map for now;
+Saturn's events, encounters and the Gold/Silver-style battles come next.
+
+The full guide to Saturn's tools (events, Database, props) is in
+[docs/saturn/README.md](docs/saturn/README.md).
 
 ### GBA Studio
 
-The **GBA Studio** button in the toolbar opens a full-screen workspace with
-four tabs: Maps, Tiles, Sprites and Palettes.
-
-**Maps.** Paint GBA maps with your tiles, layer by layer:
-
-| Layer | What you paint |
-|---|---|
-| Ground | The base: grass, sand, floors |
-| Paths & water | Paths and ponds; edges and corners are picked for you |
-| Cliffs | The *area* of a raised plateau, by tier. The ring of cliff edges is drawn around it and the top stays walkable. Paint tier 2 inside tier 1 for a higher level, or right up to its edge for a taller cliff |
-| Objects | Trees (click where the trunk goes), ledges (pick the piece: south left/middle/right, east or west top/middle/bottom), stairs and ladders (a way through cliffs), signs, flowers, tall grass, doors |
-| Events | People, signs and doors (see below) |
-| Passability | RPG Maker-style overrides: O walkable, ✕ blocked |
-| Start | Where the player begins (the dashed box is the GBA screen) |
-
-Paths and water join up from just the 13 pieces you paint, including
-one-tile-wide streams and paths, dead ends, T-junctions and crossings: each
-tile is built from four 8×8 quarters of your pieces (the RPG Maker trick).
-
-Tools: Paint, Erase (or right-click), Fill, Rectangle (great for tall grass
-patches and ledge rows), undo / redo, zoom. **Show blocked** tints every
-cell the player can't walk on, exactly as the ROM sees it (red blocked, blue
-water, orange arrows for ledges). Tick **The ROM starts on this map** to play
-it; each map is saved in `public/data/gbamaps/`.
-
-**Events.** On the Events layer, click an empty cell to add an event, click
-one to edit it, drag it to move it, and right-click (or Delete) to remove it.
-Each event has:
-- a *Sprite* (any overworld sprite, for people; *None* for signs, doors and
-  invisible triggers) and which way it faces;
-- *Starts when*: the player faces it and presses A (people, signs), or steps
-  on it (doors; walking into a door in a wall works too);
-- *Blocks the way* (people);
-- *What happens*, in order:
-  - **Show text**: long text wraps by itself; a blank line starts a new box.
-    Pick a *Speaker* (the player or any event on the map) and tick *Word
-    bubble* to show it in a bubble over them instead of the box at the bottom.
-  - **Transfer player**: to any map, column, row and facing; *Pick the spot on
-    the map…* lets you click where they arrive.
-  - **Give item**: an item from the Database, and how many. Shows “You got …!”
-    and adds it to the bag.
-  - **Start battle**: a troop from the Database. GBA battles aren't built yet:
-    the playtest offers to fight it in the Saturn battle preview, and the ROM
-    shows a note.
-
-The **Database** button (top of GBA Studio, and *Database…* on an event)
-opens the full Database over the studio: items, troops, enemies, characters
-and the rest. GBA Studio's *Save* saves its changes too.
-
-A sign is an event with no sprite on the signpost. A door is an event that
-starts when stepped on, with a Transfer; put another one on the other map to
-come back.
-
-**Playtest.** *▶ Playtest* in the Maps tab plays the map right in the editor,
-the way the ROM does (240×160 screen, walking, running, ledges, people, text,
-doors between maps), with your unsaved changes. *▶ Play from here* on an
-event starts next to it. In the main toolbar, *▶ Play GBA* plays the map the
-ROM starts on. Keys: arrows or WASD walk, Z / Space = A, hold X or Shift = B
-(run), Esc stops; a gamepad works too. (*▶ Saturn playtest* is the old HD-2D
-game.)
+The **GBA Studio** button opens the art department: Tiles, Sprites and
+Palettes. When it closes, the map editor shows your latest tiles. Its
+**Database** button opens the Database over it.
 
 A starter set of tiles (grass, dirt path, pond, rock cliff, ledges, stairs,
 ladder, tall grass, flowers, signpost, and a pine tree from your own pine
-art) and a sample map, **Starter Meadow**, come ready to use. They're ordinary
-GBA Studio tiles: repaint them and every map using them follows.
-`python3 tools/make_starter.py --force` redraws the originals.
+art) and a sample map, **Starter Meadow** (where the game starts), come ready
+to use. They're ordinary GBA Studio tiles: repaint them and every map using
+them follows. `python3 tools/make_starter.py --force` redraws the originals.
 
 **Sprites.** Characters start from a plain gray mannequin to paint over.
 - *Overworld character (16×32)*: rows for down, up and left (right is the left
@@ -174,16 +154,16 @@ The mannequins are also in `public/gba/bases/`, with red-bordered versions
 Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 `public/gba/tiles/` and `public/gba/sprites/`.
 
-## What the ROM does (v0.5)
+## What the ROM does (v0.6)
 
-- Every GBA map is in the ROM; it starts on the one marked **The ROM starts
-  on this map** (now **Starter Meadow**). Maps are built from your tiles with
+- Every GBA map is in the ROM; it starts on the game's start map (Database
+  → start; now **Starter Meadow**). Maps are built from your tiles with
   their exact colors: ground, paths and water with joined corners (one tile
   wide too), cliff tiers, objects, tree tops drawn over the player.
-- People stand on the map and turn to face you when you talk (A); signs
-  show their text; doors take you to other maps with a fade. Text shows in
-  the box at the bottom or in a word bubble over whoever speaks. Give item
-  fills the bag (no menu to see it yet); Start battle shows a note.
+- Saturn's events aren't in the ROM yet: they're being moved over (pages,
+  switches, commands), with encounters and battles after them. The runtime
+  already has the text box, word bubbles, people, doors with a fade and the
+  bag waiting for them.
 - Walls, water, cliff edges, tree trunks and signs block; stairs and ladders
   get you through cliffs; **ledges** hop you down (and block the way back up).
 - The player is your GBA Studio sprite, walking Pokémon-style (a foot forward

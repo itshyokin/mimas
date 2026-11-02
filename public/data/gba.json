@@ -186,9 +186,5 @@
       "image": "gba/sprites/player_back.png"
     }
   ],
-  "player": "player",
-  "maps": [
-    "starter_meadow"
-  ],
-  "startMap": "starter_meadow"
+  "player": "player"
 }

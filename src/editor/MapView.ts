@@ -21,8 +21,25 @@ import { drawPassageIcon } from './passageIcons';
 import { MARKER_COLORS, zoneColor } from '../world/zones';
 import { drawBuildingTop, presetBuilding, presetById } from './buildingPresets';
 import { doorstep } from '../world/buildingShape';
+import { collision, drawMap, GRASS, LEDGE_E, LEDGE_S, LEDGE_W, SOLID, WATER } from '../gba/mapRender';
+import { gbaView } from '../gba/layers';
+import { gba, gbaSprite, gbaTile, onGbaChange, tileLookup } from './gbaShared';
+import { applyGba, floodGba, isGbaMode, stampSize, type GbaBrush, type GbaLayerMode } from './gbaPaint';
 
 interface Pt { x: number; z: number }
+
+/** Mimas: one standing frame of a GBA Studio overworld sprite (16×32; rows down / up / left, right mirrored). */
+function gbaFrame(id: string, dir: string): HTMLCanvasElement | null {
+  const sp = gbaSprite(id), sheet = sp ? gba.images.get(sp.image) : undefined;
+  if (!sheet) return null;
+  const c = document.createElement('canvas');
+  c.width = 16; c.height = 32;
+  const g = c.getContext('2d')!;
+  const row = dir === 'up' ? 1 : dir === 'left' || dir === 'right' ? 2 : 0;
+  if (dir === 'right') { g.translate(16, 0); g.scale(-1, 1); }
+  g.drawImage(sheet, 0, row * 32, 16, 32, 0, 0, 16, 32);
+  return c;
+}
 type Stroke =
   | { kind: 'paint'; last: Pt; changed: boolean }
   | { kind: 'rect'; from: Pt; to: Pt }
@@ -40,6 +57,8 @@ type Stroke =
   | { kind: 'zones'; changed: boolean; last: Pt }
   | { kind: 'select-area'; from: Pt; to: Pt }
   | { kind: 'resize'; index: number; moved: boolean }
+  | { kind: 'gba'; last: Pt; changed: boolean; erase: boolean }
+  | { kind: 'gbarect'; from: Pt; to: Pt; erase: boolean }
   | { kind: 'none' };
 
 const MIN_ZOOM = 0.5, MAX_ZOOM = 8;
@@ -106,6 +125,7 @@ export class MapView {
     // Height shading depends on the layer, so the ground image is redrawn when the layer changes.
     store.on('ui', () => { this.needsTerrain = true; this.needsDraw = true; });
     store.on('structure', () => (this.needsDraw = true));
+    onGbaChange(() => { this.needsTerrain = true; this.needsDraw = true; });
 
     new ResizeObserver(() => this.resize()).observe(this.el);
     this.bindInput();
@@ -260,9 +280,26 @@ export class MapView {
 
   private tile(p: Pt): Pt { return { x: Math.floor(p.x), z: Math.floor(p.z) }; }
 
+  /** The GBA brush from the editor's settings (Mimas). */
+  gbaBrush(): GbaBrush {
+    const s = this.store;
+    return { layer: s.mode as GbaLayerMode, tile: gbaTile(s.gbaBrush[s.mode] ?? ''), tier: s.gbaTier, ledgePiece: s.ledgePiece, pass: s.gbaPass };
+  }
+
   private beginStroke(w: Pt): void {
     const s = this.store, t = this.tile(w);
     this.hover = w;
+    if (isGbaMode(s.mode)) {
+      if (!s.map.gba) { toast('This is an old Saturn map. Convert it to a GBA map first (Map → Convert to GBA map).', 'error'); return; }
+      const b = this.gbaBrush(), erase = s.gbaTool === 'erase';
+      if (!erase && s.mode !== 'gpass' && !b.tile) { toast('Pick a tile on the left first (make tiles in GBA Studio).', 'error'); return; }
+      if (s.gbaTool === 'rect') { this.stroke = { kind: 'gbarect', from: t, to: t, erase }; return; }
+      s.checkpoint();
+      if (s.gbaTool === 'fill') { if (floodGba(s.map, b, t.x, t.z)) s.changed(); else s.dropCheckpoint(); this.stroke = { kind: 'none' }; return; }
+      this.stroke = { kind: 'gba', last: t, changed: applyGba(s.map, b, t.x, t.z, erase), erase };
+      if (this.stroke.changed) { this.needsTerrain = true; this.needsDraw = true; }
+      return;
+    }
     switch (s.mode) {
       case 'terrain':
         if (s.terrainTool === 'pencil') { s.checkpoint(); this.stroke = { kind: 'paint', last: t, changed: this.paint(t) }; }
@@ -401,6 +438,15 @@ export class MapView {
     if (!st) return;
     const t = this.tile(w);
     switch (st.kind) {
+      case 'gba':
+        if (t.x !== st.last.x || t.z !== st.last.z) {
+          const b = this.gbaBrush();
+          for (const p of line(st.last, t)) if (applyGba(this.store.map, b, p.x, p.z, st.erase)) st.changed = true;
+          st.last = t;
+          this.needsTerrain = true;
+        }
+        break;
+      case 'gbarect': st.to = t; break;
       case 'paint':
         if (t.x !== st.last.x || t.z !== st.last.z) {
           for (const p of line(st.last, t)) if (this.paint(p)) st.changed = true;
@@ -451,6 +497,16 @@ export class MapView {
     this.stroke = null;
     if (!st) return;
     if (st.kind === 'paint' && !st.changed) s.dropCheckpoint();
+    if (st.kind === 'gba') { if (st.changed) s.changed(); else s.dropCheckpoint(); }
+    if (st.kind === 'gbarect') {
+      s.checkpoint();
+      const b = this.gbaBrush(), [sw, sh] = st.erase ? [1, 1] : stampSize(b);
+      let any = false;
+      const [x0, x1] = [Math.min(st.from.x, st.to.x), Math.max(st.from.x, st.to.x)];
+      const [z0, z1] = [Math.min(st.from.z, st.to.z), Math.max(st.from.z, st.to.z)];
+      for (let z = z0; z <= z1; z += sh) for (let x = x0; x <= x1; x += sw) if (applyGba(s.map, b, x, z, st.erase, true)) any = true;
+      if (any) s.changed(); else s.dropCheckpoint();
+    }
     if (st.kind === 'rampErase' && !st.removed) s.dropCheckpoint();
     if ((st.kind === 'height' || st.kind === 'water' || st.kind === 'passage' || st.kind === 'zones') && !st.changed) s.dropCheckpoint();
     if (st.kind === 'rect') {
@@ -505,7 +561,7 @@ export class MapView {
     const st = this.stroke;
     this.stroke = null;
     if (!st) return;
-    const changedSomething = (st.kind === 'paint') || st.kind === 'height' || st.kind === 'water' || st.kind === 'passage' || st.kind === 'zones' || (st.kind === 'place' || st.kind === 'scatter') || st.kind === 'erase' ||
+    const changedSomething = (st.kind === 'paint') || st.kind === 'gba' || st.kind === 'height' || st.kind === 'water' || st.kind === 'passage' || st.kind === 'zones' || (st.kind === 'place' || st.kind === 'scatter') || st.kind === 'erase' ||
       ((st.kind === 'drag' || st.kind === 'resize' || st.kind === 'bresize') && st.moved);
     if (changedSomething) this.store.revertCheckpoint();
   }
@@ -932,6 +988,12 @@ export class MapView {
     const c = this.terrainCanvas;
     if (c.width !== m.width * TS || c.height !== m.height * TS) { c.width = m.width * TS; c.height = m.height * TS; }
     const ctx = c.getContext('2d')!;
+    if (m.gba) {
+      // Mimas: the GBA layers, drawn the way the ROM builds them.
+      ctx.clearRect(0, 0, c.width, c.height);
+      drawMap(ctx, gbaView(m), tileLookup, TS / 16);
+      return;
+    }
     const at = (x: number, z: number): string => s.terrainAt(Math.max(0, Math.min(m.width - 1, x)), Math.max(0, Math.min(m.height - 1, z)));
     for (let z = 0; z < m.height; z++) for (let x = 0; x < m.width; x++) drawTile(ctx, s.terrainAt(x, z), x, z, x * TS, z * TS, at);
     // Update 153: a 3D model ground, seen from above (the tiles under it are hidden in the game).
@@ -1145,6 +1207,7 @@ export class MapView {
         let img: HTMLCanvasElement | null = null;
         const foe = page?.enemy ? s.db.enemies?.find((d) => d.id === page.enemy) : undefined;
         if (page?.enemy) { img = enemyImage(s.db, foe?.look ?? {}); if (img && foe?.tint) img = tintCanvas(img, foe.tint); }
+        else if (page?.gbaSprite) img = gbaFrame(page.gbaSprite, page.dir ?? 'down');
         else if (page?.character && s.db.characters[page.character]) img = characterImage(page.character, s.db.characters[page.character], page.dir ?? 'down');
         let iw = 0, ih = 0;
         if (img) { iw = img.width; ih = img.height; }
@@ -1162,7 +1225,7 @@ export class MapView {
     }
     items.sort((a, b) => a.z - b.z).forEach((it) => it.draw());
     ctx.globalAlpha = 1;
-    this.drawPassage(ctx);
+    if (m.gba) this.drawGbaOverlays(ctx); else this.drawPassage(ctx);
     this.drawZones(ctx);
     this.drawMarkers(ctx);
     this.drawLightIcons(ctx);
@@ -1170,6 +1233,53 @@ export class MapView {
     this.drawOverlays(ctx);
     this.drawLabels();
     this.onView(this.zoomPercent);
+  }
+
+  /** Mimas: blocked cells, passability marks, cliff tiers and the rectangle being drawn on the GBA layers. */
+  private drawGbaOverlays(ctx: CanvasRenderingContext2D): void {
+    const s = this.store, m = s.map, view = gbaView(m);
+    const text = (str: string, x: number, z: number, color: string, size = 0.55) => {
+      ctx.font = `bold ${TS * size}px sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = color;
+      ctx.fillText(str, x * TS + TS / 2, z * TS + TS / 2 + 0.5);
+    };
+    if (s.showBlocked || s.mode === 'gpass') {
+      const col = collision(view, tileLookup);
+      for (let z = 0; z < m.height; z++) for (let x = 0; x < m.width; x++) {
+        const v = col[z * m.width + x];
+        if (v & (LEDGE_S | LEDGE_E | LEDGE_W)) {
+          ctx.fillStyle = 'rgba(255,190,60,0.45)'; ctx.fillRect(x * TS, z * TS, TS, TS);
+          text(v & LEDGE_S ? '↓' : v & LEDGE_E ? '→' : '←', x, z, '#fff');
+        } else if (v & SOLID) {
+          ctx.fillStyle = v & WATER ? 'rgba(80,140,255,0.4)' : 'rgba(255,60,60,0.4)'; ctx.fillRect(x * TS, z * TS, TS, TS);
+        } else if (v & GRASS && s.showBlocked) {
+          ctx.fillStyle = 'rgba(120,255,120,0.18)'; ctx.fillRect(x * TS, z * TS, TS, TS);
+        }
+      }
+    }
+    if (s.mode === 'gpass') m.gba!.pass.forEach((row, z) => [...row].forEach((ch, x) => {
+      if (ch === '.') return;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x * TS + TS * 0.2, z * TS + TS * 0.2, TS * 0.6, TS * 0.6);
+      text(ch === 'O' ? 'O' : '✕', x, z, ch === 'O' ? '#8ef08e' : '#ff8a8a');
+    }));
+    if (s.mode === 'gcliff') {
+      for (let z = 0; z < m.height; z++) for (let x = 0; x < m.width; x++) { const lv = m.gba!.level[z][x]; if (lv) text(String(lv), x, z, 'rgba(255,255,255,0.6)', 0.4); }
+    }
+    const st = this.stroke;
+    if (st?.kind === 'gbarect') {
+      const [x0, x1] = [Math.min(st.from.x, st.to.x), Math.max(st.from.x, st.to.x)];
+      const [z0, z1] = [Math.min(st.from.z, st.to.z), Math.max(st.from.z, st.to.z)];
+      ctx.lineWidth = 2 / this.zoom;
+      ctx.strokeStyle = st.erase ? '#ff7b6b' : '#ffffff';
+      ctx.strokeRect(x0 * TS, z0 * TS, (x1 - x0 + 1) * TS, (z1 - z0 + 1) * TS);
+    } else if (this.hover && isGbaMode(s.mode)) {
+      const t = this.tile(this.hover);
+      const [w, hh] = s.gbaTool === 'erase' ? [1, 1] : stampSize(this.gbaBrush());
+      ctx.lineWidth = 1.5 / this.zoom;
+      ctx.strokeStyle = s.gbaTool === 'erase' ? '#ff7b6b' : 'rgba(255,255,255,0.85)';
+      ctx.strokeRect(t.x * TS, (t.z - (s.mode === 'gobjects' ? hh - 1 : 0)) * TS, w * TS, hh * TS);
+    }
   }
 
   private drawOverlays(ctx: CanvasRenderingContext2D): void {

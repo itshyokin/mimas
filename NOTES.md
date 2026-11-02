@@ -29,8 +29,20 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       studio); event commands Give item and Start battle (playtest: Saturn battle preview; ROM: a note), Show text
       speaker + word bubble (playtest and ROM); cell multi-select (drag / Shift-click with ⬚), Ctrl+C / X / V, Delete,
       Rotate ↺ / ↻, Labels toggle; ledges use all 15 cells (singles and an extra style).
+- [x] Update 6 (Nov 1): one map editor. The Mimas Map Editor paints the GBA layers (Ground, Paths & water, Cliffs,
+      Objects, Passability) in place of Saturn's terrain, heights, water, buildings and lights; Props, Events (pages,
+      switches, every command, area events) and Encounter zones stay Saturn's. Maps are Saturn map files with a `gba`
+      block; Starter Meadow moved there and is the start map; old maps: Map Properties → Convert to GBA map. GBA
+      Studio is tiles, sprites and palettes (no Maps tab). Event pages can show a GBA sprite. ▶ Playtest walks the
+      open GBA map. The exporter builds every map with a `gba` block.
 
 ## Next (agreed with the owner)
+- [ ] Update 7: the playtest runs Saturn's event interpreter (pages, conditions, switches, variables, choices,
+      items, shops…) on the GBA screen, with encounter zones; battles on a plain white Gold/Silver-style screen
+      using Saturn's battle rules (TurnBattle); built-in chiptune sounds.
+- [ ] Update 8+: the ROM: Saturn events compiled to a compact script, encounter zones, battles, sound (chip versions
+      of the built-in sounds on the GBA's sound chip; effect files as samples; music as tracker files), props drawn
+      into the map, and a GBA check panel listing what a map uses that the GBA can't do.
 - [ ] Tall grass rustle, water animation, Surf on water (needs a key item / ability), one-way passability arrows.
 - [ ] More event commands: choices, switches / variables, conditions, give item, move route, wait.
 - [ ] NPCs walking around (GBA Studio overworld sprites).
