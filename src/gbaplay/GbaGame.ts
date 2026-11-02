@@ -28,10 +28,16 @@ import { MessageWindow, type Speaker } from '../ui/MessageWindow';
 import { mainHero } from '../world/heroes';
 import { blockedTiles, PropCatalog } from '../world/props';
 import { pickTroop } from '../world/zones';
-import type { Command, Database, Dir, EnemyDef, EventData, EventPage, ItemDef, MapData } from '../world/types';
+import type { Command, Database, Dir, Element, EnemyDef, EventData, EventPage, ItemDef, MapData, MoveRef } from '../world/types';
 import { Menus } from './menus';
-import { battleMoves, battleNumbers, battleSpells, gainXp, loadMember, master, MAX_PARTY, maxOf, newMember, saveMember, type Member, type MemberSave } from './party';
+import { battleMoves, battleNumbers, battleSpells, gainXp, loadMember, MAX_PARTY, maxOf, newMember, saveMember, type Member, type MemberSave } from './party';
 import { GbaUi } from './ui';
+import { foeActions } from './foes';
+import { atLevel } from '../game/enemyLevels';
+import { effectFrames, moveEffects, type MoveLook } from '../gba/effects';
+
+/** A foe for a battle: which enemy, at what level, with which moves (unset: its own). */
+interface Foe { def: EnemyDef; level?: number; moves?: MoveRef[] }
 import './gba.css';
 
 const W = 240, H = 160, CELL = 16;
@@ -43,7 +49,7 @@ const OPPOSITE: Record<Dir, Dir> = { down: 'up', up: 'down', left: 'right', righ
 interface Pic { img: HTMLCanvasElement; w: number; h: number }
 
 /** An event on the map now: its active page, where it faces. */
-interface RtEvent { data: EventData; page: EventPage | null; selfId: string; dir: Dir }
+interface RtEvent { data: EventData; page: EventPage | null; selfId: string; dir: Dir; ox?: number; oz?: number; step?: number }
 
 interface Loaded {
   name: string;
@@ -509,9 +515,9 @@ class GbaGame {
       skillPoints: () => {},
       quest: () => {},
       battle: (c) => {
-        const foes = c.enemies.map((id) => this.db.enemies?.find((e) => e.id === id)).filter((d): d is EnemyDef => !!d);
+        const foes = c.enemies.flatMap((id, k): Foe[] => { const def = this.db.enemies?.find((e) => e.id === id); return def ? [{ def, level: c.team?.[k]?.level, moves: c.team?.[k]?.moves }] : []; });
         this.battleRules = { lose: c.lose, resultVar: c.resultVar };
-        this.startBattle(foes, c.canRun !== false, c.music);
+        this.startBattle(foes, c.canRun !== false, c.music, false);
       },
       learn: (c) => { void this.ui.run(() => this.learn(c)); return null; },
       heroClass: () => null,
@@ -572,7 +578,8 @@ class GbaGame {
     return { battler, view, who };
   }
 
-  startBattle(foes: EnemyDef[], canRun = true, music?: string): void {
+  startBattle(list: (EnemyDef | Foe)[], canRun = true, music?: string, wild = true): void {
+    const foes: Foe[] = list.map((f) => ('def' in f ? f : { def: f }));
     if (!foes.length || this.battle.active || this.battlePending) return;
     this.battlePending = true;
     this.audio.play('encounter');
@@ -587,21 +594,27 @@ class GbaGame {
       this.battleFoes.clear();
       this.earned = new Map();
       const entries: BattleEntry[] = [this.memberEntry(lead)];
+      const waiting: BattleEntry[] = [];
       const counts = new Map<string, number>(), seen = new Map<string, number>();
-      for (const d of foes) counts.set(d.id, (counts.get(d.id) ?? 0) + 1);
-      foes.slice(0, 3).forEach((d, i) => {
+      for (const f of foes) counts.set(f.def.id, (counts.get(f.def.id) ?? 0) + 1);
+      // Pokémon-style: one foe out at a time, the next stepping in as each falls (up to six).
+      foes.slice(0, 6).forEach((f, i) => {
+        const base = f.def, level = f.level ?? base.level ?? 1;
+        const d = atLevel(base, level, this.cfg.enemyGrowth);
+        const actions = foeActions(this.db, base, level, f.moves);
         const k = seen.get(d.id) ?? 0;
         seen.set(d.id, k + 1);
         const name = (counts.get(d.id) ?? 0) > 1 ? `${d.name} ${String.fromCharCode(65 + k)}` : d.name;
         const v = Math.max(0, Math.min(0.9, (d.hpVariance ?? 0) / 100)), maxHp = Math.max(1, Math.round(d.hp * (1 - v + Math.random() * 2 * v)));
         const battler: Battler = {
-          key: `e${i}`, side: 'enemy', name, hp: maxHp, maxHp, mp: 0, maxMp: 0, spread: (d.damageVariance ?? 10) / 100,
+          key: `e${i}`, side: 'enemy', name, hp: maxHp, maxHp, mp: d.mp ?? 0, maxMp: d.mp ?? 0, spread: (d.damageVariance ?? 10) / 100,
           attack: d.damage, attackElement: enemyElement(d), attackMagic: d.attackType === 'magic',
           armour: d.defense ?? 0, magicArmour: d.magicDefense ?? d.defense ?? 0, agility: enemyAgility(d), baseAgility: enemyAgility(d), crit: d.crit ?? 5,
           accuracy: d.accuracy, evasion: d.evasion, spellEvasion: d.spellEvasion, resist: d.ailmentResist, impact: impactOf(d),
           defence: d, spells: [], ct: 0, guarding: false, boss: d.boss,
           status: new BattleStatus(d.resists ?? [], !!d.boss, !!d.undead), inflicts: d.inflicts,
-          actions: d.actions, attackWeight: d.attackWeight, counterspell: d.counterspell,
+          // With moves it only uses them (its plain attack is the fallback when nothing else is possible).
+          actions: actions.length ? actions : d.actions, attackWeight: actions.length ? 0 : d.attackWeight, counterspell: d.counterspell,
         };
         const pic = this.pics.get(`enemy:${d.id}`)?.img ?? document.createElement('canvas');
         const big = document.createElement('canvas');
@@ -611,12 +624,112 @@ class GbaGame {
         g.imageSmoothingEnabled = false;
         g.drawImage(pic, 0, 0, big.width, big.height);
         this.battleFoes.set(battler.key, d);
-        entries.push({ battler, view: { key: battler.key, side: 'enemy', name, level: d.level, picture: big, icon: '', scale: d.scale, elements: d.elements }, ref: d });
+        const entry: BattleEntry = { battler, view: { key: battler.key, side: 'enemy', name, level, picture: big, icon: '', scale: d.scale, elements: d.elements }, ref: d };
+        if (i === 0) entries.push(entry); else waiting.push(entry);
       });
-      this.battle.start(entries, this.cfg.turnBased, 'normal', { canRun });
+      void wild;
+      this.battle.start(entries, this.cfg.turnBased, 'normal', { canRun, waiting });
     }, 500);
   }
   flash = 0;
+  /** A trainer showing its (!). */
+  exclaim: RtEvent | null = null;
+  lastOutcome: 'victory' | 'defeat' | 'fled' | null = null;
+
+  /** Frames from now (the update loop's), for flows that animate. */
+  frames(n: number): Promise<void> { const until = this.tick + n; return this.ui.until(() => this.tick >= until); }
+
+  /** A trainer who sees the player: in a straight line the way it faces, within its range, nothing solid between. */
+  spotted(): RtEvent | null {
+    for (const e of this.cur.events) {
+      const t = e.page?.trainer;
+      if (!t || !t.team.length) continue;
+      if (this.state.getSwitch(GameState.selfKey(e.selfId, t.beaten ?? 'D'))) continue;
+      let x = e.data.x, z = e.data.z;
+      for (let k = 1; k <= Math.max(1, t.range); k++) {
+        x += DX[e.dir]; z += DZ[e.dir];
+        if (x === this.cx && z === this.cz) return e;
+        if (!this.inside(x, z) || this.cur.coll[z * this.cur.data.width + x] & SOLID || this.cur.propBlock.has(z * this.cur.data.width + x)) break;
+      }
+    }
+    return null;
+  }
+
+  /** (!), it walks up, says its line, the battle; beaten: its self switch, its line and the prize. */
+  async trainerBattle(e: RtEvent): Promise<void> {
+    const t = e.page!.trainer!;
+    this.music('builtin:battle', 'battle', 0.3);
+    this.exclaim = e;
+    this.audio.play('target');
+    await this.frames(45);
+    this.exclaim = null;
+    // Walk up to the player, one cell at a time.
+    const dist = Math.abs(this.cx - e.data.x) + Math.abs(this.cz - e.data.z);
+    for (let k = 0; k < dist - 1; k++) {
+      for (let f = 1; f <= CELL; f++) {
+        e.ox = (e.ox ?? 0) + DX[e.dir]; e.oz = (e.oz ?? 0) + DZ[e.dir];
+        e.step = f < CELL / 2 ? 1 + (k & 1) : 0;
+        await this.frames(1);
+      }
+    }
+    e.step = 0;
+    // It stays where it stopped.
+    e.data.x += Math.round((e.ox ?? 0) / CELL); e.data.z += Math.round((e.oz ?? 0) / CELL);
+    e.ox = e.oz = 0;
+    this.dir = OPPOSITE[e.dir];
+    if (t.intro) { this.runningEvent = e; await this.ui.say(t.intro); this.runningEvent = null; }
+    const foes = t.team.flatMap((m): Foe[] => { const def = this.db.enemies?.find((x) => x.id === m.enemy); return def ? [{ def, level: m.level, moves: m.moves }] : []; });
+    this.battleRules = { lose: 'respawn' };
+    this.lastOutcome = null;
+    this.startBattle(foes, false, undefined, false);
+    await this.ui.until(() => !this.battle.active && !this.battlePending && this.lastOutcome !== null);
+    if (this.lastOutcome !== 'victory') return;
+    this.state.setSwitch(GameState.selfKey(e.selfId, t.beaten ?? 'D'), true);
+    if (t.lose) await this.ui.say(t.lose);
+    if (t.gold) { this.inventory.gold += t.gold; this.audio.play('coin'); await this.ui.say(`Got $${t.gold} for winning!`); }
+    this.refreshEvents();
+  }
+
+  /** Effect frames by sprite and element (recoloured once). */
+  private fxCache = new Map<string, HTMLCanvasElement[]>();
+
+  /**
+   * A move's animation over a fighter: its hit (in its element's colours) then its burst, 10 frames a second, each
+   * with its sound. Returns how long it runs.
+   */
+  playEffect(look: MoveLook, kind: 'addition' | 'spell' | 'heal', target: string, element: Element): number {
+    const rect = this.battleScreen.fighterRect(target);
+    const { hit, burst } = moveEffects({ element, ...look }, kind);
+    const seq: { frames: HTMLCanvasElement[]; sound?: string }[] = [];
+    for (const [id, el] of [[hit, look.element ?? element], [burst, 'neutral']] as [string | null, Element][]) {
+      const sp = id ? this.gba.sprites.find((x) => x.id === id && x.kind === 'effect') : undefined;
+      const sheet = sp ? this.images.get(sp.image) : undefined;
+      if (!sp || !sheet) continue;
+      const key = `${sp.id}:${el}`;
+      if (!this.fxCache.has(key)) this.fxCache.set(key, effectFrames(sheet, sp, this.gba, el));
+      seq.push({ frames: this.fxCache.get(key)!, sound: sp.sound });
+    }
+    if (!rect || !seq.length) return 0;
+    const size = Math.max(rect.width, rect.height) * 1.15;
+    const c = document.createElement('canvas');
+    c.width = 64; c.height = 64;
+    c.className = 'gba-fx';
+    Object.assign(c.style, { left: `${rect.left + rect.width / 2 - size / 2}px`, top: `${rect.top + rect.height / 2 - size / 2}px`, width: `${size}px`, height: `${size}px` });
+    document.body.append(c);
+    const g = c.getContext('2d')!;
+    const all = seq.flatMap((p, k) => p.frames.map((f, i) => ({ f, sound: i === 0 ? seq[k].sound : undefined })));
+    let i = 0;
+    const step = () => {
+      if (i >= all.length) { c.remove(); return; }
+      g.clearRect(0, 0, 64, 64);
+      g.drawImage(all[i].f, 0, 0);
+      if (all[i].sound) this.audio.play(all[i].sound!);
+      i++;
+      window.setTimeout(step, 90);
+    };
+    step();
+    return all.length * 0.09;
+  }
 
   battleHost(): BattleHost {
     const earn = (who: number, xp: number) => this.earned.set(who, (this.earned.get(who) ?? 0) + xp);
@@ -674,7 +787,8 @@ class GbaGame {
         }
         return { level, frac: 1 };
       },
-      mastered: (who, id) => { const m = this.party[who]; return m ? master(this.db, m, id) : null; },
+      // (Moves don't rank up in the GBA game.)
+      effect: (look, kind, target, element) => this.playEffect(look, kind, target, element),
       victory: (beaten) => {
         const foes = beaten as EnemyDef[];
         const gold = foes.reduce((n, d) => n + Math.max(0, (d as { gold?: number }).gold ?? 0), 0);
@@ -703,6 +817,7 @@ class GbaGame {
       },
       fanfare: () => this.audio.music('builtin:victory', 0.2),
       finished: (outcome) => {
+        this.lastOutcome = outcome;
         this.grace = this.cfg.turnBased.grace || 3;
         this.walked = 0;
         this.battleFoes.clear();
@@ -791,7 +906,8 @@ class GbaGame {
       this.input.endFrame();
       return;
     }
-    this.interp.update(dt);
+    // (Only while an event runs: an idle interpreter closes the text box, which menus and trainers use too.)
+    if (this.interp.running) this.interp.update(dt);
     if (!this.interp.running) this.runningEvent = null;
     this.message.update(dt);
     this.message.position();
@@ -800,6 +916,9 @@ class GbaGame {
     this.input.mode = free ? 'field' : 'menu';
 
     if (free && this.moving === 0) {
+      // A trainer who sees the player.
+      const tr = this.spotted();
+      if (tr) { void this.ui.run(() => this.trainerBattle(tr)); this.input.endFrame(); return; }
       // START: the menu.
       if (this.input.consume('settings')) { this.input.consume('ok'); void this.menus.start(); this.input.endFrame(); return; }
       // autorun events
@@ -874,10 +993,10 @@ class GbaGame {
     for (const e of this.cur.events) {
       const pg = e.page;
       if (!pg) continue;
-      const d = e.data, cx = (d.x + (d.w ?? 1) / 2) * CELL, foot = (d.z + (d.h ?? 1)) * CELL;
+      const d = e.data, cx = (d.x + (d.w ?? 1) / 2) * CELL + (e.ox ?? 0), foot = (d.z + (d.h ?? 1)) * CELL + (e.oz ?? 0);
       if (pg.gbaSprite) {
         const sp = this.gba.sprites.find((s) => s.id === pg.gbaSprite), sheet = sp ? this.images.get(sp.image) : undefined;
-        if (sheet) items.push({ z: d.z + 0.5, draw: () => this.drawFrame(sheet, ROW[e.dir], 0, e.dir === 'right', Math.round(cx - 8 - camX), foot - 32 - camZ) });
+        if (sheet) items.push({ z: d.z + 0.5, draw: () => this.drawFrame(sheet, ROW[e.dir], e.step ?? 0, e.dir === 'right', Math.round(cx - 8 - camX), foot - 32 - camZ) });
       } else if (pg.character) {
         const pic = this.pics.get(`char:${pg.character}:${e.dir}`);
         if (pic) items.push({ z: d.z + 0.5, draw: () => g.drawImage(pic.img, Math.round(cx - pic.w / 2 - camX), foot - pic.h - camZ, pic.w, pic.h) });
@@ -898,6 +1017,14 @@ class GbaGame {
     } });
     items.sort((a, b) => a.z - b.z).forEach((it) => it.draw());
     g.drawImage(this.cur.over, -camX, -camZ);
+    // A trainer's (!): a little white bubble over its head.
+    if (this.exclaim) {
+      const e = this.exclaim, d = e.data, tall = e.page?.gbaSprite || e.page?.character ? 32 : 16;
+      const x = Math.round((d.x + (d.w ?? 1) / 2) * CELL + (e.ox ?? 0) - camX), y = Math.round((d.z + (d.h ?? 1)) * CELL + (e.oz ?? 0) - tall - 14 - camZ);
+      g.fillStyle = '#303038'; g.fillRect(x - 6, y - 1, 12, 14);
+      g.fillStyle = '#f8f8f8'; g.fillRect(x - 5, y, 10, 12);
+      g.fillStyle = '#d03030'; g.fillRect(x - 1, y + 2, 2, 6); g.fillRect(x - 1, y + 9, 2, 2);
+    }
 
     if (this.banner > 0 && !this.message.isOpen) {
       g.font = '10px "Game Pixel", monospace';

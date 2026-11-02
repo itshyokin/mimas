@@ -89,6 +89,7 @@ export function battleMoves(db: Database, m: Member): BattleAddition[] {
     if (!d) return [];
     const uses = m.abil.additions?.[id] ?? 0, rank = additionRank(d, uses), bonus = additionBonus(d, rank);
     return [{ id: d.id, name: d.name, sound: d.sound, rank, maxRank: d.maxRank ?? 5, toNext: additionToNext(d, uses), damage: bonus.damage,
+      element: d.element, inflicts: d.inflicts, look: { effect: d.effect, burst: d.burst, element: d.element, inflicts: d.inflicts },
       strikes: d.strikes.map((x) => ({ power: x.power, button: x.button ?? 'A', time: Math.max(0.25, Math.min(0.45, x.time ?? 0.45)), window: Math.max(0.06, (x.window ?? 0.24) * bonus.window) })) }];
   });
 }
@@ -100,7 +101,8 @@ export function battleSpells(db: Database, m: Member, items: Items): BattleSpell
     if (known < 1) return [];
     const ranks = Array.from({ length: known }, (_, i) => { const at = spellAtRank(s, i + 1); return { rank: i + 1, name: rankName(s.name, i + 1), power: at.power * power, mp: at.mp, charge: at.charge }; });
     return [{ id: s.id, name: s.name, icon: s.icon, iconTint: s.iconTint, description: s.description, sound: s.sound, kind: s.kind, element: s.element ?? 'neutral', color: s.color, targets: s.targets ?? 'one',
-      inflicts: s.inflicts, ranks, buffs: s.buffs, supportTarget: s.supportTarget, weather: s.weather, weatherTurns: s.weatherTurns, accuracy: s.accuracy, sure: s.sure }];
+      inflicts: s.inflicts, ranks, buffs: s.buffs, supportTarget: s.supportTarget, weather: s.weather, weatherTurns: s.weatherTurns, accuracy: s.accuracy, sure: s.sure,
+      look: { effect: s.effect, burst: s.burst, element: s.element, inflicts: s.inflicts } }];
   });
 }
 

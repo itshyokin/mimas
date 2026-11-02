@@ -2,6 +2,8 @@
  * Event command list: a readable outline of an event's commands (with nested branches)
  * and a form dialog for each command type.
  */
+import { teamEditor } from './moveFields';
+import type { TeamMember } from '../world/types';
 import { itemSections } from './itemSections';
 import { findHorse, horseList, stars } from '../game/horses';
 import type { EncounterPick } from '../world/types';
@@ -780,13 +782,12 @@ export class CommandEditor {
         return [field('Skill points', numberInput(d.value, (v) => (d.value = Math.round(v)), { step: 1 }), 'A quest reward. Negative takes points away.'),
           checkbox('Party points (for the Party skill tree everyone shares)', !!d.party, (v) => { if (v) d.party = true; else delete d.party; })];
       case 'battle': {
-        const enemies = (this.store.db.enemies ?? []).map((e) => [e.id, e.name] as [string, string]);
-        const list = h('div', { class: 'battle-foes' });
-        const render = () => list.replaceChildren(...d.enemies.map((id, k) => h('div', { class: 'field-row' },
-          select(enemies.length ? enemies : [['', '(add enemies in Database → Enemies)']], id, (v) => (d.enemies[k] = v), { 'aria-label': `Enemy ${k + 1}` }),
-          h('button', { type: 'button', class: 'mini-btn', 'aria-label': `Remove enemy ${k + 1}`, onclick: () => { d.enemies.splice(k, 1); render(); } }, '✕'))),
-          d.enemies.length < 4 && enemies.length ? h('button', { type: 'button', class: 'btn', onclick: () => { d.enemies.push(d.enemies[d.enemies.length - 1] ?? enemies[0][0]); render(); } }, '+ Add enemy') : h('span'));
-        render();
+        // Each foe with its level and (optionally) its own moves (Mimas, GBA): `team` follows `enemies`.
+        const team: TeamMember[] = d.enemies.map((id, k) => ({ ...(d.team?.[k] ?? {}), enemy: id }));
+        const list = teamEditor(this.store.db, team, (t) => {
+          d.enemies = t.map((m) => m.enemy);
+          if (t.some((m) => m.level !== undefined || m.moves)) d.team = t.map((m) => ({ ...m })); else delete d.team;
+        });
         return [list,
           field('In Single battle mode', select([['', 'The map’s default'], ...[['random', 'Wild encounter: one at random'], ['oneByOne', 'Trainer battle: one at a time'], ['full', 'Swarm: all at once']]] as [string, string][], d.pick ?? '', (v) => { if (v) d.pick = v as EncounterPick; else delete d.pick; }),
             'Wild: one of these, at random. Trainer: one at a time, the next stepping in as each falls (up to 4). Swarm: all at once (3 at most). Group battle mode fights the first three together.'),

@@ -90,6 +90,11 @@ export interface BattleHost {
   /** Party member `who` landed an Addition strike on `foe` (or `complete`d one): bonus EXP for it. */
   strikeExp?(who: number, foe: string, result: 'perfect' | 'good' | 'complete'): number;
   log(text: string): void;
+  /**
+   * Mimas: play a move's animation over `target` (its hit in the element's colours, then its burst, with their
+   * sounds). Returns how long it takes (s), so the damage lands as it ends.
+   */
+  effect?(look: import('../../gba/effects').MoveLook, kind: 'addition' | 'spell' | 'heal', target: string, element: Element): number;
   /** Relationships (Update 124): `rater` warms to `rated` (party indexes: 0 the hero, 1… members). */
   bond?(kind: import('../../world/types').RelationKind, rater: number, rated: number): void;
   /** The battle began (relationship caps reset). */
@@ -618,7 +623,8 @@ export class TurnBattle {
     // A ranged plain attack fires from where they stand; otherwise run in and swing.
     this.screen.animate(b.key, b.shoots ? 'shot' : 'lunge', undefined, t.key);
     this.host.sound(b.shoots ? 'shoot' : 'swing');
-    this.later(0.28, () => {
+    const fx = this.host.effect?.({ effect: b.shoots ? 'fx_pierce' : 'fx_hit', element: b.attackElement, inflicts: b.inflicts }, 'addition', t.key, b.attackElement) ?? 0;
+    this.later(0.28 + fx, () => {
       if (b.side === 'party') this.host.attackVoice?.(this.entry(b).who ?? 0);
       this.hit(b, t, b.attack, b.attackElement, b.attackMagic, b.inflicts);
       this.endTurn(b, RANK.attack, 0.75);
@@ -746,7 +752,9 @@ export class TurnBattle {
     // A spell addition's result: stronger or weaker; support spells set to "last longer" gain a turn (or two rounds of weather) when clean.
     const mult = cast?.mult ?? 1, longer = !!cast?.clean && s.seqBonus === 'longer';
     const buffs = !cast || !s.buffs ? s.buffs : s.buffs.map((g) => (longer ? (g.whole ? g : { ...g, turns: (g.turns ?? BUFF_TURNS) + 1 }) : s.seqBonus === 'longer' ? g : { ...g, amount: Math.max(1, Math.round((g.amount ?? BUFF_INFO[g.buff].amount) * mult)) }));
-    this.later(0.4, () => {
+    // Mimas: its animation over each target first; it takes effect as that ends.
+    const fx = targets.filter(isUp).reduce((m, t) => Math.max(m, this.host.effect?.(s.look ?? { element: s.element, inflicts: s.inflicts }, s.kind === 'bolt' ? 'spell' : 'heal', t.key, s.element) ?? 0), 0);
+    this.later(0.4 + fx, () => {
       // A Magic buff (or debuff) on the caster makes the spell stronger (or weaker).
       const power = r.power * spellBoost(b) * mult;
       for (const t of targets) {
@@ -791,6 +799,8 @@ export class TurnBattle {
         return;
       }
       let landed = 0, power = 0;
+      const element = a.element ?? b.attackElement, inflicts = a.inflicts ?? b.inflicts;
+      const fxEnd = performance.now() + (this.host.effect?.(a.look ?? {}, 'addition', t.key, element) ?? 0) * 1000;
       this.screen.startQte(t.key, a.strikes.map((x) => ({ button: x.button, time: x.time, window: x.window })), this.cfg.additionTiming === 'auto',
         (i: number, r: QteResult) => {
           const st = a.strikes[i];
@@ -814,20 +824,29 @@ export class TurnBattle {
           this.host.tally?.('additions'); this.host.tally?.(`addition:${a.id}`);
           // The damage, all at once, as the string ends.
           // (It already got past their guard: no second roll to miss.)
-          if (power > 0 && isUp(t)) { this.aim = { sure: true, spellSure: true }; this.hit(b, t, power, b.attackElement, b.attackMagic, complete ? b.inflicts : undefined); this.aim = {}; }
-          if (complete) {
-            this.expPop(b, this.host.strikeExp?.(this.entry(b).who ?? 0, t.key, 'complete') ?? 0);
-            if (a.sound) this.host.voice?.(a.sound); else this.host.attackVoice?.(this.entry(b).who ?? 0);
-            this.screen.popup(b.key, a.strikes.length > 1 ? `${a.name}!` : 'Complete!', 'info');
-            const up = this.host.mastered?.(this.entry(b).who ?? 0, a.id) ?? null;
-            if (up) { this.screen.popup(b.key, `${a.name} rank ${up}!`, 'info'); this.say(`${b.name}’s ${a.name} reached rank ${up}`); this.host.sound('levelUp'); a.rank = up; }
-          } else if (power > 0) this.host.attackVoice?.(this.entry(b).who ?? 0);
-          // A moment to take it in, then back to their place (the camera with them).
-          this.later(this.hold(1.6), () => {
-            this.screen.animate(b.key, 'back');
-            this.later(0.5, () => { this.screen.shot(null); this.endTurn(b, RANK.attack, 0.3); });
-          });
+          const land = () => { if (power > 0 && isUp(t)) { this.aim = { sure: true, spellSure: true }; this.hit(b, t, power, element, b.attackMagic, complete ? inflicts : undefined); this.aim = {}; } };
+          // (Mimas: the damage lands as its animation ends.)
+          const wait = Math.max(0, (fxEnd - performance.now()) / 1000);
+          const go = () => this.finishAddition(b, a, t, complete, power, land);
+          if (wait > 0.05) this.later(wait, go); else go();
         });
+    });
+  }
+
+  /** An Addition's string has ended: its damage lands, the call-out, then back to their place. */
+  private finishAddition(b: Battler, a: BattleAddition, t: Battler, complete: boolean, power: number, land: () => void): void {
+    land();
+    if (complete) {
+      this.expPop(b, this.host.strikeExp?.(this.entry(b).who ?? 0, t.key, 'complete') ?? 0);
+      if (a.sound) this.host.voice?.(a.sound); else this.host.attackVoice?.(this.entry(b).who ?? 0);
+      if (!this.host.effect) this.screen.popup(b.key, a.strikes.length > 1 ? `${a.name}!` : 'Complete!', 'info');
+      const up = this.host.mastered?.(this.entry(b).who ?? 0, a.id) ?? null;
+      if (up) { this.screen.popup(b.key, `${a.name} rank ${up}!`, 'info'); this.say(`${b.name}’s ${a.name} reached rank ${up}`); this.host.sound('levelUp'); a.rank = up; }
+    } else if (power > 0) this.host.attackVoice?.(this.entry(b).who ?? 0);
+    // A moment to take it in, then back to their place (the camera with them).
+    this.later(this.hold(1.6), () => {
+      this.screen.animate(b.key, 'back');
+      this.later(0.5, () => { this.screen.shot(null); this.endTurn(b, RANK.attack, 0.3); });
     });
   }
 
@@ -966,7 +985,8 @@ export class TurnBattle {
       if (!this.screen.pocket) this.screen.message(`${e.name} attacks!`);
       this.screen.animate(e.key, 'lunge', undefined, t.key);
       this.host.sound('swing');
-      this.later(0.3, () => { this.hit(e, t, e.attack, e.attackElement, e.attackMagic, e.inflicts, undefined, !!e.counterspell); this.endTurn(e, RANK.attack, 0.8); });
+      const fx = this.host.effect?.({ effect: 'fx_hit', element: e.attackElement, inflicts: e.inflicts }, 'addition', t.key, e.attackElement) ?? 0;
+      this.later(0.3 + fx, () => { this.hit(e, t, e.attack, e.attackElement, e.attackMagic, e.inflicts, undefined, !!e.counterspell); this.endTurn(e, RANK.attack, 0.8); });
       return;
     }
     if (!this.screen.pocket) this.screen.message(`${e.name}: ${a.name || this.actionWord(a)}`);
@@ -975,7 +995,9 @@ export class TurnBattle {
       const color = BUFF_INFO[a.buffs?.[0]?.buff ?? 'str'].color;
       this.screen.animate(e.key, 'cast', color);
       this.host.sound('ringOn');
-      this.later(0.45, () => {
+      if (a.mp) e.mp = Math.max(0, e.mp - a.mp);
+      const fx = a.look ? move.targets.reduce((m, t) => Math.max(m, this.host.effect?.(a.look!, 'heal', t.key, a.element ?? 'neutral') ?? 0), 0) : 0;
+      this.later(0.45 + fx, () => {
         for (const t of move.targets) if (isUp(t) && a.buffs?.length) this.giveBuffs(e, t, a.buffs);
         if (a.weather) this.setWeather(a.weather, a.weatherTurns ?? 5);
         this.endTurn(e, RANK.magic, 0.8);
@@ -986,14 +1008,18 @@ export class TurnBattle {
       const t = move.targets[0];
       this.screen.animate(e.key, 'cast', '#9dffb0');
       this.host.sound('ringOn');
-      this.later(0.4, () => { this.heal(e, t, healAmount(t.maxHp * (a.power ?? 30) / 100, t)); this.endTurn(e, RANK.magic, 0.8); });
+      if (a.mp) e.mp = Math.max(0, e.mp - a.mp);
+      const fx = a.look ? this.host.effect?.(a.look, 'heal', t.key, a.element ?? 'neutral') ?? 0 : 0;
+      this.later(0.4 + fx, () => { this.heal(e, t, healAmount(t.maxHp * (a.power ?? 30) / 100, t)); this.endTurn(e, RANK.magic, 0.8); });
       return;
     }
     const magic = a.kind === 'spell';
     const element: Element = a.element ?? e.attackElement;
+    if (a.mp) e.mp = Math.max(0, e.mp - a.mp);
+    const fx = a.look ? move.targets.filter(isUp).reduce((m, t) => Math.max(m, this.host.effect?.({ element, inflicts: a.inflicts, ...a.look }, magic ? 'spell' : 'addition', t.key, element) ?? 0), 0) : 0;
     this.screen.animate(e.key, magic ? 'cast' : 'lunge', magic ? ELEMENT_COLORS[element] : undefined, move.targets.length === 1 ? move.targets[0].key : undefined);
     this.host.sound(magic ? 'fire' : 'swing');
-    this.later(magic ? 0.45 : 0.3, () => {
+    this.later((magic ? 0.45 : 0.3) + fx, () => {
       for (const t of move.targets) if (isUp(t)) this.hit(e, t, e.attack * (a.power ?? 1), element, magic, a.inflicts ?? (magic ? undefined : e.inflicts), undefined, !!a.counterspell);
       this.endTurn(e, magic ? RANK.magic : RANK.attack, 0.85);
     });

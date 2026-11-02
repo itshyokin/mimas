@@ -2,6 +2,7 @@
  * Database → Combat (battles, weapon damage, the sword, bow and spells on the map, forges, levels)
  * and Database → Enemies (the list of enemy types with a form for the selected one).
  */
+import { enemyMovesSection } from './moveFields';
 import { itemSections } from './itemSections';
 import { ailmentChips, buffsField, inflictsField, weatherField } from './statusFields';
 import type { Ailment } from '../world/types';
@@ -385,6 +386,7 @@ function enemyForm(store: EditorStore, list: EnemyDef[], d: EnemyDef, rerender: 
       field('Can’t get', ailmentChips(() => d.resists, (v) => { if (v) d.resists = v as Ailment[]; else delete d.resists; }, rerender, 'Can’t get'))),
     h('div', { class: 'field-row' }, field('Its attacks hit with', elementSelect(d.attackElement, (e) => { if (e) d.attackElement = e; else delete d.attackElement; }, 'Attack element', { auto: d.elements?.[0] ? `Its element (${ELEMENT_NAMES[d.elements[0]]})` : 'Its element (non-elemental)' }))),
     battleActions(d, rerender),
+    enemyMovesSection(store.db, d, rerender),
     h('section', { class: 'db-section' }, h('h3', {}, 'Senses'),
       h('div', { class: 'field-row' },
         field('Sight (tiles)', n(d.sight, (v) => (d.sight = v), 0.5, 1), 'In full light. Darkness and sneaking shorten it a lot.'),

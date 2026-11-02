@@ -17,6 +17,9 @@ import { SAMPLE_SHAPE, drawQuarters, quarters } from '../gba/autotile';
 import { loadGba, setGba } from './gbaShared';
 import { openDatabase } from './DatabaseEditor';
 import { saveDatabase } from './io';
+import { soundField } from './CommandEditor';
+import { ELEMENT_RAMPS, effectFrames } from '../gba/effects';
+import type { Element } from '../world/types';
 import {
   CELL, SPRITE_KINDS, TILE_TYPES, defaultGbaData, gbaColor, hexToRgb, ledgeCell, tileSize,
   type GbaData, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
@@ -143,6 +146,8 @@ class Studio {
   previewGround = '';
   previewRun = false;
   previewPose = 0;
+  /** Effects: the element a hit is previewed in. */
+  previewElement: Element = 'neutral';
   /** The selected cells (column, row): from cellSel to cellEnd. Follows the last cell clicked; drag with ⬚ for more. */
   cellSel: [number, number] = [0, 0];
   cellEnd: [number, number] = [0, 0];
@@ -1100,6 +1105,9 @@ class Studio {
     if (it.kind === 'sprite' && it.s.kind === 'overworld') {
       previewOpts.append(checkbox('Show running', this.previewRun, (v) => { this.previewRun = v; }));
     }
+    if (it.kind === 'sprite' && it.s.kind === 'effect' && it.s.role !== 'burst') {
+      previewOpts.append(field('Preview as', select((Object.keys(ELEMENT_RAMPS) as Element[]).map((e): [string, string] => [e, e === 'neutral' ? 'No element (greys)' : e[0].toUpperCase() + e.slice(1)]), this.previewElement, (v) => { this.previewElement = v as Element; this.drawPreview(); }), 'A hit takes the colours of the move’s element.'));
+    }
     if (it.kind === 'sprite' && it.s.kind === 'backsprite') {
       previewOpts.append(field('Pose', select(SPRITE_KINDS.backsprite.colLabels.map((l, i): [string, string] => [String(i), l]), String(this.previewPose), (v) => { this.previewPose = Number(v); this.drawPreview(); })));
     }
@@ -1194,6 +1202,14 @@ class Studio {
         this.touch();
         this.renderList();
       }));
+    }
+    if (s.kind === 'effect') {
+      box.append(
+        field('Role', select([['hit', 'A hit (drawn in greys; takes the move’s element colours)'], ['burst', 'A burst (its own colours; played after elemental moves)']], s.role ?? 'hit', (v) => { s.role = v === 'burst' ? 'burst' : 'hit'; this.touch(); this.render(); })),
+        s.role === 'burst' ? field('Element', select([['', '(none: picked by moves)'], ...Object.keys(ELEMENT_RAMPS).filter((e) => e !== 'neutral').map((e): [string, string] => [e, e[0].toUpperCase() + e.slice(1)]), ['ice', 'Ice (chill)'], ['poison', 'Poison']], s.element ?? '', (v) => { if (v) s.element = v; else delete s.element; this.touch(); }), 'Moves of this element play it after their hit.') : h('span'),
+        field('Frames used', numberInput(s.frames ?? 6, (v) => { s.frames = Math.max(1, Math.min(6, Math.round(v))); this.touch(); }, { min: 1, max: 6, step: 1 }), 'Played left to right, about 10 a second.'),
+        soundField('Sound', s.sound, (v) => { if (v) s.sound = v; else delete s.sound; this.touch(); }, 'Plays with it (built-in sounds go in the ROM as Game Boy-style chip sounds).'),
+        h('p', { class: 'hint' }, 'Database → Additions and Spells choose a hit and a burst for each move.'));
     }
     box.append(this.itemButtons({ kind: 'sprite', s }));
     return box;
@@ -1366,6 +1382,20 @@ class Studio {
         c.drawImage(img, col * k.frameW, row * k.frameH, k.frameW, k.frameH, 0, 0, k.frameW * S, k.frameH * S);
         c.restore();
       });
+      return;
+    }
+    if (s.kind === 'effect') {
+      // On the white battle screen, over a stand-in foe, playing on a loop.
+      const frames = effectFrames(img, s, this.data, this.previewElement);
+      const S2 = 3;
+      pc.width = 64 * S2; pc.height = 64 * S2;
+      c.imageSmoothingEnabled = false;
+      c.fillStyle = '#f8f8f8';
+      c.fillRect(0, 0, pc.width, pc.height);
+      c.fillStyle = '#d8d8e0';
+      c.beginPath(); c.ellipse(32 * S2, 52 * S2, 18 * S2, 5 * S2, 0, 0, Math.PI * 2); c.fill();
+      const f = Math.floor(tick / 1) % (frames.length + 3);
+      if (f < frames.length) c.drawImage(frames[f], 0, 0, 64 * S2, 64 * S2);
       return;
     }
     const S = 2;

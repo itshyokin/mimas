@@ -16,6 +16,7 @@ import { treePreview } from './SkillsEditor';
 import { iconGrid, tintRow } from './ItemsEditor';
 import { builtinIcon, builtinIconName } from '../art/itemIcons';
 import { elementIconUrl } from '../art/elementIcons';
+import { effectFields } from './moveFields';
 
 const n = (v: number, set: (x: number) => void, step = 1, min = 0, label = '') => numberInput(v, (x) => set(Math.max(min, x)), { step, min, 'aria-label': label, class: 'db-num' });
 
@@ -63,6 +64,7 @@ export function spellsTab(list: SpellEntry[], state: { sel: number }, rerender: 
       spellIconField(d, rerender),
       soundField('Call-out', d.sound, (v) => { d.sound = v; }, 'Turn-based: what the caster says as it goes off (“Fire!”). Import voice clips in Database → Audio.'),
       soundField('Chant', d.chant, (v) => { d.chant = v; }, 'Played as they begin a spell that charges (Charges above 0).'),
+      h('section', { class: 'db-section' }, h('h3', {}, 'Animation (GBA)'), effectFields(d, d.kind === 'heal' || d.kind === 'support' ? 'heal' : 'spell', rerender)),
       h('div', { class: 'field-row' },
         field('Kind', select([['bolt', 'Attack spell (a magic hit; in action mode, the bolt the spell button throws)'], ['heal', 'Healing (health back for the party)'], ['support', 'Support (turn-based): buffs, debuffs or weather (Haste, Slow, Rain…)']], d.kind, (v) => { d.kind = v as SpellEntry['kind']; rerender(); })),
         d.kind === 'support' ? field('Cast on', select([['allies', 'The caster’s side'], ['foes', 'The other side (debuffs)'], ['any', 'Either side (the caster picks: Haste a friend or a foe)']], d.supportTarget ?? 'allies', (v) => { if (v === 'foes' || v === 'any') d.supportTarget = v; else delete d.supportTarget; })) : h('span'),
@@ -127,6 +129,12 @@ export function additionsTab(list: AdditionDef[], state: { sel: number }, rerend
       nameId(list, d, rerender, 'Addition'),
       field('Description', textInput(d.description ?? '', (v) => { d.description = v.trim() || undefined; }, { 'aria-label': 'Addition description' })),
       soundField('Call-out', d.sound, (v) => { d.sound = v; }, 'What the hero shouts when the whole string lands (“Quick slash!”).'),
+      h('section', { class: 'db-section' }, h('h3', {}, 'As a move (GBA)'),
+        h('div', { class: 'field-row' },
+          field('Type (element)', elementSelect(d.element, (e) => { if (e && e !== 'neutral') d.element = e; else delete d.element; rerender(); }, 'Addition element'), 'Its hits are this element: weaknesses and resistances count, and the animation takes its colours.')),
+        inflictsField(() => d.inflicts, (v) => { if (v) d.inflicts = v; else delete d.inflicts; }, rerender, 'Ailments it can give'),
+        effectFields(d, 'addition', rerender),
+        h('p', { class: 'note' }, 'In the GBA game Additions are moves: heroes have four (FIGHT) and enemies can have them too (Database → Enemies → Moves). Without button prompts every strike lands.')),
       h('section', { class: 'db-section' }, h('h3', {}, `Strikes (${strikes.length})`),
         ...strikes.map(row),
         strikes.length < 7 ? h('button', { type: 'button', class: 'btn', onclick: () => { strikes.push({ ...strikes[strikes.length - 1] }); rerender(); } }, '+ Add strike') : h('span'),

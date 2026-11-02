@@ -37,7 +37,7 @@ export interface GbaTile {
   pass?: Passage;
 }
 
-export type SpriteKind = 'overworld' | 'backsprite' | 'battler';
+export type SpriteKind = 'overworld' | 'backsprite' | 'battler' | 'effect';
 
 export interface GbaSprite {
   id: string;
@@ -45,6 +45,15 @@ export interface GbaSprite {
   kind: SpriteKind;
   palette: string;
   image: string;
+  /**
+   * Effects: what it is (a hit: drawn in greys and recoloured to a move's element; a burst: an element's own colours,
+   * played with elemental moves), its sound (a built-in sound name or a sound file) and how many frames it uses.
+   */
+  role?: 'hit' | 'burst';
+  sound?: string;
+  frames?: number;
+  /** Bursts: the element they stand for (played by that element's moves). */
+  element?: string;
 }
 
 export interface GbaData {
@@ -347,6 +356,11 @@ export const SPRITE_KINDS: Record<SpriteKind, SpriteKindInfo> = {
     label: 'Battle front sprite (64×64)',
     help: 'Enemies facing you in battle.',
     frameW: 64, frameH: 64, cols: 1, rows: 1, colLabels: ['Front'], rowLabels: [''],
+  },
+  effect: {
+    label: 'Battle effect (64×64, 6 frames)',
+    help: 'A hit or burst played over whoever is hit (Database → Additions and Spells pick them). Hits are drawn in greys and take the move’s element colours; bursts keep their own.',
+    frameW: 64, frameH: 64, cols: 6, rows: 1, colLabels: ['1', '2', '3', '4', '5', '6'], rowLabels: [''],
   },
 };
 

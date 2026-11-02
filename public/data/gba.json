@@ -84,6 +84,216 @@
         "#b5c6ce",
         "#f7f7f7"
       ]
+    },
+    {
+      "id": "fx_hit",
+      "name": "Effects: hits (greys)",
+      "colors": [
+        "#f7f7f7",
+        "#ceced6",
+        "#9c9cad",
+        "#636373",
+        "#313139",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_fire",
+      "name": "Effects: fire",
+      "colors": [
+        "#fff7ce",
+        "#f7de52",
+        "#f79c31",
+        "#de5221",
+        "#9c2110",
+        "#521008",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_water",
+      "name": "Effects: water",
+      "colors": [
+        "#eff7ff",
+        "#9cd6f7",
+        "#5aa5ef",
+        "#316bce",
+        "#213994",
+        "#10184a",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_ice",
+      "name": "Effects: ice",
+      "colors": [
+        "#ffffff",
+        "#d6f7ff",
+        "#9ce7f7",
+        "#63bde7",
+        "#318cbd",
+        "#184a6b",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_shock",
+      "name": "Effects: shock",
+      "colors": [
+        "#ffffff",
+        "#fff79c",
+        "#f7de42",
+        "#dead21",
+        "#9c7310",
+        "#423108",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_earth",
+      "name": "Effects: earth",
+      "colors": [
+        "#efdebd",
+        "#cea573",
+        "#a57b4a",
+        "#845231",
+        "#5a3921",
+        "#312110",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_nature",
+      "name": "Effects: nature",
+      "colors": [
+        "#e7ffce",
+        "#a5e773",
+        "#6bbd42",
+        "#429429",
+        "#296318",
+        "#103108",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_poison",
+      "name": "Effects: poison",
+      "colors": [
+        "#f7e7ff",
+        "#d69cef",
+        "#ad63de",
+        "#8439ad",
+        "#5a217b",
+        "#291039",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_light",
+      "name": "Effects: light",
+      "colors": [
+        "#ffffff",
+        "#fff7d6",
+        "#f7e794",
+        "#efc652",
+        "#bd9431",
+        "#634a18",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
+    },
+    {
+      "id": "fx_dark",
+      "name": "Effects: dark",
+      "colors": [
+        "#e7d6f7",
+        "#9c84ce",
+        "#734aa5",
+        "#4a297b",
+        "#29104a",
+        "#100818",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000",
+        "#000000"
+      ]
     }
   ],
   "tiles": [
@@ -184,6 +394,205 @@
       "kind": "backsprite",
       "palette": "mannequin",
       "image": "gba/sprites/player_back.png"
+    },
+    {
+      "id": "fx_slash",
+      "name": "Slash",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_slash.png",
+      "role": "hit",
+      "sound": "slash",
+      "frames": 6
+    },
+    {
+      "id": "fx_double",
+      "name": "Double slash",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_double.png",
+      "role": "hit",
+      "sound": "slash",
+      "frames": 6
+    },
+    {
+      "id": "fx_claw",
+      "name": "Claw",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_claw.png",
+      "role": "hit",
+      "sound": "cut",
+      "frames": 6
+    },
+    {
+      "id": "fx_hit",
+      "name": "Hit",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_hit.png",
+      "role": "hit",
+      "sound": "hit",
+      "frames": 6
+    },
+    {
+      "id": "fx_punch",
+      "name": "Punch",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_punch.png",
+      "role": "hit",
+      "sound": "thump",
+      "frames": 6
+    },
+    {
+      "id": "fx_pierce",
+      "name": "Pierce",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_pierce.png",
+      "role": "hit",
+      "sound": "arrowHit",
+      "frames": 6
+    },
+    {
+      "id": "fx_ding",
+      "name": "Ding",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_ding.png",
+      "role": "hit",
+      "sound": "ding",
+      "frames": 6
+    },
+    {
+      "id": "fx_bite",
+      "name": "Bite",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_bite.png",
+      "role": "hit",
+      "sound": "crit",
+      "frames": 6
+    },
+    {
+      "id": "fx_slam",
+      "name": "Slam",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_slam.png",
+      "role": "hit",
+      "sound": "hitStone",
+      "frames": 6
+    },
+    {
+      "id": "fx_sparkle",
+      "name": "Sparkle",
+      "kind": "effect",
+      "palette": "fx_hit",
+      "image": "gba/sprites/fx_sparkle.png",
+      "role": "hit",
+      "sound": "shine",
+      "frames": 6
+    },
+    {
+      "id": "fx_fire",
+      "name": "Fire burst",
+      "kind": "effect",
+      "palette": "fx_fire",
+      "image": "gba/sprites/fx_fire.png",
+      "role": "burst",
+      "sound": "burn",
+      "frames": 6,
+      "element": "fire"
+    },
+    {
+      "id": "fx_water",
+      "name": "Water splash",
+      "kind": "effect",
+      "palette": "fx_water",
+      "image": "gba/sprites/fx_water.png",
+      "role": "burst",
+      "sound": "splash",
+      "frames": 6,
+      "element": "water"
+    },
+    {
+      "id": "fx_ice",
+      "name": "Ice shards",
+      "kind": "effect",
+      "palette": "fx_ice",
+      "image": "gba/sprites/fx_ice.png",
+      "role": "burst",
+      "sound": "freeze",
+      "frames": 6,
+      "element": "ice"
+    },
+    {
+      "id": "fx_shock",
+      "name": "Lightning",
+      "kind": "effect",
+      "palette": "fx_shock",
+      "image": "gba/sprites/fx_shock.png",
+      "role": "burst",
+      "sound": "zap",
+      "frames": 6,
+      "element": "shock"
+    },
+    {
+      "id": "fx_earth",
+      "name": "Rocks",
+      "kind": "effect",
+      "palette": "fx_earth",
+      "image": "gba/sprites/fx_earth.png",
+      "role": "burst",
+      "sound": "rumble",
+      "frames": 6,
+      "element": "earth"
+    },
+    {
+      "id": "fx_nature",
+      "name": "Leaves",
+      "kind": "effect",
+      "palette": "fx_nature",
+      "image": "gba/sprites/fx_nature.png",
+      "role": "burst",
+      "sound": "leaves",
+      "frames": 6,
+      "element": "nature"
+    },
+    {
+      "id": "fx_poison",
+      "name": "Poison bubbles",
+      "kind": "effect",
+      "palette": "fx_poison",
+      "image": "gba/sprites/fx_poison.png",
+      "role": "burst",
+      "sound": "bubble",
+      "frames": 6,
+      "element": "poison"
+    },
+    {
+      "id": "fx_light",
+      "name": "Holy light",
+      "kind": "effect",
+      "palette": "fx_light",
+      "image": "gba/sprites/fx_light.png",
+      "role": "burst",
+      "sound": "shine",
+      "frames": 6,
+      "element": "light"
+    },
+    {
+      "id": "fx_dark",
+      "name": "Dark swirl",
+      "kind": "effect",
+      "palette": "fx_dark",
+      "image": "gba/sprites/fx_dark.png",
+      "role": "burst",
+      "sound": "gloom",
+      "frames": 6,
+      "element": "dark"
     }
   ],
   "player": "player"

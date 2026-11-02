@@ -441,7 +441,7 @@ export type Command =
    * party may run away (default false); `lose: 'continue'`: losing doesn't send the party back (the event goes
    * on, with the party on 1 health); `resultVar`: a variable set to 1 (won), 2 (ran away) or 0 (lost).
    */
-  | { cmd: 'battle'; enemies: string[]; /** Single mode: wild (one at random), trainer (one at a time) or swarm (all); unset: the map's default. */ pick?: EncounterPick; canRun?: boolean; lose?: 'respawn' | 'continue'; resultVar?: string; music?: string; /** The battle map to fight on (unset: the map's). */ map?: string }
+  | { cmd: 'battle'; enemies: string[]; /** Single mode: wild (one at random), trainer (one at a time) or swarm (all); unset: the map's default. */ pick?: EncounterPick; canRun?: boolean; lose?: 'respawn' | 'continue'; resultVar?: string; music?: string; /** The battle map to fight on (unset: the map's). */ map?: string; /** Mimas: each enemy's level and moves for this fight (by position in `enemies`). */ team?: TeamMember[] }
   /** Teach a spell (at a rank) or an Addition: to the hero you play (''), a party hero by id, or everyone ('@party'). */
   | { cmd: 'learn'; who: string; spell?: string; rank?: number; addition?: string; silent?: boolean }
   /** Change a hero's class, or let them change to it later (unlock). */
@@ -495,7 +495,31 @@ export const ABILITIES: Ability[] = ['run', 'jump', 'climb', 'crawl'];
 
 export type Trigger = 'action' | 'touch' | 'auto' | 'none';
 
+/** Mimas: one of a fighter's moves: an Addition or a spell (from the Database). */
+export interface MoveRef { addition?: string; spell?: string }
+
+/** Mimas: one enemy a trainer (or a Start battle) sends out: which, its level, and moves just for this fight. */
+export interface TeamMember { enemy: string; level?: number; moves?: MoveRef[] }
+
+/**
+ * Mimas: a trainer. When the player steps into its line of sight (up to `range` tiles the way it faces), a (!)
+ * shows over it, it walks up and the battle starts; winning sets its self switch (`beaten`, default D), so a page
+ * on that switch is the trainer after the fight.
+ */
+export interface TrainerDef {
+  range: number;
+  team: TeamMember[];
+  /** What it says before the battle (and after losing it, `lose`). */
+  intro?: string;
+  lose?: string;
+  beaten?: 'A' | 'B' | 'C' | 'D';
+  /** Money for beating it (default: its foes' gold). */
+  gold?: number;
+}
+
 export interface EventPage {
+  /** Mimas: this page is a trainer (sees the player, walks up, battles). */
+  trainer?: TrainerDef;
   condition?: Condition;
   /** Static sprite key (see SpriteLibrary), e.g. "sign". */
   sprite?: string;
@@ -1753,6 +1777,15 @@ export interface EnemyDef {
   overdrive?: boolean;
   /** Turn-based battles: what else it can do on its turn, and how often it uses its plain attack (default 1; 0: never). */
   actions?: EnemyAction[];
+  /**
+   * Mimas (GBA, Pokémon-style): its moves, four at most: Additions (strikes) or spells (they cost its MP, so at least
+   * one should be an Addition). Unset: its plain attack and actions above.
+   */
+  moves?: MoveRef[];
+  /** Mimas: moves it has from a level on (the last one at or below its level wins: it "learns" new moves). */
+  movesets?: { level: number; moves: MoveRef[] }[];
+  /** Mimas: its magic, for spells among its moves (default 0: no spells). */
+  mp?: number;
   attackWeight?: number;
   /** Its plain attack breaks a spell being charged (turn-based). */
   counterspell?: boolean;
@@ -1786,6 +1819,9 @@ export interface EnemyAction {
   hpBelow?: number;
   /** Breaks a spell being charged. */
   counterspell?: boolean;
+  /** Mimas (moves): its magic cost, and how it looks (an animation). */
+  mp?: number;
+  look?: import('../gba/effects').MoveLook;
 }
 
 /** A kind of water on a map: how it looks and flows, and what standing in it does. */
@@ -1986,6 +2022,9 @@ export interface SkillNode {
 export interface SpellEntry {
   id: string;
   name: string;
+  /** Mimas: its animation (a GBA Studio effect) and element burst ('auto', 'none' or an effect id). */
+  effect?: string;
+  burst?: string;
   description?: string;
   /** Its icon in menus: a built-in icon ("builtin:<name>"); unset: its element's icon. */
   icon?: string;
@@ -2068,6 +2107,12 @@ export interface AdditionDef {
   rankWindow?: number;
   /** The hero's call-out when the whole string lands ("Quick slash!"): a sound source. */
   sound?: string;
+  /** Mimas: its type (element), ailments it can give, its animation (a GBA Studio effect) and its element burst. */
+  element?: Element;
+  inflicts?: Inflict[];
+  effect?: string;
+  /** 'auto' (default): its element's burst; 'none'; or an effect id. */
+  burst?: string;
 }
 
 /** A class: the skill trees its members learn from. Changing class keeps everything already learned. */

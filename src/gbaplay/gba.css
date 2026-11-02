@@ -80,3 +80,6 @@ body.gba-mode .battle .pt-stats div { color: #303038; }
 body.gba-mode .battle .pocket-pick { background: #f8f8f8; color: #303038; }
 /* Moves play without button prompts (for now): no rings or buttons over the battle. */
 body.gba-mode .qte, body.gba-mode .qte-pads, body.gba-mode .spell-seq { display: none !important; }
+
+/* Move animations over the fighters (Mimas), crisp pixels above the battle. */
+.gba-fx { position: fixed; z-index: 50; pointer-events: none; image-rendering: pixelated; }

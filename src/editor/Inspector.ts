@@ -1,4 +1,5 @@
 import { switchInput } from './switchPicker';
+import { teamEditor } from './moveFields';
 import { blankLayers, fitLayers } from '../gba/layers';
 import { gba as gbaArt } from './gbaShared';
 import { build3D } from '../game/World3D';
@@ -927,6 +928,26 @@ export class Inspector {
   }
 
   /** Lock settings (Update 119): a Lock command first in the page's commands (doors, chests…). */
+  /** Mimas: a trainer page (sees the player in a line, walks up, battles). */
+  private trainerSection(page: EventPage): HTMLElement[] {
+    const s = this.store, t = page.trainer;
+    const on = checkbox('Trainer (GBA): spots the player in front of it, walks up and battles', !!t, (v) => this.edit(() => {
+      if (v) page.trainer = { range: 4, team: (s.db.enemies ?? []).slice(0, 1).map((e) => ({ enemy: e.id })), intro: 'You there! Let\'s battle!', lose: 'You\'re strong...' };
+      else delete page.trainer;
+    }, true));
+    if (!t) return [on];
+    return [on,
+      h('div', { class: 'field-row' },
+        field('Sees (tiles)', numberInput(t.range, (v) => this.edit(() => (t.range = Math.max(1, Math.min(10, Math.round(v))))), { min: 1, max: 10, step: 1 }), 'How far it sees the way it faces (its Direction above). The player stepping into that line starts it.'),
+        field('Beaten: self switch', select([['A', 'A'], ['B', 'B'], ['C', 'C'], ['D', 'D']], t.beaten ?? 'D', (v) => this.edit(() => { if (v === 'D') delete t.beaten; else t.beaten = v as 'A' | 'B' | 'C'; })), 'Turned ON when it loses: give it a page on that self switch for after the fight.'),
+        field('Prize money', numberInput(t.gold ?? 0, (v) => this.edit(() => { const g = Math.max(0, Math.round(v)); if (g) t.gold = g; else delete t.gold; }), { min: 0, step: 10 }), '0: its foes’ gold.')),
+      field('Says before the battle', textInput(t.intro ?? '', (v) => this.edit(() => { t.intro = v || undefined; }))),
+      field('Says when beaten', textInput(t.lose ?? '', (v) => this.edit(() => { t.lose = v || undefined; }))),
+      h('div', { class: 'section-label' }, 'Its team'),
+      teamEditor(s.db, t.team, (team) => this.edit(() => { t.team = team.map((m) => ({ ...m })); })),
+      h('p', { class: 'hint' }, 'A (!) shows over it when it sees the player; it walks up and the battle starts (the player can\'t run). Its foes come out one at a time. Its commands (below) still run when the player talks to it.')];
+  }
+
   private lockSection(page: EventPage): HTMLElement[] {
     const lock = page.commands[0]?.cmd === 'lock' ? page.commands[0] as Extract<Command, { cmd: 'lock' }> : null;
     return [h('div', { class: 'section-label' }, 'Lock settings'),
@@ -1207,7 +1228,8 @@ export class Inspector {
             }))] : []),
             page.trigger === 'touch' ? h('p', { class: 'hint' }, 'Player touch runs when the player steps onto it, or walks into it when they can’t step there (it’s solid, or it’s up on a cliff, like a cave mouth on the wall).') : null,
             checkbox('Is respawn point (after losing all health, the player comes back here)', !!page.respawn, (v) => this.edit(() => (page.respawn = v || undefined))),
-            ...this.lockSection(page)]),
+            ...this.lockSection(page),
+            ...this.trainerSection(page)]),
           ...this.bubbleFields(page),
           ...this.soundFields(page),
           ...this.markerFields(ev)),

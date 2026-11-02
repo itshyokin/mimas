@@ -53,6 +53,8 @@ export interface BattleSpell {
   inflicts?: Inflict[];
   /** Rank 1 up to the highest they know. */
   ranks: SpellRank[];
+  /** Mimas: how it looks (an animation). */
+  look?: import('../../gba/effects').MoveLook;
 }
 
 /** An Addition a hero knows: its strikes (power × their attack), rank, and what the rank adds. */
@@ -67,6 +69,10 @@ export interface BattleAddition {
   damage: number;
   /** Call-out when the whole string lands. */
   sound?: string;
+  /** Mimas: its own element and ailments (unset: the hero's), and how it looks (an animation). */
+  element?: Element;
+  inflicts?: Inflict[];
+  look?: import('../../gba/effects').MoveLook;
 }
 
 /** A spell being charged: what it is, at which rank, on whom, and the caster's turns until it goes off. */
@@ -370,6 +376,8 @@ export function enemyChoice(e: Battler, party: Battler[], friends: Battler[], rn
     if (a.kind === 'buff' && a.buffs?.length && a.buffTarget !== 'foes' && (a.buffTarget === 'allies' ? mates : [e]).every((m) => a.buffs!.every((g) => m.status.buff(g.buff) > 0)) && (!a.weather || battleWeather.kind === a.weather)) continue;
     if (a.kind === 'buff' && !a.buffs?.length && a.weather && battleWeather.kind === a.weather) continue;
     if (a.kind === 'heal' && !hurt.length) continue;
+    // Mimas: moves that cost magic it doesn't have.
+    if ((a.mp ?? 0) > e.mp) continue;
     options.push({ action: a, weight: w });
   }
   if (!options.length) options.push({ action: null, weight: 1 });

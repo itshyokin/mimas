@@ -1443,6 +1443,12 @@ export class BattleScreen {
    * it meets the marker. `onStrike` hears each result as it happens; a miss ends the string. `auto`: every strike
    * lands perfectly by itself (the accessibility setting).
    */
+  /** Mimas: where a fighter's picture is on the page (for effects drawn over it). */
+  fighterRect(key: string): DOMRect | null {
+    const f = this.fighters.get(key);
+    return f ? f.img.getBoundingClientRect() : null;
+  }
+
   startQte(target: string, strikes: QteStrike[], auto: boolean, onStrike: (i: number, r: QteResult) => void, done: (landed: number) => void): void {
     const f = this.fighters.get(target);
     if (!f || !strikes.length) { done(0); return; }

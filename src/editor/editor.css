@@ -1008,3 +1008,10 @@ body.resizing-side { user-select: none; cursor: col-resize; }
 .view3d-tools { position: absolute; top: 10px; right: 10px; z-index: 4; display: grid; gap: 6px; justify-items: end; }
 .view3d-tools .toolrow { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; padding: 3px; }
 .view3d-help { font-size: 11.5px; color: #1c2230; background: rgba(255,255,255,0.72); padding: 4px 8px; border-radius: 6px; max-width: 520px; text-align: right; }
+
+/* Mimas: moves (Additions, spells, enemies) */
+.fx-row { align-items: flex-start; }
+.fx-preview { width: 128px; height: 128px; image-rendering: pixelated; border: 1px solid var(--line, #333); border-radius: 6px; background: #f8f8f8; flex: none; }
+.moves-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.note.warn { color: #f0b040; }
+.moveset { padding: 8px; }
