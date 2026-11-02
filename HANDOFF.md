@@ -49,6 +49,9 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Things to know
+- GBA playtest (Update 7): ▶ Playtest on a GBA map opens index.html?gbaplay=<stamp> in an iframe; the editor writes
+  the usual playtest hand-off plus `gba` (gba.json, its pictures, and baked prop / character / enemy pictures). The
+  game page runs src/gbaplay/GbaGame.ts (src/main.ts branches on ?gbaplay). Styles: src/gbaplay/gba.css.
 - Map editor (Update 6): store modes gground / gpath / gcliff / gobjects / gpass (src/editor/gbaPaint.ts paints,
   gbaPalette.ts is the left panel, MapView draws with mapRender.drawMap). GBA Studio art is shared through
   src/editor/gbaShared.ts (loaded at start, handed back when the studio closes). Old Saturn modes still exist in the

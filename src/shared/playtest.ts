@@ -21,6 +21,11 @@ export interface PlaytestData {
   stamp?: string;
   /** Combat preview (Database → Enemies / Troops): straight into a battle with these enemies, on this battle map. */
   battle?: { enemies: string[]; map?: string };
+  /**
+   * Mimas: a GBA playtest. GBA Studio's art (gba.json and its pictures), and pictures the editor already draws:
+   * props ("prop:<type>"), characters ("char:<key>:<dir>") and enemies ("enemy:<id>"), each with its size in pixels.
+   */
+  gba?: { data: import('../gba/types').GbaData; images: Record<string, Blob>; pics: Record<string, { blob: Blob; w: number; h: number }> };
 }
 
 function open(): Promise<IDBDatabase> {

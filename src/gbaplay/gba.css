@@ -1,0 +1,30 @@
+/* Mimas: the GBA playtest's look. The window is the GBA screen (the editor sizes the frame); pixels stay crisp. */
+body.gba-mode { background: #000; overflow: hidden; }
+body.gba-mode .gba-screen { position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+
+/* Text box: a white panel with a blue frame at the bottom, like the GBA games (and the ROM's). */
+body.gba-mode .msg { --gba: calc(100vw / 240); }
+body.gba-mode .msg.at-bottom { left: calc(var(--gba) * 4); right: calc(var(--gba) * 4); bottom: calc(var(--gba) * 4); top: auto; transform: none; width: auto; max-width: none; }
+body.gba-mode .msg .msg-box { background: #f8f8f8; color: #303038; border: calc(var(--gba) * 2) solid #305090; border-radius: calc(var(--gba) * 3); box-shadow: inset 0 0 0 calc(var(--gba) * 1) #7090c8; padding: calc(var(--gba) * 5) calc(var(--gba) * 8); min-height: calc(var(--gba) * 32); }
+body.gba-mode .msg .msg-text { font-family: "Trebuchet MS", system-ui, sans-serif !important; font-size: calc(var(--gba) * 10) !important; line-height: 1.55; max-width: none; color: #303038 !important; font-style: normal !important; font-weight: normal; text-shadow: calc(var(--gba) * 0.6) calc(var(--gba) * 0.6) 0 #c8c8d0 !important; }
+body.gba-mode .msg .msg-name { font-size: calc(var(--gba) * 8); background: #305090; color: #fff; }
+body.gba-mode .msg .msg-next { color: #d04040; }
+body.gba-mode .msg .msg-choices { background: #f8f8f8; color: #303038; border: calc(var(--gba) * 2) solid #305090; border-radius: calc(var(--gba) * 3); }
+body.gba-mode .msg .msg-choice { font-size: calc(var(--gba) * 10); color: #303038; }
+body.gba-mode .msg .msg-choice[aria-selected="true"]::before { border-left-color: #303038; }
+body.gba-mode .msg.bubble .msg-box { min-height: 0; }
+
+/* Battles: Gold / Silver style, on a plain white screen. */
+body.gba-mode .battle { background: #f8f8f8; }
+body.gba-mode .battle .battle-shade, body.gba-mode .battle .battle-floor { display: none; }
+/* The stat blocks and the text box, light like the handheld's. */
+body.gba-mode .battle .pocket-text { background: #f8f8f8; color: #303038; border: 3px solid #305090; box-shadow: inset 0 0 0 2px #7090c8; }
+body.gba-mode .battle .pocket-text .pt-text { color: #303038; }
+body.gba-mode .battle .pocket-text .pt-next { color: #d04040; }
+body.gba-mode .battle .pocket-foes > *, body.gba-mode .battle .pocket-heroes > * { background: #f0f0e8; color: #303038; border-color: #303038; box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.18); }
+body.gba-mode .battle .pocket-foes > * *, body.gba-mode .battle .pocket-heroes > * * { color: #303038; }
+body.gba-mode .battle .pb-orb, body.gba-mode .battle .pb-orb * { color: #fff !important; }
+body.gba-mode .battle .battle-cmd { background: #f8f8f8; color: #303038; border: 3px solid #305090; box-shadow: inset 0 0 0 2px #7090c8; }
+body.gba-mode .battle .battle-cmd * { color: #303038; }
+body.gba-mode .battle .battle-cmd [aria-disabled="true"], body.gba-mode .battle .battle-cmd .disabled { opacity: 0.4; }
+body.gba-mode .msg .msg-text, body.gba-mode .msg .msg-text * { color: #303038 !important; opacity: 1 !important; -webkit-text-fill-color: #303038 !important; }

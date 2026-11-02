@@ -37,9 +37,12 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       open GBA map. The exporter builds every map with a `gba` block.
 
 ## Next (agreed with the owner)
-- [ ] Update 7: the playtest runs Saturn's event interpreter (pages, conditions, switches, variables, choices,
-      items, shops…) on the GBA screen, with encounter zones; battles on a plain white Gold/Silver-style screen
-      using Saturn's battle rules (TurnBattle); built-in chiptune sounds.
+- [x] Update 7 (Nov 1): GBA playtest = the game page in GBA mode (index.html?gbaplay) in a frame over the editor
+      (src/gbaplay/GbaGame.ts): Saturn's Interpreter, MessageWindow (GBA white box; speech bubbles over the event),
+      GameState, Inventory, TurnBattle + BattleScreen (Pocket Handheld, flat white screen), encounter zones and map
+      tables, props drawn and blocking, Saturn's sound effects (copied into public/assets/audio) and the built-in
+      chiptune music. The editor hands over GBA art and the pictures it draws (props, characters, enemies).
+- [ ] GBA playtest gaps: shops, START menu (bag, party), saving, party members in battle, hero stats from gear.
 - [ ] Update 8+: the ROM: Saturn events compiled to a compact script, encounter zones, battles, sound (chip versions
       of the built-in sounds on the GBA's sound chip; effect files as samples; music as tracker files), props drawn
       into the map, and a GBA check panel listing what a map uses that the GBA can't do.

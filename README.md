@@ -74,9 +74,24 @@ objects). Maps are saved in `public/data/maps/` as before, with the GBA
 layers in a `gba` block.
 
 **▶ Playtest** plays the open map on a GBA screen (240×160) right in the
-editor, with your unsaved changes: arrows or WASD walk, Z / Space = A, hold X
-or Shift = B (run), Esc stops; a gamepad works too. It walks the map for now;
-Saturn's events, encounters and the Gold/Silver-style battles come next.
+editor, with your unsaved changes. Saturn's own systems run it:
+- **Events**: pages and conditions, switches, variables, self switches,
+  choices, if / else, items and gold, transfers between GBA maps, fades,
+  sounds, autorun and touch events, big area events. Text shows in a white
+  box at the bottom; a Show text set to a *speech* bubble shows over the
+  event that's talking.
+- **Props** stand on the map and block like they did in Saturn.
+- **Random battles** from the Encounters layer's zones (or the map's own
+  table), and the *Start battle* command: Saturn's turn-based battles in the
+  Pocket Handheld layout on a plain white screen, Gold / Silver style.
+- **Sound**: Saturn's sound effects (your files and the built-in ones) and the
+  built-in chiptune music, as the GBA's sound chip will play it. Music files
+  play as the built-in field or battle theme for now (a GBA ROM can't hold
+  them as they are; they'll become tracker songs).
+
+Keys: arrows or WASD walk, Z / Enter / Space = A, X = B (hold to run), Esc
+stops; a gamepad works too. Not in the GBA playtest yet: shops, menus (the
+bag, the party), saving, and party members in battle (the hero fights alone).
 
 The full guide to Saturn's tools (events, Database, props) is in
 [docs/saturn/README.md](docs/saturn/README.md).
@@ -160,10 +175,10 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   → start; now **Starter Meadow**). Maps are built from your tiles with
   their exact colors: ground, paths and water with joined corners (one tile
   wide too), cliff tiers, objects, tree tops drawn over the player.
-- Saturn's events aren't in the ROM yet: they're being moved over (pages,
-  switches, commands), with encounters and battles after them. The runtime
-  already has the text box, word bubbles, people, doors with a fade and the
-  bag waiting for them.
+- Saturn's events, props, encounters and battles run in the editor's GBA
+  playtest; they go into the ROM next (pages, switches, commands first). The
+  runtime already has the text box, word bubbles, people, doors with a fade
+  and the bag waiting for them.
 - Walls, water, cliff edges, tree trunks and signs block; stairs and ladders
   get you through cliffs; **ledges** hop you down (and block the way back up).
 - The player is your GBA Studio sprite, walking Pokémon-style (a foot forward

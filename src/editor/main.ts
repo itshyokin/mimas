@@ -4,19 +4,19 @@ import { WEAPON_MANIFEST_PATH, itemWeaponSprite, usedWeaponSprites } from '../ga
 import { findWeapon, loadWeaponList, loadWeaponSheets } from './weaponPicker';
 import '../fonts.css';
 import './editor.css';
-import { writePlaytest } from '../shared/playtest';
+import { writePlaytest, type PlaytestData } from '../shared/playtest';
 import { loadEnemyImages } from './CombatEditor';
 import { openDatabase } from './DatabaseEditor';
 import { openGbaStudio } from './GbaStudio';
-import { gba, gbaSprite, loadGba, tileLookup } from './gbaShared';
-import { blankLayers, gbaView } from '../gba/layers';
-import { openGbaPlaytest } from './GbaPlaytest';
+import { gba, loadGba } from './gbaShared';
+import { blankLayers } from '../gba/layers';
 import { setCombatPreview } from './combatPreview';
 import { openWorldLayout } from './WorldEditor';
-import type { MapData } from '../world/types';
+import type { Dir, MapData } from '../world/types';
 import { backspaceAsEscape, confirmModal, field, h, numberInput, openModal, select, textInput, toast } from './dom';
 import { installErrorBar } from '../shared/errorBar';
-import { tileName } from './editorArt';
+import { characterImage, enemyImage, propSprite, tileName } from './editorArt';
+import { tintCanvas } from '../render/tint';
 import { Inspector } from './Inspector';
 import { save } from './io';
 import { browserProject, canKeepProject, changedFiles } from './browserProject';
@@ -175,7 +175,7 @@ function buildUI(): void {
       void playtest(stamp);
     } }, '▶ Saturn playtest');
   // Mimas: GBA maps play right here on a GBA screen; old Saturn maps still open the Saturn game.
-  const gbaPlayBtn = h('button', { type: 'button', class: 'btn play', title: 'Play this map on a GBA screen, right here (includes unsaved changes)', onclick: () => playGba() }, '▶ Playtest');
+  const gbaPlayBtn = h('button', { type: 'button', class: 'btn play', title: 'Play this map on a GBA screen, right here (includes unsaved changes)', onclick: () => void playGba() }, '▶ Playtest');
   const updatePlayButtons = () => { const g = !!store.map?.gba; gbaPlayBtn.hidden = !g; playBtn.hidden = g; };
   store.on('meta', updatePlayButtons);
   store.on('map', updatePlayButtons);
@@ -301,7 +301,7 @@ setCombatPreview((enemies, map) => {
   void playtest(stamp, { enemies, map });
 });
 
-async function playtest(stamp: string, battle?: { enemies: string[]; map?: string }): Promise<void> {
+async function playtest(stamp: string, battle?: { enemies: string[]; map?: string }, gbaPlay?: PlaytestData['gba']): Promise<void> {
   try {
     const used = new Set<string>();
     for (const d of store.assets.props) for (const p of [d.image, d.normal, d.glow, d.model]) if (p) used.add(p);
@@ -353,7 +353,7 @@ async function playtest(stamp: string, battle?: { enemies: string[]; map?: strin
     }));
     await writePlaytest({
       db: store.db, mapName: store.mapName, map: store.map, maps, start: store.startHere ? store.db.start : undefined,
-      assets: store.assets, files, stamp, battle,
+      assets: store.assets, files, stamp, battle, gba: gbaPlay,
     });
   } catch (err) {
     toast(`Couldn’t start the playtest: ${err instanceof Error ? err.message : String(err)}`, 'error');
@@ -395,21 +395,65 @@ async function switchMap(name: string): Promise<void> {
   store.emit('meta');
 }
 
-/** Mimas: play the open GBA map (the events and battles come with the next update). */
-function playGba(): void {
-  const m = store.map;
-  if (!m.gba) return;
-  const view = gbaView(m, store.mapName);
-  const sp = gbaSprite(gba.data.player ?? '');
-  const start = store.db.startMap === store.mapName ? { x: Math.floor(store.db.start.x), y: Math.floor(store.db.start.z) } : undefined;
-  openGbaPlaytest({
-    maps: new Map([[store.mapName, { ...view, start: start ? [start.x, start.y] : [Math.floor(m.width / 2), Math.floor(m.height / 2)] }]]),
-    look: tileLookup,
-    sprite: (id) => { const x = gbaSprite(id); return x ? gba.images.get(x.image) ?? null : null; },
-    player: sp ? gba.images.get(sp.image) ?? null : null,
-    itemName: (id) => store.db.items?.find((i) => i.id === id)?.name ?? id,
-    troop: () => null,
-  }, store.mapName);
+/** Mimas: play the open GBA map on a GBA screen, in a frame over the editor (the game page in GBA mode). */
+async function playGba(): Promise<void> {
+  if (!store.map.gba || document.querySelector('.gba-play')) return;
+  const stamp = String(Date.now());
+  const shell = h('div', { class: 'gba-play' });
+  const frame = h('iframe', { class: 'gba-play-frame', title: 'GBA playtest', src: `${PLAYTEST_URL.replace('?playtest', '?gbaplay')}=${stamp}` }) as HTMLIFrameElement;
+  const close = () => { shell.remove(); window.removeEventListener('message', onMsg); window.removeEventListener('resize', fit); };
+  const onMsg = (e: MessageEvent) => { if (e.data === 'gba-play-close') close(); };
+  const fit = () => {
+    const sc = Math.max(1, Math.floor(Math.min((innerWidth - 24) / 240, (innerHeight - 80) / 160)));
+    frame.style.width = `${240 * sc}px`;
+    frame.style.height = `${160 * sc}px`;
+  };
+  shell.append(h('div', { class: 'gba-play-bar' }, h('strong', {}, 'GBA playtest'),
+    h('span', {}, 'Arrows / WASD walk · Z, Enter or Space = A · X = B (hold to run) · Esc stops'),
+    h('button', { type: 'button', class: 'btn', onclick: close }, 'Stop')), frame);
+  document.body.append(shell);
+  fit();
+  window.addEventListener('message', onMsg);
+  window.addEventListener('resize', fit);
+  frame.addEventListener('load', () => frame.contentWindow?.focus());
+  try {
+    await playtest(stamp, undefined, await gbaHandoff());
+  } catch (err) {
+    toast(`Couldn’t start the GBA playtest: ${err instanceof Error ? err.message : String(err)}`, 'error');
+  }
+}
+
+/** GBA Studio's art and the pictures the editor draws for props, characters and enemies, for the GBA playtest. */
+async function gbaHandoff(): Promise<PlaytestData['gba']> {
+  const blob = (c: HTMLCanvasElement) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('picture'))), 'image/png'));
+  const images: Record<string, Blob> = {};
+  for (const [path, c] of gba.images) images[path] = await blob(c);
+  const pics: NonNullable<PlaytestData['gba']>['pics'] = {};
+  const maps: MapData[] = [store.map];
+  await Promise.all(store.maps.filter((n) => n !== store.mapName).map(async (n) => { try { maps.push(await store.project.readMap(n)); } catch { /* skipped */ } }));
+  const want = new Set<string>();
+  for (const m of maps) {
+    if (!m.gba) continue;
+    for (const p of m.props) want.add(`prop:${p.type}`);
+    for (const ev of m.events) for (const pg of ev.pages) {
+      if (pg.character) for (const d of ['down', 'up', 'left', 'right']) want.add(`char:${pg.character}:${d}`);
+      if (pg.sprite) want.add(`prop:${pg.sprite}`);
+    }
+  }
+  for (const d of ['down', 'up', 'left', 'right']) want.add(`char:${store.db.player}:${d}`);
+  for (const k of want) {
+    const [kind, id, dir] = k.split(':');
+    let c: HTMLCanvasElement | null = null, w = 0, hh = 0;
+    if (kind === 'prop') { const sp = propSprite(id); c = sp.img as HTMLCanvasElement; w = sp.w; hh = sp.h; }
+    else if (kind === 'char' && store.db.characters[id]) { c = characterImage(id, store.db.characters[id], dir as Dir); w = c.width; hh = c.height; }
+    if (c && c.width && c.height) pics[k] = { blob: await blob(c), w, h: hh };
+  }
+  for (const e of store.db.enemies ?? []) {
+    let c = enemyImage(store.db, e.look);
+    if (c && e.tint) c = tintCanvas(c, e.tint);
+    if (c && c.width && c.height) pics[`enemy:${e.id}`] = { blob: await blob(c), w: c.width, h: c.height };
+  }
+  return { data: gba.data, images, pics };
 }
 
 function newMapDialog(): void {
@@ -467,6 +511,7 @@ function newMapDialog(): void {
 function bindShortcuts(updateStatus: () => void): void {
   window.addEventListener('keydown', (e) => {
     if (document.querySelector('.overlay')) return; // a dialog is open
+    if (document.querySelector('.gba-play')) { if (e.key === 'Escape') document.querySelector('.gba-play')?.remove(); return; }
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); void save(store); return; }
     if (isTyping(e)) return;
