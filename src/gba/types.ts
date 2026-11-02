@@ -65,7 +65,8 @@ export interface GbaPlacement {
   t: number;
   x: number;
   y: number;
-  /** Which piece of a ledge (0-2 south left / middle / right, 3-5 east top / middle / bottom, 6-8 west top / middle / bottom). */
+  /** Which piece of a ledge (0-2 south left / middle / right, 3-5 east top / middle / bottom, 6-8 west top / middle / bottom,
+   *  9-11 single south / east / west, 12-14 extra south / east / west). */
   p?: number;
 }
 
@@ -74,8 +75,13 @@ export const FACINGS: Facing[] = ['down', 'up', 'left', 'right'];
 
 /** What an event does, in order. */
 export type GbaCommand =
-  | { type: 'text'; text: string }
-  | { type: 'transfer'; map: string; x: number; y: number; dir?: Facing };
+  /** `speaker`: '' nobody, 'player', or 'ev:<id>' (an event on this map). `bubble`: a word bubble over the speaker. */
+  | { type: 'text'; text: string; speaker?: string; bubble?: boolean }
+  | { type: 'transfer'; map: string; x: number; y: number; dir?: Facing }
+  /** Give the player items from the Database (Items). */
+  | { type: 'item'; item: string; count: number }
+  /** A battle with a Database troop. */
+  | { type: 'battle'; troop: string };
 
 /**
  * Something on the map the player can talk to or step on: a person, a sign, a door.
@@ -98,9 +104,13 @@ export interface GbaEvent {
 
 /** Lines of a text box: at most this many characters, two lines a page (the ROM's font fits this). */
 export const TEXT_LINE = 30;
+const TEXT_LINE_DEFAULT = TEXT_LINE;
+
+/** Word bubbles are narrower. */
+export const BUBBLE_LINE = 20;
 
 /** Split text into pages of two lines (word-wrapped; a blank line starts a new page). */
-export function textPages(text: string): string[][] {
+export function textPages(text: string, TEXT_LINE = TEXT_LINE_DEFAULT): string[][] {
   const pages: string[][] = [];
   for (const para of text.replace(/\r/g, '').split(/\n\s*\n/)) {
     const lines: string[] = [];
@@ -246,9 +256,10 @@ export const TILE_TYPES: Record<TileType, TileTypeInfo> = {
       { x: 0, y: 0, label: 'South: left end' }, { x: 1, y: 0, label: 'South: middle' }, { x: 2, y: 0, label: 'South: right end' },
       { x: 3, y: 0, label: 'East: top' }, { x: 3, y: 1, label: 'East: middle' }, { x: 3, y: 2, label: 'East: bottom' },
       { x: 4, y: 0, label: 'West: top' }, { x: 4, y: 1, label: 'West: middle' }, { x: 4, y: 2, label: 'West: bottom' },
-      ...[0, 1, 2].flatMap((x) => [1, 2].map((y) => ({ x, y, label: 'Not used', empty: true }))),
+      { x: 0, y: 1, label: 'South: single' }, { x: 1, y: 1, label: 'East: single' }, { x: 2, y: 1, label: 'West: single' },
+      { x: 0, y: 2, label: 'Extra: south' }, { x: 1, y: 2, label: 'Extra: east' }, { x: 2, y: 2, label: 'Extra: west' },
     ],
-    help: 'One-way drops. South ledges have ends and a middle for long rows; east and west ledges have a top, middle and bottom for long columns. “Make West from East” mirrors the east pieces.',
+    help: 'One-way drops. South ledges have ends and a middle for long rows; east and west ledges have a top, middle and bottom for long columns. Singles are one-tile ledges; Extras are a second style. “Make West from East” mirrors the east pieces.',
     behaviour: 'Hop down over it in its direction; blocks the other way.',
   },
   stairs: {
@@ -279,16 +290,18 @@ export const LEDGE_PIECES = [
   'South · left end', 'South · middle', 'South · right end',
   'East · top', 'East · middle', 'East · bottom',
   'West · top', 'West · middle', 'West · bottom',
+  'South · single', 'East · single', 'West · single',
+  'Extra · south', 'Extra · east', 'Extra · west',
 ];
 
 /** Where ledge piece `p` sits in the sheet (column, row). */
 export function ledgeCell(p: number): [number, number] {
-  const q = Math.max(0, Math.min(8, p));
-  return q < 3 ? [q, 0] : q < 6 ? [3, q - 3] : [4, q - 6];
+  const q = Math.max(0, Math.min(14, p));
+  return q < 3 ? [q, 0] : q < 6 ? [3, q - 3] : q < 9 ? [4, q - 6] : q < 12 ? [q - 9, 1] : [q - 12, 2];
 }
 
-/** Which way ledge piece `p` drops: south, east or west. */
-export const ledgeDir = (p: number): 'S' | 'E' | 'W' => (p < 3 ? 'S' : p < 6 ? 'E' : 'W');
+/** Which way ledge piece `p` drops: south, east or west. Singles and extras (9-14) go south, east, west in turn. */
+export const ledgeDir = (p: number): 'S' | 'E' | 'W' => (p < 3 ? 'S' : p < 6 ? 'E' : p < 9 ? 'W' : (['S', 'E', 'W'] as const)[(p - 9) % 3]);
 
 export function tileSize(t: Pick<GbaTile, 'type' | 'w' | 'h' | 'frames'>): { cols: number; rows: number; frames: number } {
   const info = TILE_TYPES[t.type];

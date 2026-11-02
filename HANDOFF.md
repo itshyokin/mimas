@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 1, 2026, after Update 4)
+# Handoff: where Mimas stands (Nov 1, 2026, after Update 5)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -41,6 +41,14 @@ Flaming fists, Rapier, Claws; RPG Maker passability stays as an override; GBA St
 - No GitHub Pages: the repo stays private (owner's choice, Nov 1). Editing is on the PC (Start Map Editor.bat).
   Later: a public GBA Studio page (separate public repo, no art) that loads / saves the private repo through the
   GitHub API with a token kept in the tablet's browser.
+
+## Things to know
+- Mimas's editor server is on 5274+ and checks `project: 'mimas'` in the ping before reusing a running server;
+  Saturn's is on 5174+. Vite dev: 5273. IndexedDB names are `mimas-editor` / `mimas-playtest`. Keep them apart.
+- Event commands: text (speaker '' / 'player' / 'ev:<id>', bubble), transfer, item (Database item, count), battle
+  (Database troop). The header's `command` struct carries speaker / bubble / item / count; the ROM's bag is
+  `bag[item_count]`. Text box and bubble share `box_palette`, so the world can keep 15 palettes.
+- Ledges: 15 pieces (0-2 S, 3-5 E, 6-8 W, 9-11 singles S/E/W, 12-14 extras S/E/W).
 
 ## How we work
 - Numbered updates; each: build, test, update README.md and NOTES.md, commit, push to `main`.

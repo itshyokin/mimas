@@ -14,4 +14,4 @@ if not exist "%~dp0tools\lpc\library\catalog.json" (
   exit /b 1
 )
 rem Runs the small editor server (the same one the map editor uses) in its own minimized window. Close it to stop.
-start "Character Builder - close this window to stop" /min node "%~dp0tools\editor-server.mjs" builder
+start "Mimas Character Builder - close this window to stop" /min node "%~dp0tools\editor-server.mjs" builder

@@ -125,5 +125,5 @@ export default defineConfig({
     rollupOptions: { input: { main: path.resolve('index.html'), editor: path.resolve('editor.html') } },
   },
   // `host: true` lets a phone on the same Wi-Fi open the dev server.
-  server: { host: true },
+  server: { host: true, port: 5273 },   // Mimas's own address (Saturn's dev server uses 5173)
 });

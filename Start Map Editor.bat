@@ -8,4 +8,4 @@ if errorlevel 1 (
   exit /b 1
 )
 rem Runs the small editor server in its own minimized window. Close that window to stop it.
-start "Map Editor - close this window to stop" /min node "%~dp0tools\editor-server.mjs"
+start "Mimas Map Editor - close this window to stop" /min node "%~dp0tools\editor-server.mjs"

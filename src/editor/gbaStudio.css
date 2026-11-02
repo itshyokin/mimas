@@ -129,3 +129,9 @@
 .gs-cmd-head span { flex: 1; }
 .gs-cmd textarea { width: 100%; min-height: 64px; resize: vertical; font: inherit; }
 .gs-pick-banner { background: var(--ember-soft); border: 1px solid rgba(255, 176, 74, 0.45); border-radius: 8px; padding: 6px 10px; display: flex; gap: 10px; align-items: center; }
+.gba-play-battle {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
+  background: var(--surface); border: 2px solid var(--ember); border-radius: 12px; padding: 18px 20px;
+  max-width: min(420px, 90vw); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+.gba-play-battle strong { color: var(--ember); font-size: 18px; }

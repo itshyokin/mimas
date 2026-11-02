@@ -460,10 +460,10 @@ def build_gba_map(gba, mp):
                 p = max(0, min(4, p))
                 cx, cy, d = p, 0, (LEDGE_S if p < 3 else LEDGE_E if p == 3 else LEDGE_W)
             else:
-                # 0-2 south left / middle / right, 3-5 east top / middle / bottom, 6-8 west (src/gba/types.ts ledgeCell)
-                p = max(0, min(8, p))
-                cx, cy = (p, 0) if p < 3 else (3, p - 3) if p < 6 else (4, p - 6)
-                d = LEDGE_S if p < 3 else LEDGE_E if p < 6 else LEDGE_W
+                # 0-2 south, 3-5 east, 6-8 west, 9-11 singles, 12-14 extras (src/gba/types.ts ledgeCell / ledgeDir)
+                p = max(0, min(14, p))
+                cx, cy = (p, 0) if p < 3 else (3, p - 3) if p < 6 else (4, p - 6) if p < 9 else (p - 9, 1) if p < 12 else (p - 12, 2)
+                d = LEDGE_S if p < 3 else LEDGE_E if p < 6 else LEDGE_W if p < 9 else (LEDGE_S, LEDGE_E, LEDGE_W)[(p - 9) % 3]
             ground.alpha_composite(cell(img, cx, cy), (px, py))
             coll[y0][x0] |= SOLID | d
         elif ty == 'tallgrass':
@@ -714,10 +714,11 @@ def write_json(path, obj):
 
 
 TEXT_LINE = 30   # characters per text-box line (matches src/gba/types.ts)
+BUBBLE_LINE = 20  # characters per word-bubble line (matches BUBBLE_LINE in src/gba/types.ts)
 DIRS = {'down': 0, 'up': 1, 'left': 2, 'right': 3}
 
 
-def text_pages(text):
+def text_pages(text, TEXT_LINE=TEXT_LINE):
     """Word-wrapped pages of up to two lines (a blank line starts a new page), like textPages() in the editor."""
     pages = []
     for para in text.replace('\r', '').split('\n\n'):
@@ -753,12 +754,11 @@ def c_string(text):
     return '"' + text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\f', '\\f') + '"'
 
 
-def textbox_bg():
-    """The text box: a white panel with a blue frame at the bottom of the screen (a 256x256 bg, centred)."""
-    pal = [(255, 0, 255), (248, 248, 248), (48, 80, 144), (112, 144, 200)] + [(0, 0, 0)] * 12
-    im = Image.new('P', (256, 256), 0)
-    # screen (4, 112)-(236, 156) is bg (12, 160)-(244, 204)
-    x0, y0, x1, y1 = 12, 160, 243, 203
+BOX_PAL = [(255, 0, 255), (248, 248, 248), (48, 80, 144), (112, 144, 200)] + [(0, 0, 0)] * 12
+
+
+def panel(im, x0, y0, x1, y1):
+    """A white panel with a blue frame and rounded corners (colors of BOX_PAL)."""
     for y in range(y0, y1 + 1):
         for x in range(x0, x1 + 1):
             edge = min(x - x0, x1 - x, y - y0, y1 - y)
@@ -766,6 +766,33 @@ def textbox_bg():
             if corner < 2:
                 continue
             im.putpixel((x, y), 2 if edge < 2 or corner < 4 else 3 if edge < 3 else 1)
+
+
+def textbox_bg():
+    """The text box at the bottom of the screen (a 256x256 bg, centred): screen (4, 112)-(236, 156)."""
+    im = Image.new('P', (256, 256), 0)
+    panel(im, 12, 160, 243, 203)
+    put_palette(im, BOX_PAL)
+    return im
+
+
+def bubble_bg():
+    """A 152x40 word bubble in the top-left corner of a 256x256 bg (the runtime moves it over the speaker)."""
+    im = Image.new('P', (256, 256), 0)
+    panel(im, 0, 0, 151, 39)
+    put_palette(im, BOX_PAL)
+    return im
+
+
+def bubble_tail():
+    """The bubble's tail: a 16x16 sprite, its top rows cover the bubble's frame, the tip points down."""
+    pal = BOX_PAL
+    im = Image.new('P', (16, 16), 0)
+    for y in range(9):
+        half = 5 - (y * 5) // 8 if y > 2 else 5
+        for x in range(8 - half, 8 + half):
+            border = x in (8 - half, 8 + half - 1) and y > 2
+            im.putpixel((x, y), 2 if border or y == 8 else 1)
     put_palette(im, pal)
     return im
 
@@ -785,7 +812,7 @@ def clean_outputs():
     os.makedirs(GFX, exist_ok=True)
     os.makedirs(INC, exist_ok=True)
     for f in os.listdir(GFX):
-        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'textbox', 'text_palette')):
+        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'textbox', 'text_palette', 'bubble', 'box_palette')):
             os.remove(os.path.join(GFX, f))
 
 
@@ -851,8 +878,16 @@ def main():
     pal_img.save(os.path.join(GFX, 'world_palette.bmp'))
     write_json(os.path.join(GFX, 'world_palette.json'),
                {'type': 'bg_palette', 'bpp_mode': 'bpp_4', 'colors_count': len(palette)})
-    textbox_bg().save(os.path.join(GFX, 'textbox.bmp'))
-    write_json(os.path.join(GFX, 'textbox.json'), {'type': 'regular_bg', 'bpp_mode': 'bpp_4'})
+    # the text box and the word bubble share one palette (the world can use the other 15)
+    box_pal = Image.new('P', (16, 16))
+    put_palette(box_pal, BOX_PAL)
+    box_pal.save(os.path.join(GFX, 'box_palette.bmp'))
+    write_json(os.path.join(GFX, 'box_palette.json'), {'type': 'bg_palette', 'bpp_mode': 'bpp_4'})
+    for name, im in (('textbox', textbox_bg()), ('bubble', bubble_bg())):
+        im.save(os.path.join(GFX, name + '.bmp'))
+        write_json(os.path.join(GFX, name + '.json'), {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual', 'palette_item': 'box_palette'})
+    bubble_tail().save(os.path.join(GFX, 'bubble_tail.bmp'))
+    write_json(os.path.join(GFX, 'bubble_tail.json'), {'type': 'sprite', 'height': 16})
     text_palette().save(os.path.join(GFX, 'text_palette.bmp'))
     write_json(os.path.join(GFX, 'text_palette.json'), {'type': 'sprite_palette', 'bpp_mode': 'bpp_4'})
 
@@ -879,6 +914,15 @@ def main():
     if npc_ids:
         print(f'  people sprites: {", ".join(npc_ids)}')
 
+    # The Database: item names (Give item) and troops (Start battle)
+    try:
+        db = load_json(os.path.join(DATA, 'database.json'))
+    except (OSError, ValueError):
+        db = {}
+    item_names = [''.join(ch for ch in (it.get('name') or it.get('id', '?')) if 32 <= ord(ch) < 127) for it in db.get('items', [])]
+    item_index = {it.get('id'): n for n, it in enumerate(db.get('items', []))}
+    troops = {t.get('id'): t for t in db.get('troops', [])}
+
     # The header: every map, its collision, heights and events
     out = []
     w = out.append
@@ -893,9 +937,11 @@ def main():
     w(f'constexpr uint8_t ledge_s = {LEDGE_S};\nconstexpr uint8_t ledge_e = {LEDGE_E};\nconstexpr uint8_t ledge_w = {LEDGE_W};\n')
     w(f'constexpr uint8_t water = {WATER};\nconstexpr uint8_t grass = {GRASS};\n')
     w(f'constexpr int hero_frames = {HERO_COLS};\n\n')
-    w('enum command_type : uint8_t { CMD_TEXT, CMD_TRANSFER };\n\n')
+    w('enum command_type : uint8_t { CMD_TEXT, CMD_TRANSFER, CMD_ITEM, CMD_BATTLE };\n\n')
     w('// Text is pre-wrapped: lines split by \\n, pages (two lines each) by \\f.\n')
-    w('struct command { command_type type; const char* text; int8_t map; uint8_t x; uint8_t y; int8_t dir; };\n\n')
+    w('// speaker: -2 nobody, -1 the player, k = event k of this map. bubble: a word bubble over the speaker.\n')
+    w('struct command { command_type type; const char* text; int8_t map; uint8_t x; uint8_t y; int8_t dir; '
+      'int8_t speaker; bool bubble; int16_t item; uint8_t count; };\n\n')
     w('struct event { uint8_t x; uint8_t y; int8_t sprite; uint8_t dir; bool touch; bool solid; const command* commands; int command_count; };\n\n')
     w('struct map_info\n{\n    int width; int height; int bg_width; int bg_height; const char* name;\n'
       '    const uint8_t* collision; const int8_t* heights; const event* events; int event_count;\n'
@@ -906,19 +952,32 @@ def main():
         w(c_array(f'map{i}_collision', 'uint8_t', [m['coll'][y][x] for y in range(H) for x in range(W)], W))
         w(c_array(f'map{i}_heights', 'int8_t', [m['hgrid'][y][x] for y in range(H) for x in range(W)], W))
         evs = []
-        for k, e in enumerate(m['events']):
-            if not (0 <= e.get('x', -1) < W and 0 <= e.get('y', -1) < H):
-                continue
+        kept = [e for e in m['events'] if 0 <= e.get('x', -1) < W and 0 <= e.get('y', -1) < H]
+        ev_index = {e.get('id'): n for n, e in enumerate(kept)}
+        pages = lambda text, line=TEXT_LINE: '\f'.join('\n'.join(pg) for pg in text_pages(text, line))
+        for k, e in enumerate(kept):
             cmds = []
             for c in e.get('commands', []):
                 if c.get('type') == 'text':
-                    txt = '\f'.join('\n'.join(pg) for pg in text_pages(c.get('text', '')))
-                    cmds.append(f'{{ CMD_TEXT, {c_string(txt)}, 0, 0, 0, -1 }}')
+                    sp = c.get('speaker') or ''
+                    speaker = -1 if sp == 'player' else ev_index.get(int(sp[3:]), -2) if sp.startswith('ev:') and sp[3:].isdigit() else -2
+                    bubble = bool(c.get('bubble')) and speaker != -2
+                    txt = pages(c.get('text', ''), BUBBLE_LINE if bubble else TEXT_LINE)
+                    cmds.append(f'{{ CMD_TEXT, {c_string(txt)}, 0, 0, 0, -1, {speaker}, {"true" if bubble else "false"}, -1, 0 }}')
                 elif c.get('type') == 'transfer' and c.get('map') in index:
                     t = maps[index[c['map']]]
                     tx = max(0, min(t['W'] - 1, int(c.get('x', 0))))
                     ty = max(0, min(t['H'] - 1, int(c.get('y', 0))))
-                    cmds.append(f'{{ CMD_TRANSFER, nullptr, {index[c["map"]]}, {tx}, {ty}, {DIRS.get(c.get("dir"), -1)} }}')
+                    cmds.append(f'{{ CMD_TRANSFER, nullptr, {index[c["map"]]}, {tx}, {ty}, {DIRS.get(c.get("dir"), -1)}, -2, false, -1, 0 }}')
+                elif c.get('type') == 'item' and c.get('item') in item_index:
+                    n = max(1, min(99, int(c.get('count', 1))))
+                    nm = item_names[item_index[c['item']]]
+                    got = f'You got {nm} x{n}!' if n > 1 else f'You got {nm}!'   # gotText() in GbaPlaytest.ts
+                    cmds.append(f'{{ CMD_ITEM, {c_string(pages(got))}, 0, 0, 0, -1, -2, false, {item_index[c["item"]]}, {n} }}')
+                elif c.get('type') == 'battle':
+                    tr = troops.get(c.get('troop'))
+                    note = f'Battle: {tr["name"] if tr else "a troop"}! (GBA battles come later.)'
+                    cmds.append(f'{{ CMD_BATTLE, {c_string(pages(note))}, 0, 0, 0, -1, -2, false, -1, 0 }}')
             if cmds:
                 w(f'constexpr command map{i}_ev{k}[] = {{ ' + ', '.join(cmds) + ' };\n')
             sid = e.get('sprite')
@@ -935,6 +994,9 @@ def main():
                      f'&bn::regular_bg_items::world_ground_{i}, &bn::regular_bg_items::world_over_{i} }}')
         w('\n')
     w('constexpr map_info maps[] = {\n    ' + ',\n    '.join(infos) + '\n};\n')
+    w('// Database items, in order (the bag counts them).\n')
+    w('constexpr const char* item_names[] = { ' + (', '.join(c_string(n) for n in item_names) or '""') + ' };\n')
+    w(f'constexpr int item_count = {max(1, len(item_names))};\n')
     w(f'constexpr int map_count = {len(maps)};\n\n')
     w('constexpr const bn::sprite_item* npc_sprites[] = { ' +
       (', '.join(f'&bn::sprite_items::npc_{k}' for k in range(len(npc_ids))) or 'nullptr') + ' };\n\n')

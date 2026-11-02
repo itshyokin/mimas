@@ -28,7 +28,9 @@ const DATA = path.join(PUBLIC, 'data');
 const BUILDER = path.join(ROOT, 'tools', 'lpc', 'builder', 'site');
 const LIBRARY = path.join(ROOT, 'tools', 'lpc', 'library');
 const WEAPONS = path.join(PUBLIC, 'assets', 'weapons');
-const FIRST_PORT = 5174;
+// Mimas has its own addresses (5274+), so it never opens on Saturn's editor server (5174+) or shares its browser data.
+const FIRST_PORT = 5274;
+const PROJECT = 'mimas';
 /** What to open first: the editor, or the Character Builder (node editor-server.mjs builder). */
 const START_PAGE = process.argv.includes('builder') ? 'builder/' : '';
 const IDLE_LIMIT_MS = 3 * 60 * 1000;
@@ -89,7 +91,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const p = url.pathname;
   try {
-    if (p === '/__editor/ping') { lastPing = Date.now(); return send(res, 200, { ok: true }); }
+    if (p === '/__editor/ping') { lastPing = Date.now(); return send(res, 200, { ok: true, project: PROJECT }); }
     if (p === '/__editor/builder') {
       const has = async (f) => fs.access(f).then(() => true, () => false);
       return send(res, 200, { builder: await has(path.join(BUILDER, 'index.html')), library: await has(path.join(LIBRARY, 'catalog.json')) });
@@ -152,7 +154,7 @@ function listen(port) {
   });
   server.listen(port, '127.0.0.1', () => {
     const url = `http://localhost:${port}/${START_PAGE}`;
-    console.log(`Map editor running at http://localhost:${port}/ (Character Builder: http://localhost:${port}/builder/)`);
+    console.log(`Mimas map editor running at http://localhost:${port}/ (Character Builder: http://localhost:${port}/builder/)`);
     console.log('Close this window to stop it. It also stops a few minutes after you close the editor tab.');
     openBrowser(url);
     lastPing = Date.now();
@@ -169,7 +171,8 @@ function listen(port) {
 async function alreadyRunning(port) {
   try {
     const r = await fetch(`http://127.0.0.1:${port}/__editor/ping`, { signal: AbortSignal.timeout(800) });
-    return r.ok && (await r.json()).ok === true;
+    const j = r.ok ? await r.json() : {};
+    return j.ok === true && j.project === PROJECT;   // only Mimas's own server, never Saturn's
   } catch { return false; }
 }
 

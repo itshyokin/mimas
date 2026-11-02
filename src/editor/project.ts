@@ -115,7 +115,7 @@ export const canOpenFolders = (): boolean => typeof (window as PickerWindow).sho
 
 /** Ask the user to pick their project folder. */
 export async function pickFolder(): Promise<DirHandle> {
-  return (window as PickerWindow).showDirectoryPicker!({ id: 'hd2d-project', mode: 'readwrite' });
+  return (window as PickerWindow).showDirectoryPicker!({ id: 'mimas-project', mode: 'readwrite' });
 }
 
 /** Make sure we may read and write the folder; must be called from a click when it needs to ask. */
@@ -216,7 +216,7 @@ export function folderProject(root: DirHandle, dirs: ProjectDirs): Project {
 
 /* ------------------------------------------------------------ remember the folder */
 
-const DB = 'hd2d-editor', STORE = 'handles', KEY = 'project';
+const DB = 'mimas-editor', STORE = 'handles', KEY = 'project';
 
 function idb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {

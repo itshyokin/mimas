@@ -7,7 +7,7 @@
  * A gamepad works too (d-pad or stick, A, B).
  */
 import { collision, drawMap, eventAt, LEDGE_E, LEDGE_S, LEDGE_W, SOLID, type TileLookup } from '../gba/mapRender';
-import { CELL, textPages, type Facing, type GbaCommand, type GbaEvent, type GbaMap } from '../gba/types';
+import { BUBBLE_LINE, CELL, textPages, type Facing, type GbaCommand, type GbaEvent, type GbaMap } from '../gba/types';
 
 export interface PlayWorld {
   maps: Map<string, GbaMap>;
@@ -16,6 +16,14 @@ export interface PlayWorld {
   sprite(id: string): HTMLCanvasElement | null;
   /** The player's sheet. */
   player: HTMLCanvasElement | null;
+  /** Database lookups for Give item and Start battle. */
+  itemName(id: string): string;
+  troop(id: string): { name: string; members: string[]; fight(): void } | null;
+}
+
+/** "You got …!" for a Give item command (the ROM shows the same words). */
+export function gotText(name: string, count: number): string {
+  return count > 1 ? `You got ${name} x${count}!` : `You got ${name}!`;
 }
 
 const SCREEN_W = 240, SCREEN_H = 160;
@@ -59,7 +67,9 @@ class Playtest {
   pressed = new Set<string>();
   // scripts
   queue: GbaCommand[] = [];
-  text: { pages: string[][]; page: number; shown: number } | null = null;
+  text: { pages: string[][]; page: number; shown: number; bubble?: { x: number; y: number } } | null = null;
+  battle: HTMLElement | null = null;
+  bag = new Map<string, number>();
   fade = 0;            // 0 = clear, 16 = black
   fadeDir = 0;
   pendingTransfer: Extract<GbaCommand, { type: 'transfer' }> | null = null;
@@ -229,15 +239,69 @@ class Playtest {
   next(): void {
     const c = this.queue.shift();
     if (!c) return;
-    if (c.type === 'text') this.text = { pages: textPages(c.text), page: 0, shown: 0 };
-    else if (c.type === 'transfer') {
+    if (c.type === 'text') {
+      const at = c.bubble ? this.speakerAt(c.speaker) : null;
+      this.text = { pages: textPages(c.text, at ? BUBBLE_LINE : undefined), page: 0, shown: 0, bubble: at ?? undefined };
+    } else if (c.type === 'item') {
+      const n = Math.max(1, c.count || 1);
+      this.bag.set(c.item, (this.bag.get(c.item) ?? 0) + n);
+      this.text = { pages: textPages(gotText(this.world.itemName(c.item), n)), page: 0, shown: 0 };
+    } else if (c.type === 'battle') {
+      this.showBattle(c.troop);
+    } else if (c.type === 'transfer') {
       if (!this.world.maps.has(c.map)) { this.next(); return; }
       this.pendingTransfer = c;
       this.fadeDir = 1;
     }
   }
 
-  busy(): boolean { return !!this.text || this.fadeDir !== 0 || this.fade > 0; }
+  busy(): boolean { return !!this.text || this.fadeDir !== 0 || this.fade > 0 || !!this.battle; }
+
+  /** Where a word bubble points: the top of the speaker's head, in map pixels. */
+  speakerAt(speaker?: string): { x: number; y: number } | null {
+    if (speaker === 'player') return { x: this.px + CELL / 2, y: this.py - CELL };
+    const id = speaker?.startsWith('ev:') ? Number(speaker.slice(3)) : NaN;
+    const e = this.cur.m.events?.find((v) => v.id === id);
+    if (!e) return null;
+    return { x: e.x * CELL + CELL / 2, y: e.y * CELL - (e.sprite ? CELL : 0) };
+  }
+
+  /** GBA battles aren't built yet: offer the Saturn battle preview with this troop, then carry on. */
+  showBattle(id: string): void {
+    const t = this.world.troop(id);
+    const card = document.createElement('div');
+    card.className = 'gba-play-battle';
+    const title = document.createElement('strong');
+    title.textContent = `Battle! ${t ? t.name : 'A troop that isn’t in the Database'}`;
+    const who = document.createElement('p');
+    who.textContent = t?.members.length ? t.members.join(', ') : '';
+    const note = document.createElement('p');
+    note.className = 'hint';
+    note.textContent = 'GBA battles come in a later update. You can fight this troop in the Saturn battle preview (a new tab), then carry on here.';
+    const row = document.createElement('div');
+    row.className = 'gs-actions';
+    const fight = document.createElement('button');
+    fight.type = 'button';
+    fight.className = 'btn';
+    fight.textContent = '▶ Fight in the battle preview';
+    fight.disabled = !t;
+    fight.onclick = () => t?.fight();
+    const done = document.createElement('button');
+    done.type = 'button';
+    done.className = 'btn primary';
+    done.textContent = 'Carry on (Z)';
+    done.onclick = () => this.endBattle();
+    row.append(fight, done);
+    card.append(title, who, note, row);
+    this.root.append(card);
+    this.battle = card;
+  }
+
+  endBattle(): void {
+    this.battle?.remove();
+    this.battle = null;
+    this.next();
+  }
 
   /* ------------------------------------------------------------------ frame */
 
@@ -269,6 +333,10 @@ class Playtest {
         this.fadeDir = 0;
         this.next();
       }
+      return;
+    }
+    if (this.battle) {
+      if (this.pressed.has('A')) this.endBattle();
       return;
     }
     if (this.text) {
@@ -369,12 +437,24 @@ class Playtest {
     const s = this.scale;
     if (this.banner > 0) this.label(v, m.name, SCREEN_W / 2, 14, 'center');
     if (this.text) {
-      // the ROM's box: 232×44 at the bottom of the screen
+      // The ROM's box: 232×44 at the bottom of the screen; or a 152×40 word bubble over the speaker.
+      const b = this.text.bubble;
+      const box = b ? bubbleBox(b.x - camX, b.y - camY) : { x: 4, y: 112, w: 232, h: 44, tx: 0, ty: 0 };
       v.fillStyle = '#f8f8f8';
-      v.fillRect(4 * s, 112 * s, 232 * s, 44 * s);
       v.strokeStyle = '#305090';
       v.lineWidth = 2 * s;
-      v.strokeRect(5 * s, 113 * s, 230 * s, 42 * s);
+      if (b) {
+        v.beginPath();
+        v.moveTo((box.tx - 5) * s, (box.y + box.h - 1) * s);
+        v.lineTo(box.tx * s, box.ty * s);
+        v.lineTo((box.tx + 5) * s, (box.y + box.h - 1) * s);
+        v.closePath();
+        v.fill();
+        v.stroke();
+      }
+      v.fillRect(box.x * s, box.y * s, box.w * s, box.h * s);
+      v.strokeRect((box.x + 1) * s, (box.y + 1) * s, (box.w - 2) * s, (box.h - 2) * s);
+      if (b) { v.fillRect((box.tx - 4) * s, (box.y + box.h - 3) * s, 8 * s, 3 * s); }
       const page = this.text.pages[this.text.page];
       let left = this.text.shown;
       v.fillStyle = '#303038';
@@ -384,12 +464,13 @@ class Playtest {
       page.forEach((line, i) => {
         const part = line.slice(0, Math.max(0, left));
         left -= line.length;
-        v.fillText(part, 12 * s, (119 + i * 16) * s);
+        v.fillText(part, (box.x + 8) * s, (box.y + (b ? 5 : 7) + i * 16) * s);
       });
       if (this.text.shown >= page.join('').length && Math.floor(performance.now() / 300) % 2) {
+        const ax = box.x + box.w - 12, ay = box.y + box.h - 9;
         v.fillStyle = '#d04040';
         v.beginPath();
-        v.moveTo(222 * s, 146 * s); v.lineTo(230 * s, 146 * s); v.lineTo(226 * s, 151 * s);
+        v.moveTo(ax * s, ay * s); v.lineTo((ax + 8) * s, ay * s); v.lineTo((ax + 4) * s, (ay + 5) * s);
         v.fill();
       }
     }
@@ -418,3 +499,14 @@ class Playtest {
   }
 }
 
+
+/**
+ * A word bubble pointing at screen point (x, y): 152×40, above the speaker, kept on screen
+ * (the ROM places it the same way). tx / ty is the tip of its tail.
+ */
+export function bubbleBox(x: number, y: number): { x: number; y: number; w: number; h: number; tx: number; ty: number } {
+  const w = 152, h = 40;
+  const bx = Math.max(2, Math.min(SCREEN_W - w - 2, Math.round(x - w / 2)));
+  const by = Math.max(2, Math.round(y - h - 6));
+  return { x: bx, y: by, w, h, tx: Math.max(bx + 8, Math.min(bx + w - 8, Math.round(x))), ty: by + h + 6 };
+}

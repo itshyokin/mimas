@@ -16,6 +16,9 @@ import type { EditorStore } from './store';
 import { SAMPLE_SHAPE, drawQuarters, quarters } from '../gba/autotile';
 import { MapEditor } from './GbaMapEditor';
 import { openGbaPlaytest } from './GbaPlaytest';
+import { openDatabase } from './DatabaseEditor';
+import { saveDatabase } from './io';
+import { runCombatPreview } from './combatPreview';
 import {
   CELL, SPRITE_KINDS, TILE_TYPES, defaultGbaData, gbaColor, hexToRgb, ledgeCell, tileSize,
   type Facing, type GbaData, type GbaMap, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
@@ -64,6 +67,14 @@ export async function openGbaStudio(store: EditorStore): Promise<void> {
 }
 
 /* ======================================================================= helpers */
+
+function prefBool(key: string, fallback: boolean): boolean {
+  try { const v = localStorage.getItem(key); return v === null ? fallback : v === '1'; } catch { return fallback; }
+}
+
+function setPref(key: string, v: boolean): void {
+  try { localStorage.setItem(key, v ? '1' : '0'); } catch { /* not kept */ }
+}
 
 function slug(name: string, taken: Set<string>): string {
   const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'item';
@@ -144,16 +155,19 @@ class Studio {
   frame = 0;                 // water animation frame being painted
   mirror = false;
   onion = false;
-  grid = true;
+  grid = prefBool('mimas.gs.grid', true);
   undo = new Map<string, ImageData[]>();
   redo = new Map<string, ImageData[]>();
   previewGround = '';
   previewRun = false;
   previewPose = 0;
-  /** The cell (column, row) the Cell tools work on; follows the last cell clicked. */
+  /** The selected cells (column, row): from cellSel to cellEnd. Follows the last cell clicked; drag with ⬚ for more. */
   cellSel: [number, number] = [0, 0];
-  /** Copied cell, kept while the studio is open (works across tiles and sprites). */
-  clip: HTMLCanvasElement | null = null;
+  cellEnd: [number, number] = [0, 0];
+  selecting = false;
+  /** Copied cells (row by row), kept while the studio is open (works across tiles and sprites). */
+  clip: { cols: number; rows: number; cells: HTMLCanvasElement[] } | null = null;
+  labels = prefBool('mimas.gs.labels', true);
 
   root!: HTMLElement;
   listEl!: HTMLElement;
@@ -168,7 +182,16 @@ class Studio {
   onKey = (e: KeyboardEvent) => this.key(e);
   onResize = () => { if (this.tab === 'maps') { if (!this.mapEditor.zoom) this.mapEditor.draw(); } else if (!this.zoom) this.drawDisplay(); };
 
-  constructor(private store: EditorStore) {}
+  constructor(public store: EditorStore) {}
+
+  /** The Database (items, troops, enemies…), over the studio. Its changes are saved with the studio's Save too. */
+  openDb(): void {
+    openDatabase(this.store);
+    // the Database window closes on its own; refresh the event card's lists afterwards
+    const watch = window.setInterval(() => {
+      if (!document.querySelector('.overlay')) { clearInterval(watch); this.renderStatus(); if (this.tab === 'maps') this.mapEditor.render(); }
+    }, 400);
+  }
 
   /* ----------------------------------------------------------------- load & save */
 
@@ -207,6 +230,9 @@ class Studio {
       sprites: () => studio.data.sprites,
       spriteImage: (s) => studio.images.get(s.image),
       playtest: (id, at) => void studio.playtest(id, at),
+      items: () => (studio.store.db.items ?? []).map((i) => ({ id: i.id, name: i.name })),
+      troops: () => (studio.store.db.troops ?? []).map((t) => ({ id: t.id, name: t.name })),
+      openDatabase: () => studio.openDb(),
     });
     for (const s of this.data.sprites) await this.ensureSpriteImage(s);
     this.sel.tiles = this.data.tiles[0]?.id;
@@ -254,6 +280,17 @@ class Studio {
       look: this.mapEditor.lookup,
       sprite: (id) => { const s = this.data.sprites.find((x) => x.id === id); return s ? this.images.get(s.image) ?? null : null; },
       player,
+      itemName: (id) => this.store.db.items?.find((i) => i.id === id)?.name ?? id,
+      troop: (id) => {
+        const t = this.store.db.troops?.find((x) => x.id === id);
+        if (!t) return null;
+        const names = (t.members ?? []).map((mb) => this.store.db.enemies?.find((e) => e.id === mb.enemy)?.name ?? mb.enemy);
+        const pick = (): string[] => (t.members ?? []).flatMap((mb) => {
+          const lo = mb.min ?? 1, hi = Math.max(lo, mb.max ?? lo);
+          return Array.from({ length: lo + Math.floor(Math.random() * (hi - lo + 1)) }, () => mb.enemy);
+        });
+        return { name: t.name, members: names, fight: () => runCombatPreview(pick()) };
+      },
     }, mapId, at);
   }
 
@@ -305,6 +342,7 @@ class Studio {
       }
       await project.write('gba.json', JSON.stringify(this.data, null, 2) + '\n');
       this.dirtyJson = false;
+      if (this.store.dbDirty && (await saveDatabase(this.store)) === 'failed') throw new Error('the Database didn’t save');
       this.renderStatus();
       toast('GBA Studio saved');
       return true;
@@ -314,7 +352,7 @@ class Studio {
     }
   }
 
-  get dirty(): boolean { return this.dirtyJson || this.dirtyImages.size > 0 || this.dirtyMaps.size > 0; }
+  get dirty(): boolean { return this.dirtyJson || this.dirtyImages.size > 0 || this.dirtyMaps.size > 0 || this.store.dbDirty; }
 
   /* ----------------------------------------------------------------- shell */
 
@@ -334,6 +372,7 @@ class Studio {
         tabs,
         h('div', { class: 'tb-spacer' }),
         this.statusEl,
+        h('button', { type: 'button', class: 'btn ghost', title: 'Items, troops, enemies, characters and the rest of the Database', onclick: () => this.openDb() }, 'Database'),
         h('button', { type: 'button', class: 'btn primary', title: 'Save (Ctrl+S)', onclick: () => void this.save() }, 'Save'),
         h('button', { type: 'button', class: 'btn ghost', onclick: () => this.close() }, 'Close')),
       h('div', { class: 'gs-main' }, this.listEl, this.centerEl, this.sideEl));
@@ -554,7 +593,8 @@ class Studio {
       h('span', { class: 'gs-sep' }),
       this.toggleBtn('Mirror', 'Paint both halves of a cell at once (handy for faces and fronts)', this.mirror, (v) => { this.mirror = v; }),
       it.kind === 'sprite' ? this.toggleBtn('Onion skin', 'Show the previous frame faintly under each frame', this.onion, (v) => { this.onion = v; }) : null,
-      this.toggleBtn('Grid', 'Show a light pixel grid', this.grid, (v) => { this.grid = v; }));
+      this.toggleBtn('Grid', 'Show a light pixel grid', this.grid, (v) => { this.grid = v; setPref('mimas.gs.grid', v); }),
+      this.toggleBtn('Labels', 'Show the names of the cells (hide them when they get in the way of painting)', this.labels, (v) => { this.labels = v; setPref('mimas.gs.labels', v); }));
 
     let frames: HTMLElement | null = null;
     if (it.kind === 'tile' && TILE_TYPES[it.t.type].animated) {
@@ -569,7 +609,7 @@ class Studio {
     }
 
     const geo = this.geometry(it);
-    if (this.cellSel[0] >= geo.cols || this.cellSel[1] >= geo.rows) this.cellSel = [0, 0];
+    if (Math.max(this.cellSel[0], this.cellEnd[0]) >= geo.cols || Math.max(this.cellSel[1], this.cellEnd[1]) >= geo.rows) this.cellSel = this.cellEnd = [0, 0];
     this.display = h('canvas', { class: 'gs-canvas' }) as HTMLCanvasElement;
     this.display.addEventListener('pointerdown', (e) => this.pointerDown(e));
     this.display.addEventListener('pointermove', (e) => this.pointerMove(e));
@@ -676,7 +716,7 @@ class Studio {
     for (let row = 0; row <= g.rows; row++) { const y = row * g.fh * z; c.moveTo(0, y + 0.5); c.lineTo(W * z, y + 0.5); }
     c.stroke();
     // labels
-    if (z >= 4) {
+    if (z >= 4 && this.labels) {
       c.font = `${Math.max(9, Math.min(13, z * 1.2))}px ${getComputedStyle(document.body).fontFamily}`;
       c.textBaseline = 'top';
       const labels = it.kind === 'tile' ? TILE_TYPES[it.t.type].guides.map((gd) => ({ x: gd.x, y: gd.y, label: gd.label }))
@@ -695,7 +735,8 @@ class Studio {
     c.strokeStyle = '#ffd34d';
     c.lineWidth = 2;
     c.setLineDash([6, 4]);
-    c.strokeRect(this.cellSel[0] * g.fw * z + 2, this.cellSel[1] * g.fh * z + 2, g.fw * z - 4, g.fh * z - 4);
+    const [sx0, sy0, sx1, sy1] = this.selRect();
+    c.strokeRect(sx0 * g.fw * z + 2, sy0 * g.fh * z + 2, (sx1 - sx0 + 1) * g.fw * z - 4, (sy1 - sy0 + 1) * g.fh * z - 4);
     c.restore();
     // hover outline
     if (this.hover && !this.stroke && this.tool !== 'cell') {
@@ -739,8 +780,10 @@ class Studio {
     e.preventDefault();
     const g0 = this.geometry(it);
     const cell: [number, number] = [Math.floor(p[0] / g0.fw), Math.floor(p[1] / g0.fh)];
-    if (cell[0] !== this.cellSel[0] || cell[1] !== this.cellSel[1]) { this.cellSel = cell; this.renderCellCard(it); }
-    if (this.tool === 'cell') { this.drawDisplay(); return; }
+    if (e.shiftKey && this.tool === 'cell') this.cellEnd = cell;   // shift-click: stretch the selection
+    else if (this.tool === 'cell' || !this.inSel(cell)) { this.cellSel = cell; this.cellEnd = cell; }
+    this.renderCellCard(it);
+    if (this.tool === 'cell') { this.selecting = true; this.display.setPointerCapture(e.pointerId); this.drawDisplay(); return; }
     this.display.setPointerCapture(e.pointerId);
     const erase = e.button === 2 || this.tool === 'erase';
     const img = this.itemImage(it);
@@ -760,6 +803,11 @@ class Studio {
     const p = this.pixelAt(e);
     if (!it) return;
     this.hover = p;
+    if (this.selecting && p) {
+      const g = this.geometry(it);
+      const cell: [number, number] = [Math.floor(p[0] / g.fw), Math.floor(p[1] / g.fh)];
+      if (cell[0] !== this.cellEnd[0] || cell[1] !== this.cellEnd[1]) { this.cellEnd = cell; this.renderCellCard(it); }
+    }
     if (this.stroke && p) {
       if (this.tool === 'line' || this.tool === 'rect') this.stroke.last = p;
       else if (this.tool === 'pencil' || this.tool === 'erase' || this.stroke.erase) {
@@ -771,6 +819,7 @@ class Studio {
   }
 
   pointerUp(e: PointerEvent): void {
+    this.selecting = false;
     const it = this.current();
     if (!it || !this.stroke) return;
     const p = this.pixelAt(e) ?? this.stroke.last;
@@ -949,44 +998,95 @@ class Studio {
     return [k.rowLabels[cy], k.colLabels[cx]].filter(Boolean).join(' · ') || `Frame ${cx + 1}, ${cy + 1}`;
   }
 
-  /** Run `op` on the selected cell's pixels (in the current frame), with undo. */
-  editCell(it: Item, op: (c: CanvasRenderingContext2D, x: number, y: number, w: number, hh: number) => void): void {
+  /** The selection as [x0, y0, x1, y1] in cells. */
+  selRect(): [number, number, number, number] {
+    const [a, b] = [this.cellSel, this.cellEnd];
+    return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])];
+  }
+
+  inSel([x, y]: [number, number]): boolean {
+    const [x0, y0, x1, y1] = this.selRect();
+    return x >= x0 && x <= x1 && y >= y0 && y <= y1 && (x1 > x0 || y1 > y0);
+  }
+
+  selCells(): [number, number][] {
+    const [x0, y0, x1, y1] = this.selRect();
+    const out: [number, number][] = [];
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) out.push([x, y]);
+    return out;
+  }
+
+  selLabel(it: Item): string {
+    const cells = this.selCells();
+    return cells.length === 1 ? this.cellLabel(it, cells[0]) : `${cells.length} cells (${this.cellLabel(it, cells[0])} …)`;
+  }
+
+  /** Change the sheet (with undo) and redraw. */
+  editSheet(it: Item, op: (c: CanvasRenderingContext2D, g: ReturnType<Studio['geometry']>) => void): void {
     const g = this.geometry(it);
     const img = this.itemImage(it);
     const c = ctx2d(img);
     const path = it.kind === 'tile' ? it.t.image : it.s.image;
     this.pushUndo(path, c.getImageData(0, 0, img.width, img.height));
-    op(c, this.cellSel[0] * g.fw, g.offY + this.cellSel[1] * g.fh, g.fw, g.fh);
+    op(c, g);
     this.touch(path);
     this.drawDisplay();
     this.drawPreview();
     this.refreshThumb(it);
   }
 
-  copyCell(it: Item): void {
+  copyCell(it: Item, cut = false): void {
     const g = this.geometry(it);
-    const clip = blankCanvas(g.fw, g.fh);
-    ctx2d(clip).drawImage(this.itemImage(it), this.cellSel[0] * g.fw, g.offY + this.cellSel[1] * g.fh, g.fw, g.fh, 0, 0, g.fw, g.fh);
-    this.clip = clip;
-    toast(`Copied “${this.cellLabel(it, this.cellSel)}”. Select another cell and Paste.`);
+    const [x0, y0, x1, y1] = this.selRect();
+    const cells = this.selCells().map(([x, y]) => {
+      const cv = blankCanvas(g.fw, g.fh);
+      ctx2d(cv).drawImage(this.itemImage(it), x * g.fw, g.offY + y * g.fh, g.fw, g.fh, 0, 0, g.fw, g.fh);
+      return cv;
+    });
+    this.clip = { cols: x1 - x0 + 1, rows: y1 - y0 + 1, cells };
+    if (cut) this.clearCells(it);
+    toast(`${cut ? 'Cut' : 'Copied'} ${this.selLabel(it)}. Select where it goes and Paste (Ctrl+V).`);
     this.renderCellCard(it);
   }
 
+  /**
+   * Paste: into one selected cell, the copied cells keep their shape from there. Into several selected
+   * cells, they're filled in reading order, so a row of three can go into a column of three.
+   */
   pasteCell(it: Item): void {
     const clip = this.clip;
     if (!clip) return;
     const pal = this.itemPalette(it);
-    this.editCell(it, (c, x, y, w, hh) => {
-      const tmp = blankCanvas(w, hh);
-      ctx2d(tmp).drawImage(clip, 0, 0); // same size copies exactly; other sizes land in the top-left corner
+    const g0 = this.geometry(it);
+    const sel = this.selCells();
+    const targets: [number, number][] = sel.length > 1 ? sel.slice(0, clip.cells.length)
+      : clip.cells.map((_, i) => [sel[0][0] + (i % clip.cols), sel[0][1] + Math.floor(i / clip.cols)] as [number, number])
+        .filter(([x, y]) => x < g0.cols && y < g0.rows);
+    this.editSheet(it, (c, g) => targets.forEach(([x, y], i) => {
+      const tmp = blankCanvas(g.fw, g.fh);
+      ctx2d(tmp).drawImage(clip.cells[i], 0, 0); // same size copies exactly; other sizes land in the top-left corner
       snapToPalette(tmp, pal);
-      c.clearRect(x, y, w, hh);
-      c.drawImage(tmp, x, y);
-    });
+      c.clearRect(x * g.fw, g.offY + y * g.fh, g.fw, g.fh);
+      c.drawImage(tmp, x * g.fw, g.offY + y * g.fh);
+    }));
+    if (sel.length === 1 && targets.length > 1) {
+      const last = targets[targets.length - 1];
+      this.cellEnd = last;
+      this.renderCellCard(it);
+      this.drawDisplay();
+    }
   }
 
+  clearCells(it: Item): void {
+    const [x0, y0, x1, y1] = this.selRect();
+    this.editSheet(it, (c, g) => c.clearRect(x0 * g.fw, g.offY + y0 * g.fh, (x1 - x0 + 1) * g.fw, (y1 - y0 + 1) * g.fh));
+  }
+
+  /** Flip the selection as one picture (a 2×2 tree flips as a whole). */
   flipCell(it: Item, horizontal: boolean): void {
-    this.editCell(it, (c, x, y, w, hh) => {
+    const [x0, y0, x1, y1] = this.selRect();
+    this.editSheet(it, (c, g) => {
+      const x = x0 * g.fw, y = g.offY + y0 * g.fh, w = (x1 - x0 + 1) * g.fw, hh = (y1 - y0 + 1) * g.fh;
       const tmp = blankCanvas(w, hh);
       const t = ctx2d(tmp);
       t.translate(horizontal ? w : 0, horizontal ? 0 : hh);
@@ -995,6 +1095,20 @@ class Studio {
       c.clearRect(x, y, w, hh);
       c.drawImage(tmp, x, y);
     });
+  }
+
+  /** Turn each selected cell a quarter turn in place (square cells only). Clockwise, or not. */
+  rotateCell(it: Item, clockwise: boolean): void {
+    this.editSheet(it, (c, g) => this.selCells().forEach(([cx, cy]) => {
+      const x = cx * g.fw, y = g.offY + cy * g.fh, n = g.fw;
+      const tmp = blankCanvas(n, n);
+      const t = ctx2d(tmp);
+      t.translate(n / 2, n / 2);
+      t.rotate(clockwise ? Math.PI / 2 : -Math.PI / 2);
+      t.drawImage(c.canvas, x, y, n, n, -n / 2, -n / 2, n, n);
+      c.clearRect(x, y, n, n);
+      c.drawImage(tmp, x, y);
+    }));
   }
 
   /** Ledges: the west pieces become the east pieces mirrored. */
@@ -1023,16 +1137,21 @@ class Studio {
     if (!this.cellCard) return;
     const btn = (label: string, title: string, fn: () => void, disabled = false) =>
       h('button', { type: 'button', class: 'btn ghost small', title, disabled, onclick: fn }, label);
+    const g = this.geometry(it);
+    const square = g.fw === g.fh;
     this.cellCard.replaceChildren(
-      h('h3', {}, 'Cell'),
-      h('p', { class: 'gs-kv' }, h('span', {}, 'Selected'), h('strong', {}, this.cellLabel(it, this.cellSel))),
+      h('h3', {}, this.selCells().length > 1 ? 'Cells' : 'Cell'),
+      h('p', { class: 'gs-kv' }, h('span', {}, 'Selected'), h('strong', {}, this.selLabel(it))),
       h('div', { class: 'gs-actions' },
-        btn('Copy', 'Copy this cell', () => this.copyCell(it)),
-        btn('Paste', this.clip ? 'Replace this cell with the copied one' : 'Copy a cell first', () => this.pasteCell(it), !this.clip),
-        btn('Flip ↔', 'Mirror this cell left to right', () => this.flipCell(it, true)),
-        btn('Flip ↕', 'Flip this cell upside down', () => this.flipCell(it, false)),
-        btn('Clear', 'Erase this whole cell', () => this.editCell(it, (c, x, y, w, hh) => c.clearRect(x, y, w, hh)))),
-      h('p', { class: 'hint' }, 'Click a cell on the sheet to select it (the ⬚ tool selects without painting). Copy works across tiles and sprites, e.g. Still → Rustling.'));
+        btn('Copy', 'Copy the selected cells (Ctrl+C)', () => this.copyCell(it)),
+        btn('Paste', this.clip ? 'Put the copied cells here (Ctrl+V)' : 'Copy a cell first', () => this.pasteCell(it), !this.clip),
+        btn('Clear', 'Erase the selected cells (Delete)', () => this.clearCells(it))),
+      h('div', { class: 'gs-actions' },
+        btn('Flip ↔', 'Mirror left to right', () => this.flipCell(it, true)),
+        btn('Flip ↕', 'Flip upside down', () => this.flipCell(it, false)),
+        btn('Rotate ↺', square ? 'Turn each selected cell a quarter turn to the left (a south ledge becomes an east ledge)' : 'Only square cells can turn', () => this.rotateCell(it, false), !square),
+        btn('Rotate ↻', square ? 'Turn each selected cell a quarter turn to the right (a south ledge becomes a west ledge)' : 'Only square cells can turn', () => this.rotateCell(it, true), !square)),
+      h('p', { class: 'hint' }, 'Click a cell to select it; with the ⬚ tool, drag (or Shift-click) to select several. Ctrl+C, Ctrl+X, Ctrl+V and Delete work too. Copy works across tiles and sprites. Pasting a row into a selected column fills it top to bottom.'));
   }
 
   /* ----------------------------------------------------------------- side panel */
@@ -1384,6 +1503,14 @@ class Studio {
     if (this.tab === 'maps') { if (this.mapEditor.key(e)) e.preventDefault(); if (e.key !== 'Escape') { e.stopPropagation(); return; } }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.stopPropagation(); if (e.shiftKey) this.doRedo(); else this.doUndo(); return; }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); e.stopPropagation(); this.doRedo(); return; }
+    const cur = this.tab === 'tiles' || this.tab === 'sprites' ? this.current() : null;
+    if (cur && (e.ctrlKey || e.metaKey) && ['c', 'x', 'v'].includes(e.key.toLowerCase())) {
+      e.preventDefault(); e.stopPropagation();
+      const k = e.key.toLowerCase();
+      if (k === 'v') this.pasteCell(cur); else this.copyCell(cur, k === 'x');
+      return;
+    }
+    if (cur && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); e.stopPropagation(); this.clearCells(cur); return; }
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.close(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const tool = TOOLS.find(([, , , k]) => k.toLowerCase() === e.key.toLowerCase());

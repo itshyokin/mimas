@@ -5,7 +5,7 @@
  */
 import type { AssetRegistry, Database, Dir, MapData } from '../world/types';
 
-const DB = 'hd2d-playtest', STORE = 'handoff', KEY = 'current';
+const DB = 'mimas-playtest', STORE = 'handoff', KEY = 'current';
 
 export interface PlaytestData {
   db: Database;

@@ -24,11 +24,17 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       editor (Maps tab ▶ Playtest, ▶ Play from here on events, toolbar ▶ Play GBA); Events layer (people, signs,
       doors: sprite, facing, trigger action / touch, blocks, Show text, Transfer with Pick the spot); the ROM has every
       GBA map, people, a text box (pre-wrapped at 30 characters, two lines a page) and transfers with a fade.
+- [x] Update 5 (Nov 1): Mimas has its own editor address (5274; dev 5273) and browser storage, so it no longer opens
+      on Saturn's server (that's why edits went into hd2dengine); Database button in GBA Studio (saved with the
+      studio); event commands Give item and Start battle (playtest: Saturn battle preview; ROM: a note), Show text
+      speaker + word bubble (playtest and ROM); cell multi-select (drag / Shift-click with ⬚), Ctrl+C / X / V, Delete,
+      Rotate ↺ / ↻, Labels toggle; ledges use all 15 cells (singles and an extra style).
 
 ## Next (agreed with the owner)
 - [ ] Tall grass rustle, water animation, Surf on water (needs a key item / ability), one-way passability arrows.
 - [ ] More event commands: choices, switches / variables, conditions, give item, move route, wait.
 - [ ] NPCs walking around (GBA Studio overworld sprites).
+- [ ] GBA battles (Start battle runs them), the bag in a START menu.
 - [ ] Menus (START), then battles with back-sprites (the poses from GBA Studio) and front sprites.
 - [ ] Move Saturn's Database over piece by piece: items, characters, enemies, heroes as GBA data.
 

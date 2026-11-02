@@ -33,7 +33,9 @@ also has `map-preview.png`, a picture of the exported map.
 ## The editor
 
 - **On a PC:** double-click `Start Map Editor.bat` (needs Node.js), or
-  `npm install` then `npm run dev`. Saves go straight into the project
+  `npm install` then `npm run dev`. Mimas opens at **localhost:5274**
+  (`npm run dev`: 5273), never at Saturn's 5174 / 5173, so the two editors
+  can't open each other's files. The top-left says **Mimas · Map Editor**. Saves go straight into the project
   folder; commit and push them (GitHub Desktop is fine) and GitHub builds a
   new ROM.
 - The repo is private, so there's no online/tablet editor for now. A public
@@ -77,9 +79,21 @@ Each event has:
 - *Starts when*: the player faces it and presses A (people, signs), or steps
   on it (doors; walking into a door in a wall works too);
 - *Blocks the way* (people);
-- *What happens*, in order: **Show text** (long text wraps by itself; a blank
-  line starts a new box) and **Transfer player** (to any map, column, row and
-  facing; *Pick the spot on the map…* lets you click where they arrive).
+- *What happens*, in order:
+  - **Show text**: long text wraps by itself; a blank line starts a new box.
+    Pick a *Speaker* (the player or any event on the map) and tick *Word
+    bubble* to show it in a bubble over them instead of the box at the bottom.
+  - **Transfer player**: to any map, column, row and facing; *Pick the spot on
+    the map…* lets you click where they arrive.
+  - **Give item**: an item from the Database, and how many. Shows “You got …!”
+    and adds it to the bag.
+  - **Start battle**: a troop from the Database. GBA battles aren't built yet:
+    the playtest offers to fight it in the Saturn battle preview, and the ROM
+    shows a note.
+
+The **Database** button (top of GBA Studio, and *Database…* on an event)
+opens the full Database over the studio: items, troops, enemies, characters
+and the rest. GBA Studio's *Save* saves its changes too.
 
 A sign is an event with no sprite on the signpost. A door is an event that
 starts when stepped on, with a Transfer; put another one on the other map to
@@ -122,7 +136,7 @@ corner as you paint.
 | Path / transition | 13 pieces: 3×3 block + 4 inner corners | Walkable |
 | Water | 13 shore pieces, plus animation frames | Blocks until Surf |
 | Cliff / hill | 13 edge pieces; the middle stays empty | Edges and face block; the top is walkable |
-| Ledge | South (left end, middle, right end); east and west (top, middle, bottom). *Make West from East* mirrors the east pieces | One-way hop down |
+| Ledge | South (left end, middle, right end); east and west (top, middle, bottom); one-tile singles (south, east, west); and an extra style (south, east, west). *Make West from East* mirrors the east pieces | One-way hop down |
 | Stairs, Ladder | 1 tile | The way up a cliff |
 | Tall grass | Still + rustling | Walkable; battles later |
 | Tree / big object | Any size up to 8×8 tiles | Bottom row blocks; the top draws over you |
@@ -136,10 +150,14 @@ make a taller cliff; stairs or a ladder in the ring are the way up.
 Colors snap to the 32,768 the GBA can show, so what you see is what the GBA
 shows. Changing a color recolors every tile and sprite using that palette.
 
-**Cells.** Click a cell on the sheet (or use the ⬚ *Select a cell* tool, which
-doesn't paint) and the **Cell** card can *Copy*, *Paste*, *Flip ↔*, *Flip ↕*
-or *Clear* it. Copy works across tiles and sprites, so a bush painted in
-*Still* can be pasted into *Rustling* as a start. Water frames can be moved
+**Cells.** Click a cell on the sheet, or use the ⬚ *Select a cell* tool (it
+doesn't paint) and drag or Shift-click to select several. The **Cell** card
+can *Copy*, *Paste*, *Clear*, *Flip ↔*, *Flip ↕* and *Rotate ↺ / ↻* (each cell
+turns a quarter turn: ↺ makes a south ledge an east one). Ctrl+C, Ctrl+X,
+Ctrl+V and Delete work too. Copy works across tiles and sprites, so a bush
+painted in *Still* can be pasted into *Rustling* as a start; pasting a copied
+row into a selected column fills it top to bottom. *Labels* hides the cell
+names while you paint (and *Grid* the pixel grid). Water frames can be moved
 earlier or later with *◀ Move* and *Move ▶*.
 
 **Painting.** Left-click paints, right-click erases (on a tablet use the
@@ -156,14 +174,16 @@ The mannequins are also in `public/gba/bases/`, with red-bordered versions
 Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 `public/gba/tiles/` and `public/gba/sprites/`.
 
-## What the ROM does (v0.4)
+## What the ROM does (v0.5)
 
 - Every GBA map is in the ROM; it starts on the one marked **The ROM starts
   on this map** (now **Starter Meadow**). Maps are built from your tiles with
   their exact colors: ground, paths and water with joined corners (one tile
   wide too), cliff tiers, objects, tree tops drawn over the player.
 - People stand on the map and turn to face you when you talk (A); signs
-  show their text; doors take you to other maps with a fade.
+  show their text; doors take you to other maps with a fade. Text shows in
+  the box at the bottom or in a word bubble over whoever speaks. Give item
+  fills the bag (no menu to see it yet); Start battle shows a note.
 - Walls, water, cliff edges, tree trunks and signs block; stairs and ladders
   get you through cliffs; **ledges** hop you down (and block the way back up).
 - The player is your GBA Studio sprite, walking Pokémon-style (a foot forward

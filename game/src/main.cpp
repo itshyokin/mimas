@@ -1,6 +1,7 @@
 /*
  * Mimas runtime: plays the maps made in GBA Studio (or one exported Saturn map).
  *
+ * v0.5: word bubbles over speakers, Give item (the bag), Start battle (a note for now).
  * v0.4: every GBA map is in the ROM; grid movement, collision, cliffs, ledge hops,
  * tree tops drawn over the player, people standing on the map, signs and people you
  * talk to (text box), doors / transfers between maps with a fade, and the map name
@@ -24,6 +25,8 @@
 #include "bn_string_view.h"
 
 #include "bn_regular_bg_items_textbox.h"
+#include "bn_regular_bg_items_bubble.h"
+#include "bn_sprite_items_bubble_tail.h"
 #include "bn_sprite_items_hero.h"
 #include "bn_sprite_palette_items_text_palette.h"
 
@@ -297,12 +300,49 @@ namespace
         int _frames = 0;
     };
 
-    // Shows pre-wrapped text (lines split by \n, pages by \f) in the box, a page at a time; A or B for the next.
-    void show_text(const char* text, bn::sprite_text_generator& gen, name_banner& banner)
+    // The bag: how many of each Database item the player has (no menu yet).
+    uint8_t bag[mimas::item_count] = {};
+
+    // Waits for A or B (a new press).
+    void wait_for_button()
+    {
+        bn::core::update();
+
+        while(! bn::keypad::a_pressed() && ! bn::keypad::b_pressed())
+        {
+            bn::core::update();
+        }
+    }
+
+    // Shows pre-wrapped text (lines split by \n, pages by \f) a page at a time; A or B for the next.
+    // In the box at the bottom of the screen, or (anchor_x / anchor_y >= -999) in a word bubble whose tail
+    // points at that screen point (relative to the screen's centre), like bubbleBox() in GbaPlaytest.ts.
+    void show_text(const char* text, bn::sprite_text_generator& gen, name_banner& banner, int anchor_x = -1000, int anchor_y = -1000)
     {
         banner.hide();
-        bn::regular_bg_ptr box = bn::regular_bg_items::textbox.create_bg(0, 0);
-        box.set_priority(0);
+        bool bubble = anchor_x > -1000;
+        constexpr int BW = 152, BH = 40;
+        int bx = 4, by = 112;
+        bn::optional<bn::regular_bg_ptr> box;
+        bn::optional<bn::sprite_ptr> tail;
+
+        if(bubble)
+        {
+            int sx = anchor_x + HALF_W, sy = anchor_y + HALF_H;   // screen pixels
+            bx = bn::max(2, bn::min(bn::display::width() - BW - 2, sx - BW / 2));
+            by = bn::max(2, sy - BH - 6);
+            int tx = bn::max(bx + 8, bn::min(bx + BW - 8, sx));
+            // The bubble sits in the top-left corner of its 256x256 background.
+            box = bn::regular_bg_items::bubble.create_bg(bx + 128 - HALF_W, by + 128 - HALF_H);
+            tail = bn::sprite_items::bubble_tail.create_sprite(tx - HALF_W, by + BH - 3 + 8 - HALF_H);
+            tail->set_bg_priority(0);
+        }
+        else
+        {
+            box = bn::regular_bg_items::textbox.create_bg(0, 0);
+        }
+
+        box->set_priority(0);
         bn::vector<bn::sprite_ptr, 48> sprites;
         const char* p = text;
 
@@ -320,17 +360,14 @@ namespace
                     ++end;
                 }
 
-                gen.generate(-HALF_W + 12, 120 - HALF_H + line * 16 + 6, bn::string_view(p, end - p), sprites);
+                // each line is 16 pixels tall; generate() takes its vertical centre
+                int top = bubble ? by + 5 : by + 6;
+                gen.generate(bx + 8 - HALF_W, top + 8 + line * 16 - HALF_H, bn::string_view(p, end - p), sprites);
                 ++line;
                 p = *end == '\n' ? end + 1 : end;
             }
 
-            bn::core::update();
-
-            while(! bn::keypad::a_pressed() && ! bn::keypad::b_pressed())
-            {
-                bn::core::update();
-            }
+            wait_for_button();
 
             if(! *p)
             {
@@ -366,8 +403,32 @@ namespace
         {
             const mimas::command& c = e.commands[i];
 
-            if(c.type == mimas::CMD_TEXT)
+            if(c.type == mimas::CMD_TEXT && c.bubble)
             {
+                // the top of the speaker's head, relative to the screen's centre
+                int x = w.px + CELL / 2, y = w.py - CELL;
+
+                if(c.speaker >= 0 && c.speaker < M->event_count)
+                {
+                    const mimas::event& sp = M->events[c.speaker];
+                    x = sp.x * CELL + CELL / 2;
+                    y = sp.y * CELL - (sp.sprite >= 0 ? CELL : 0);
+                }
+
+                show_text(c.text, gen, banner, world_x(x) - w.camera.x().right_shift_integer(),
+                          world_y(y) - w.camera.y().right_shift_integer());
+            }
+            else if(c.type == mimas::CMD_TEXT || c.type == mimas::CMD_BATTLE)
+            {
+                show_text(c.text, gen, banner);
+            }
+            else if(c.type == mimas::CMD_ITEM)
+            {
+                if(c.item >= 0 && c.item < mimas::item_count)
+                {
+                    bag[c.item] = uint8_t(bn::min(99, bag[c.item] + c.count));
+                }
+
                 show_text(c.text, gen, banner);
             }
             else if(c.type == mimas::CMD_TRANSFER)

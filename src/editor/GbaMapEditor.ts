@@ -53,6 +53,9 @@ export interface MapHost {
   sprites(): GbaSprite[];
   spriteImage(s: GbaSprite): HTMLCanvasElement | undefined;
   playtest(mapId: string, at?: { x: number; y: number; dir?: Facing }): void;
+  items(): { id: string; name: string }[];
+  troops(): { id: string; name: string }[];
+  openDatabase(): void;
 }
 
 const FACING_LABEL: Record<Facing, string> = { down: 'Down', up: 'Up', left: 'Left', right: 'Right' };
@@ -534,7 +537,8 @@ export class MapEditor {
 
     const cmds = h('div', { class: 'gs-cmds' });
     ev.commands.forEach((c, i) => {
-      const head = h('div', { class: 'gs-cmd-head' }, h('span', {}, c.type === 'text' ? 'Show text' : 'Transfer player'),
+      const title = { text: 'Show text', transfer: 'Transfer player', item: 'Give item', battle: 'Start battle' }[c.type];
+      const head = h('div', { class: 'gs-cmd-head' }, h('span', {}, title),
         h('button', { type: 'button', class: 'icon-btn', title: 'Move up', disabled: i === 0, onclick: () => ed((x) => { [x.commands[i - 1], x.commands[i]] = [x.commands[i], x.commands[i - 1]]; }, true) }, '↑'),
         h('button', { type: 'button', class: 'icon-btn', title: 'Move down', disabled: i === ev.commands.length - 1, onclick: () => ed((x) => { [x.commands[i + 1], x.commands[i]] = [x.commands[i], x.commands[i + 1]]; }, true) }, '↓'),
         h('button', { type: 'button', class: 'icon-btn', title: 'Remove', onclick: () => ed((x) => { x.commands.splice(i, 1); }, true) }, '✕'));
@@ -543,7 +547,22 @@ export class MapEditor {
         const ta = h('textarea', { placeholder: 'What they say. Long text wraps; a blank line starts a new box.' }) as HTMLTextAreaElement;
         ta.value = c.text;
         ta.addEventListener('change', () => ed(() => { c.text = ta.value; }));
-        box.append(ta);
+        const speakers: [string, string][] = [['', 'Nobody (a sign, a narrator)'], ['player', 'The player'],
+          ...(m.events ?? []).map((v): [string, string] => [`ev:${v.id}`, v.id === ev.id ? `${v.name} (this event)` : v.name])];
+        box.append(ta,
+          field('Speaker', select(speakers, c.speaker ?? '', (v) => ed(() => { c.speaker = v || undefined; if (!v) c.bubble = undefined; }, true))),
+          c.speaker ? checkbox('Word bubble over the speaker (instead of the box at the bottom)', !!c.bubble, (v) => ed(() => { c.bubble = v || undefined; })) : '');
+      } else if (c.type === 'item') {
+        const items = this.host.items();
+        box.append(
+          items.length ? field('Item', select(items.map((x): [string, string] => [x.id, x.name]), c.item, (v) => ed(() => { c.item = v; }))) : h('p', { class: 'hint' }, 'No items in the Database yet.'),
+          field('How many', numberInput(c.count, (v) => ed(() => { c.count = Math.max(1, Math.min(99, Math.round(v))); }), { min: 1, max: 99 })),
+          h('p', { class: 'hint' }, 'Shows “You got …!” and adds it to the bag.'));
+      } else if (c.type === 'battle') {
+        const troops = this.host.troops();
+        box.append(
+          troops.length ? field('Troop', select(troops.map((x): [string, string] => [x.id, x.name]), c.troop, (v) => ed(() => { c.troop = v; }))) : h('p', { class: 'hint' }, 'No troops in the Database yet (Database → Troops).'),
+          h('p', { class: 'hint' }, 'GBA battles aren’t built yet: the playtest offers the Saturn battle preview with this troop, and the ROM shows a note.'));
       } else {
         const maps = this.host.mapIds().map((id): [string, string] => [id, this.host.maps.get(id)?.name ?? id]);
         const tgt = this.host.maps.get(c.map);
@@ -561,7 +580,10 @@ export class MapEditor {
     card.append(h('h3', {}, 'What happens'), cmds,
       h('div', { class: 'gs-actions' },
         h('button', { type: 'button', class: 'btn ghost small', onclick: () => add({ type: 'text', text: '' }) }, '+ Show text'),
-        h('button', { type: 'button', class: 'btn ghost small', onclick: () => add({ type: 'transfer', map: m.id, x: m.start?.[0] ?? 0, y: m.start?.[1] ?? 0 }) }, '+ Transfer player')),
+        h('button', { type: 'button', class: 'btn ghost small', onclick: () => add({ type: 'transfer', map: m.id, x: m.start?.[0] ?? 0, y: m.start?.[1] ?? 0 }) }, '+ Transfer player'),
+        h('button', { type: 'button', class: 'btn ghost small', onclick: () => add({ type: 'item', item: this.host.items()[0]?.id ?? '', count: 1 }) }, '+ Give item'),
+        h('button', { type: 'button', class: 'btn ghost small', onclick: () => add({ type: 'battle', troop: this.host.troops()[0]?.id ?? '' }) }, '+ Start battle'),
+        h('button', { type: 'button', class: 'btn ghost small', title: 'Items, troops, enemies and the rest of the Database', onclick: () => this.host.openDatabase() }, 'Database…')),
       h('div', { class: 'gs-actions' },
         h('button', { type: 'button', class: 'btn ghost small', title: 'Play this map starting next to this event', onclick: () => {
           const spots: [number, number, Facing][] = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'right'], [1, 0, 'left']];

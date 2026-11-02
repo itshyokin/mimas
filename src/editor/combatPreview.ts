@@ -9,6 +9,8 @@ let before: () => void = () => {};
 export function setCombatPreview(fn: (enemies: string[], map?: string) => void): void { start = fn; }
 /** What to do first (the Database window puts its changes into the project). */
 export function beforeCombatPreview(fn: () => void): void { before = fn; }
+/** Open a battle preview with these enemies (GBA playtest battles use it). */
+export function runCombatPreview(enemies: string[], map?: string): void { start(enemies, map); }
 
 let lastMap = '';
 /** A battle map picker and the button. `enemies` is read when it's pressed. */
