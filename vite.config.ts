@@ -81,7 +81,7 @@ function editorApi(): Plugin {
           }
           if (req.method === 'POST' && url.pathname === '/__editor/upload') {
             const file = url.searchParams.get('file') ?? '';
-            if (!/^(?:gba\/(?:tiles|sprites)\/[A-Za-z0-9_.-]+\.png$)|^assets\/(?:(?:props|tiles|icons|characters|enemies|weapons\/custom)\/[A-Za-z0-9_.-]+\.png|props\/[A-Za-z0-9_.-]+\.(?:glb|fbx)|models\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+\.(?:glb|fbx)|audio\/[A-Za-z0-9_.-]+\.(?:ogg|mp3|wav|m4a))$/.test(file)) return send(res, 400, { error: 'Invalid file name' });
+            if (!/^(?:gba\/(?:tiles|sprites|props)\/[A-Za-z0-9_.-]+\.png$)|^assets\/(?:(?:props|tiles|icons|characters|enemies|weapons\/custom)\/[A-Za-z0-9_.-]+\.png|props\/[A-Za-z0-9_.-]+\.(?:glb|fbx)|models\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+\.(?:glb|fbx)|audio\/[A-Za-z0-9_.-]+\.(?:ogg|mp3|wav|m4a))$/.test(file)) return send(res, 400, { error: 'Invalid file name' });
             const target = path.resolve('public', file);
             await fs.mkdir(path.dirname(target), { recursive: true });
             await fs.writeFile(target, await readBytes(req));

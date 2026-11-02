@@ -705,7 +705,7 @@ class GbaGame {
     g.drawImage(this.cur.over, -camX, -camZ);
 
     if (this.banner > 0 && !this.message.isOpen) {
-      g.font = 'bold 10px "Trebuchet MS", sans-serif';
+      g.font = '10px "Game Pixel", monospace';
       g.textAlign = 'center';
       g.textBaseline = 'middle';
       g.lineJoin = 'round';

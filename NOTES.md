@@ -42,6 +42,15 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       GameState, Inventory, TurnBattle + BattleScreen (Pocket Handheld, flat white screen), encounter zones and map
       tables, props drawn and blocking, Saturn's sound effects (copied into public/assets/audio) and the built-in
       chiptune music. The editor hands over GBA art and the pictures it draws (props, characters, enemies).
+- [x] Update 8 (Nov 2): Saturn events in the ROM (tools/gba_events.py → game/src/main.cpp interpreter): pages,
+      conditions, triggers, area events, text / bubbles / names, choices, if / else, switches, variables, self
+      switches, items, gold, transfers, waits, fades; props drawn and blocking (baked by the editor on save);
+      GBA check panel; the GBA playtest uses the Game Pixel font everywhere.
+- [ ] Update 9 (agreed): GBA battles in the ROM (Pokémon style, white screen); playtest and ROM menus in GB / GBA
+      Pokémon style (vertical pause list: party as the "Pokémon" list, bag as a text list with icons and (x3),
+      Use / Toss…, Save); battle log in the pixel font; Additions are the attacks (no button prompts yet), up to 4
+      a hero, learning a 5th asks which to forget (Database option: keep them all and equip 4 outside battle);
+      Additions cost no MP, Spells do; shops; party members in battle; stats from gear.
 - [ ] GBA playtest gaps: shops, START menu (bag, party), saving, party members in battle, hero stats from gear.
 - [ ] Update 8+: the ROM: Saturn events compiled to a compact script, encounter zones, battles, sound (chip versions
       of the built-in sounds on the GBA's sound chip; effect files as samples; music as tracker files), props drawn

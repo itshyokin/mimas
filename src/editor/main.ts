@@ -8,6 +8,7 @@ import { writePlaytest, type PlaytestData } from '../shared/playtest';
 import { loadEnemyImages } from './CombatEditor';
 import { openDatabase } from './DatabaseEditor';
 import { openGbaStudio } from './GbaStudio';
+import { openGbaCheck } from './gbaCheck';
 import { gba, loadGba } from './gbaShared';
 import { blankLayers } from '../gba/layers';
 import { setCombatPreview } from './combatPreview';
@@ -176,7 +177,12 @@ function buildUI(): void {
     } }, '▶ Saturn playtest');
   // Mimas: GBA maps play right here on a GBA screen; old Saturn maps still open the Saturn game.
   const gbaPlayBtn = h('button', { type: 'button', class: 'btn play', title: 'Play this map on a GBA screen, right here (includes unsaved changes)', onclick: () => void playGba() }, '▶ Playtest');
-  const updatePlayButtons = () => { const g = !!store.map?.gba; gbaPlayBtn.hidden = !g; playBtn.hidden = g; };
+  const gbaCheckBtn = h('button', { type: 'button', class: 'btn ghost', title: 'What this map uses that the GBA ROM can’t do yet', onclick: () => void (async () => {
+    const others = new Map<string, MapData>();
+    await Promise.all(store.maps.filter((n) => n !== store.mapName).map(async (n) => { try { others.set(n, await store.project.readMap(n)); } catch { /* unreadable */ } }));
+    openGbaCheck(store.map, store.mapName, store.db, (n) => (n === store.mapName ? store.map : others.get(n)));
+  })() }, 'GBA check');
+  const updatePlayButtons = () => { const g = !!store.map?.gba; gbaPlayBtn.hidden = !g; playBtn.hidden = g; gbaCheckBtn.hidden = !g; };
   store.on('meta', updatePlayButtons);
   store.on('map', updatePlayButtons);
   const toggleLeft = h('button', { type: 'button', class: 'btn ghost panel-toggle', 'aria-expanded': 'false', onclick: () => togglePanel('left') }, 'Tools');
@@ -197,7 +203,7 @@ function buildUI(): void {
     h('div', { class: 'tb-group' }, toggle3d),
     h('div', { class: 'tb-spacer' }),
     h('div', { class: 'tb-group' }, toggleLeft),
-    h('div', { class: 'tb-group' }, saveState, saveBtn, gbaPlayBtn, playBtn));
+    h('div', { class: 'tb-group' }, saveState, gbaCheckBtn, saveBtn, gbaPlayBtn, playBtn));
   // Opened by "Start Map Editor.bat": the Character Builder (characters and weapons) is served alongside.
   if (store.project.kind === 'dev') {
     void fetch('/__editor/builder', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((b: { builder?: boolean; library?: boolean } | null) => {

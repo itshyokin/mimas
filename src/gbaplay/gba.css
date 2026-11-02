@@ -6,7 +6,7 @@ body.gba-mode .gba-screen { position: fixed; inset: 0; width: 100%; height: 100%
 body.gba-mode .msg { --gba: calc(100vw / 240); }
 body.gba-mode .msg.at-bottom { left: calc(var(--gba) * 4); right: calc(var(--gba) * 4); bottom: calc(var(--gba) * 4); top: auto; transform: none; width: auto; max-width: none; }
 body.gba-mode .msg .msg-box { background: #f8f8f8; color: #303038; border: calc(var(--gba) * 2) solid #305090; border-radius: calc(var(--gba) * 3); box-shadow: inset 0 0 0 calc(var(--gba) * 1) #7090c8; padding: calc(var(--gba) * 5) calc(var(--gba) * 8); min-height: calc(var(--gba) * 32); }
-body.gba-mode .msg .msg-text { font-family: "Trebuchet MS", system-ui, sans-serif !important; font-size: calc(var(--gba) * 10) !important; line-height: 1.55; max-width: none; color: #303038 !important; font-style: normal !important; font-weight: normal; text-shadow: calc(var(--gba) * 0.6) calc(var(--gba) * 0.6) 0 #c8c8d0 !important; }
+body.gba-mode .msg .msg-text { font-family: "Game Pixel", monospace !important; font-size: calc(var(--gba) * 10) !important; line-height: 1.55; max-width: none; color: #303038 !important; font-style: normal !important; font-weight: normal; text-shadow: calc(var(--gba) * 0.6) calc(var(--gba) * 0.6) 0 #c8c8d0 !important; }
 body.gba-mode .msg .msg-name { font-size: calc(var(--gba) * 8); background: #305090; color: #fff; }
 body.gba-mode .msg .msg-next { color: #d04040; }
 body.gba-mode .msg .msg-choices { background: #f8f8f8; color: #303038; border: calc(var(--gba) * 2) solid #305090; border-radius: calc(var(--gba) * 3); }
@@ -28,3 +28,5 @@ body.gba-mode .battle .battle-cmd { background: #f8f8f8; color: #303038; border:
 body.gba-mode .battle .battle-cmd * { color: #303038; }
 body.gba-mode .battle .battle-cmd [aria-disabled="true"], body.gba-mode .battle .battle-cmd .disabled { opacity: 0.4; }
 body.gba-mode .msg .msg-text, body.gba-mode .msg .msg-text * { color: #303038 !important; opacity: 1 !important; -webkit-text-fill-color: #303038 !important; }
+/* One pixel font for everything in the GBA game: text boxes, choices, menus, the battle log and its text box. */
+body.gba-mode, body.gba-mode .msg, body.gba-mode .msg *, body.gba-mode .battle, body.gba-mode .battle * { font-family: "Game Pixel", monospace !important; }

@@ -169,16 +169,27 @@ The mannequins are also in `public/gba/bases/`, with red-bordered versions
 Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 `public/gba/tiles/` and `public/gba/sprites/`.
 
-## What the ROM does (v0.6)
+## What the ROM does (v0.7)
 
 - Every GBA map is in the ROM; it starts on the game's start map (Database
   → start; now **Starter Meadow**). Maps are built from your tiles with
   their exact colors: ground, paths and water with joined corners (one tile
   wide too), cliff tiers, objects, tree tops drawn over the player.
-- Saturn's events, props, encounters and battles run in the editor's GBA
-  playtest; they go into the ROM next (pages, switches, commands first). The
-  runtime already has the text box, word bubbles, people, doors with a fade
-  and the bag waiting for them.
+- **Saturn's events**, translated by `tools/gba_events.py` into a small
+  script the ROM runs: pages and their conditions (switches, self switches,
+  variables, items, gold), action / touch / autorun triggers, area events,
+  Show text (box, or a speech bubble over the event; a speaker's name leads
+  the line; `\v[name]` and `\s[name]` show values), Show choices (up to 4,
+  B for the cancel choice), if / else, switches, variables, self switches,
+  give / take items, gold, transfers between GBA maps, waits and fades.
+  People show their GBA sprite (Saturn characters: the player's sprite stands
+  in) and turn to face you when the page says so.
+- **Props** are drawn into the map (their tops over the player) and block the
+  cells they block in the editor. Saving a GBA map in the editor writes their
+  pictures to `public/gba/props/` and the cells they block into the map.
+- **GBA check** (toolbar, on GBA maps) lists what a map uses that the ROM
+  can't do yet, so nothing is left out without you knowing. Battles and random
+  encounters are next.
 - Walls, water, cliff edges, tree trunks and signs block; stairs and ladders
   get you through cliffs; **ledges** hop you down (and block the way back up).
 - The player is your GBA Studio sprite, walking Pokémon-style (a foot forward

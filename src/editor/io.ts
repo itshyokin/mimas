@@ -5,8 +5,45 @@
 import { formatDatabase, formatMap } from '../shared/dataFiles';
 import { h, openModal, toast } from './dom';
 import type { EditorStore } from './store';
+import { blockedTiles } from '../world/props';
+import { propSprite } from './editorArt';
+
+/** File name for a prop's GBA picture (public/gba/props/<name>.png). */
+export const propFile = (type: string): string => `gba/props/${type.replace(/[^A-Za-z0-9_.-]/g, '_')}.png`;
+const bakedThisSession = new Set<string>();
+
+/**
+ * Mimas: before a GBA map is saved, the cells its props block go into its GBA layers (`propCells`), and each kind of
+ * prop's picture is written to public/gba/props at map scale (16 pixels a tile), for tools/export.py to draw.
+ */
+async function bakeProps(store: EditorStore): Promise<void> {
+  const m = store.map, g = m.gba!;
+  const cells = new Set<string>();
+  for (const p of m.props) {
+    const def = store.catalog.get(p.type);
+    if (!def) continue;
+    for (const [x, z] of blockedTiles(def, p.x, p.z, p.s ?? 1)) if (x >= 0 && z >= 0 && x < m.width && z < m.height) cells.add(`${x},${z}`);
+  }
+  g.propCells = [...cells].map((k) => k.split(',').map(Number) as [number, number]);
+  if (!store.project.canStoreImages) return;
+  for (const type of new Set(m.props.map((p) => p.type))) {
+    if (bakedThisSession.has(type)) continue;
+    const sp = propSprite(type);
+    const w = Math.max(1, Math.round(sp.w)), h = Math.max(1, Math.round(sp.h));
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d')!;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(sp.img, 0, 0, w, h);
+    const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/png'));
+    if (!blob) continue;
+    try { await store.project.writeFile(propFile(type), blob); bakedThisSession.add(type); } catch { /* the ROM leaves it out */ }
+  }
+}
 
 export async function save(store: EditorStore): Promise<void> {
+  // Mimas: what the ROM needs from the props, worked out here (their art and footprints live in the editor).
+  if (store.map.gba && store.project.canSave) await bakeProps(store);
   const files: [string, string][] = [[`maps/${store.mapName}.json`, formatMap(store.map)]];
   if (store.dbDirty) files.push(['database.json', formatDatabase(store.db)]);
 

@@ -49,6 +49,10 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Things to know
+- ROM events (Update 8): tools/gba_events.py compiles each GBA map's Saturn events (ops listed at its top; the enum
+  export.py writes must match); game/src/main.cpp `run_event` runs them. Props: the editor's save writes
+  public/gba/props/<type>.png and the map's gba.propCells; export.py's draw_props uses them. src/editor/gbaCheck.ts
+  lists what's left out (keep it in step with gba_events.py).
 - GBA playtest (Update 7): ▶ Playtest on a GBA map opens index.html?gbaplay=<stamp> in an iframe; the editor writes
   the usual playtest hand-off plus `gba` (gba.json, its pictures, and baked prop / character / enemy pictures). The
   game page runs src/gbaplay/GbaGame.ts (src/main.ts branches on ?gbaplay). Styles: src/gbaplay/gba.css.

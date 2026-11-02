@@ -18,6 +18,8 @@ export interface GbaLayers {
   objects: GbaPlacement[];
   /** RPG Maker-style overrides per cell: '.' none, 'O' walkable, 'X' blocked. */
   pass: string[];
+  /** Cells the map's props block (worked out by the editor when the map is saved, for the ROM). */
+  propCells?: [number, number][];
 }
 
 export function blankLayers(w: number, h: number, ground?: string): GbaLayers {

@@ -1,6 +1,9 @@
 /*
  * Mimas runtime: plays the maps made in GBA Studio (or one exported Saturn map).
  *
+ * v0.6: Saturn's events, compiled by tools/gba_events.py: pages and their conditions, action / touch / autorun
+ * triggers, area events, text (box or bubble), choices, if / else, switches, variables, self-switches, items,
+ * gold, transfers, waits and fades. Props are drawn into the map by the exporter.
  * v0.5: word bubbles over speakers, Give item (the bag), Start battle (a note for now).
  * v0.4: every GBA map is in the ROM; grid movement, collision, cliffs, ledge hops,
  * tree tops drawn over the player, people standing on the map, signs and people you
@@ -23,9 +26,13 @@
 #include "bn_sprite_text_generator.h"
 #include "bn_vector.h"
 #include "bn_string_view.h"
+#include "bn_string.h"
 
 #include "bn_regular_bg_items_textbox.h"
 #include "bn_regular_bg_items_bubble.h"
+#include "bn_regular_bg_items_choice_2.h"
+#include "bn_regular_bg_items_choice_3.h"
+#include "bn_regular_bg_items_choice_4.h"
 #include "bn_sprite_items_bubble_tail.h"
 #include "bn_sprite_items_hero.h"
 #include "bn_sprite_palette_items_text_palette.h"
@@ -59,25 +66,98 @@ namespace
         return y * M->width + x;
     }
 
-    [[nodiscard]] const mimas::event* event_at(int x, int y)
+    // ---------------------------------------------------------------- game state (switches, variables, the bag)
+
+    constexpr int MAX_EVENTS = 128;
+    bool switches[mimas::switch_count] = {};
+    int vars[mimas::var_count] = {};
+    uint8_t selfs[mimas::self_count] = {};   // self-switches A-D as bits, by event
+    uint8_t bag[mimas::item_count] = {};
+    int gold = 0;
+    int16_t active[MAX_EVENTS];               // each event's page now (-1: none)
+
+    [[nodiscard]] bool test(int cond, int self_id)
     {
-        for(int i = 0; i < M->event_count; ++i)
+        const mimas::condition& c = mimas::conditions[cond];
+
+        switch(c.type)
+        {
+            case 1: return switches[c.a] == (c.b != 0);
+            case 2: return (((selfs[self_id] >> c.a) & 1) != 0) == (c.b != 0);
+            case 3:
+            {
+                int v = vars[c.a];
+                switch(c.op)
+                {
+                    case 0: return v >= c.b;
+                    case 1: return v <= c.b;
+                    case 2: return v == c.b;
+                    case 3: return v > c.b;
+                    default: return v < c.b;
+                }
+            }
+            case 4: return bag[c.a] >= c.b;
+            case 5: return gold >= c.b;
+            default: return true;
+        }
+    }
+
+    // The last page whose condition is met is the one that shows and runs.
+    void pick_pages()
+    {
+        for(int i = 0; i < M->event_count && i < MAX_EVENTS; ++i)
         {
             const mimas::event& e = M->events[i];
+            active[i] = -1;
 
-            if(e.x == x && e.y == y)
+            for(int k = 0; k < e.page_count; ++k)
             {
-                return &e;
+                const mimas::page& pg = M->pages[e.first_page + k];
+
+                if(! pg.cond || test(pg.cond, e.self_id))
+                {
+                    active[i] = int16_t(e.first_page + k);
+                }
+            }
+        }
+    }
+
+    [[nodiscard]] const mimas::page* page_of(int i)
+    {
+        return i >= 0 && i < MAX_EVENTS && active[i] >= 0 ? &M->pages[active[i]] : nullptr;
+    }
+
+    // The event covering a cell (area events cover their whole rectangle); trigger -1: any.
+    [[nodiscard]] int event_at(int x, int y, int trigger = -1)
+    {
+        for(int i = M->event_count - 1; i >= 0; --i)
+        {
+            const mimas::event& e = M->events[i];
+            const mimas::page* pg = page_of(i);
+
+            if(pg && x >= e.x && y >= e.y && x < e.x + e.w && y < e.y + e.h && (trigger < 0 || pg->trigger == trigger))
+            {
+                return i;
             }
         }
 
-        return nullptr;
+        return -1;
     }
 
     [[nodiscard]] bool person_blocks(int x, int y)
     {
-        const mimas::event* e = event_at(x, y);
-        return e && e->solid;
+        for(int i = 0; i < M->event_count; ++i)
+        {
+            const mimas::event& e = M->events[i];
+            const mimas::page* pg = page_of(i);
+
+            if(pg && pg->solid && x >= e.x && y >= e.y && x < e.x + e.w && y < e.y + e.h)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Can the player step from (fx, fy) to the neighbouring cell (tx, ty)?
@@ -161,6 +241,7 @@ namespace
         bn::optional<bn::regular_bg_ptr> over;
         bn::vector<bn::sprite_ptr, MAX_PEOPLE> people;
         bn::vector<int, MAX_PEOPLE> people_event;   // which event each sprite belongs to
+        bn::vector<int, MAX_PEOPLE> people_dir;
         bn::sprite_ptr hero = bn::sprite_items::hero.create_sprite(0, 0);
 
         int cell_x = 0, cell_y = 0, facing = DOWN;
@@ -185,22 +266,7 @@ namespace
             ground->set_camera(camera);
             over->set_camera(camera);
 
-            for(int i = 0; i < M->event_count && ! people.full(); ++i)
-            {
-                const mimas::event& e = M->events[i];
-
-                if(e.sprite >= 0)
-                {
-                    bn::sprite_ptr s = mimas::npc_sprites[e.sprite]->create_sprite(0, 0);
-                    s.set_camera(camera);
-                    s.set_bg_priority(2);
-                    s.set_position(world_x(e.x * CELL + CELL / 2), world_y(e.y * CELL));
-                    s.set_z_order(-e.y);
-                    people.push_back(s);
-                    people_event.push_back(i);
-                    face_person(people.size() - 1, e.dir);
-                }
-            }
+            make_people();
 
             cell_x = x;
             cell_y = y;
@@ -213,22 +279,68 @@ namespace
             place();
         }
 
-        void face_person(int k, int d)
+        // The people standing on the map: every event whose page now shows a sprite.
+        void make_people()
         {
-            const mimas::event& e = M->events[people_event[k]];
-            people[k].set_tiles(mimas::npc_sprites[e.sprite]->tiles_item(), SHEET_ROW[d] * mimas::hero_frames);
-            people[k].set_horizontal_flip(d == RIGHT);
+            pick_pages();
+            people.clear();
+            people_event.clear();
+            people_dir.clear();
+
+            for(int i = 0; i < M->event_count && ! people.full(); ++i)
+            {
+                const mimas::event& e = M->events[i];
+                const mimas::page* pg = page_of(i);
+
+                if(! pg || pg->sprite == -1)
+                {
+                    continue;
+                }
+
+                const bn::sprite_item& item = pg->sprite >= 0 ? *mimas::npc_sprites[pg->sprite] : bn::sprite_items::hero;
+                bn::sprite_ptr s = item.create_sprite(0, 0);
+                s.set_camera(camera);
+                s.set_bg_priority(2);
+                s.set_position(world_x(e.x * CELL + e.w * CELL / 2), world_y((e.y + e.h - 1) * CELL));
+                s.set_z_order(-(e.y + e.h - 1));
+                people.push_back(s);
+                people_event.push_back(i);
+                people_dir.push_back(pg->dir);
+                face_person(people.size() - 1, pg->dir);
+            }
         }
 
-        void face_event(const mimas::event* e, int d)
+        void face_person(int k, int d)
+        {
+            const mimas::page* pg = page_of(people_event[k]);
+            const bn::sprite_item& item = pg && pg->sprite >= 0 ? *mimas::npc_sprites[pg->sprite] : bn::sprite_items::hero;
+            people[k].set_tiles(item.tiles_item(), SHEET_ROW[d] * mimas::hero_frames);
+            people[k].set_horizontal_flip(d == RIGHT);
+            people_dir[k] = d;
+        }
+
+        void face_event(int ev, int d)
         {
             for(int k = 0; k < people.size(); ++k)
             {
-                if(&M->events[people_event[k]] == e)
+                if(people_event[k] == ev)
                 {
                     face_person(k, d);
                 }
             }
+        }
+
+        [[nodiscard]] bool has_person(int ev) const
+        {
+            for(int k = 0; k < people.size(); ++k)
+            {
+                if(people_event[k] == ev)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Sprite frame, position and camera for this frame.
@@ -300,8 +412,6 @@ namespace
         int _frames = 0;
     };
 
-    // The bag: how many of each Database item the player has (no menu yet).
-    uint8_t bag[mimas::item_count] = {};
 
     // Waits for A or B (a new press).
     void wait_for_button()
@@ -314,17 +424,64 @@ namespace
         }
     }
 
-    // Shows pre-wrapped text (lines split by \n, pages by \f) a page at a time; A or B for the next.
-    // In the box at the bottom of the screen, or (anchor_x / anchor_y >= -999) in a word bubble whose tail
-    // points at that screen point (relative to the screen's centre), like bubbleBox() in GbaPlaytest.ts.
-    void show_text(const char* text, bn::sprite_text_generator& gen, name_banner& banner, int anchor_x = -1000, int anchor_y = -1000)
+    // {Vn} and {Sn} in a text: variable n's value, switch n's ON / OFF.
+    bn::string<512> fill(const char* text)
+    {
+        bn::string<512> out;
+
+        for(const char* p = text; *p && out.size() < 500; ++p)
+        {
+            if(*p == '{' && (p[1] == 'V' || p[1] == 'S'))
+            {
+                const char* q = p + 2;
+                int n = 0;
+
+                while(*q >= '0' && *q <= '9')
+                {
+                    n = n * 10 + (*q - '0');
+                    ++q;
+                }
+
+                if(*q == '}')
+                {
+                    if(p[1] == 'V')
+                    {
+                        out += bn::to_string<12>(n < mimas::var_count ? vars[n] : 0);
+                    }
+                    else
+                    {
+                        out += (n < mimas::switch_count && switches[n]) ? "ON" : "OFF";
+                    }
+
+                    p = q;
+                    continue;
+                }
+            }
+
+            out.push_back(*p);
+        }
+
+        return out;
+    }
+
+    // A text on screen: the box (or bubble) and its letters, kept while a choice is made under it.
+    struct text_view
+    {
+        bn::optional<bn::regular_bg_ptr> box;
+        bn::optional<bn::sprite_ptr> tail;
+        bn::vector<bn::sprite_ptr, 48> sprites;
+    };
+
+    // Shows pre-wrapped text (lines split by \n, pages by \f) a page at a time; A or B for the next. In the box at
+    // the bottom of the screen, or (anchor_x > -1000) in a word bubble whose tail points at that screen point
+    // (relative to the screen's centre). `hold`: the last page stays up (a choice follows) and isn't waited for.
+    void show_text(const char* raw, bn::sprite_text_generator& gen, name_banner& banner, text_view& view, int anchor_x = -1000, int anchor_y = -1000, bool hold = false)
     {
         banner.hide();
+        bn::string<512> text = fill(raw);
         bool bubble = anchor_x > -1000;
         constexpr int BW = 152, BH = 40;
         int bx = 4, by = 112;
-        bn::optional<bn::regular_bg_ptr> box;
-        bn::optional<bn::sprite_ptr> tail;
 
         if(bubble)
         {
@@ -333,22 +490,21 @@ namespace
             by = bn::max(2, sy - BH - 6);
             int tx = bn::max(bx + 8, bn::min(bx + BW - 8, sx));
             // The bubble sits in the top-left corner of its 256x256 background.
-            box = bn::regular_bg_items::bubble.create_bg(bx + 128 - HALF_W, by + 128 - HALF_H);
-            tail = bn::sprite_items::bubble_tail.create_sprite(tx - HALF_W, by + BH - 3 + 8 - HALF_H);
-            tail->set_bg_priority(0);
+            view.box = bn::regular_bg_items::bubble.create_bg(bx + 128 - HALF_W, by + 128 - HALF_H);
+            view.tail = bn::sprite_items::bubble_tail.create_sprite(tx - HALF_W, by + BH - 3 + 8 - HALF_H);
+            view.tail->set_bg_priority(0);
         }
         else
         {
-            box = bn::regular_bg_items::textbox.create_bg(0, 0);
+            view.box = bn::regular_bg_items::textbox.create_bg(0, 0);
         }
 
-        box->set_priority(0);
-        bn::vector<bn::sprite_ptr, 48> sprites;
-        const char* p = text;
+        view.box->set_priority(0);
+        const char* p = text.c_str();
 
         while(true)
         {
-            sprites.clear();
+            view.sprites.clear();
             int line = 0;
 
             while(*p && *p != '\f')
@@ -362,9 +518,14 @@ namespace
 
                 // each line is 16 pixels tall; generate() takes its vertical centre
                 int top = bubble ? by + 5 : by + 6;
-                gen.generate(bx + 8 - HALF_W, top + 8 + line * 16 - HALF_H, bn::string_view(p, end - p), sprites);
+                gen.generate(bx + 8 - HALF_W, top + 8 + line * 16 - HALF_H, bn::string_view(p, end - p), view.sprites);
                 ++line;
                 p = *end == '\n' ? end + 1 : end;
+            }
+
+            if(! *p && hold)
+            {
+                return;
             }
 
             wait_for_button();
@@ -377,77 +538,257 @@ namespace
             ++p;   // past the page break
         }
 
-        sprites.clear();
+        view = text_view();
         bn::core::update();   // the A press that closed the box doesn't talk again
     }
 
-    void fade(int from, int to)
+    // A choice box over the bottom right (2-4 options): up / down, A picks, B picks `cancel` (when there is one).
+    int choose(const int16_t* opts, int n, int cancel, bn::sprite_text_generator& gen)
     {
-        for(int i = 0; i <= 16; ++i)
+        n = bn::max(2, bn::min(4, n));
+        const bn::regular_bg_item& item = n == 2 ? bn::regular_bg_items::choice_2 : n == 3 ? bn::regular_bg_items::choice_3 : bn::regular_bg_items::choice_4;
+        int bw = 80, bh = 16 * n + 10, bx = bn::display::width() - bw - 4, by = 112 - bh - 2;
+        bn::regular_bg_ptr box = item.create_bg(bx + 128 - HALF_W, by + 128 - HALF_H);
+        box.set_priority(0);
+        bn::vector<bn::sprite_ptr, 32> labels;
+        bn::vector<bn::sprite_ptr, 2> cursor;
+
+        for(int k = 0; k < n; ++k)
         {
-            bn::fixed v = bn::fixed(from + (to - from) * i / 16) / 16;
+            gen.generate(bx + 16 - HALF_W, by + 5 + 8 + k * 16 - HALF_H, fill(mimas::strings[opts[k]]), labels);
+        }
+
+        int at = 0;
+
+        while(true)
+        {
+            cursor.clear();
+            gen.generate(bx + 6 - HALF_W, by + 5 + 8 + at * 16 - HALF_H, ">", cursor);
+            bn::core::update();
+
+            if(bn::keypad::up_pressed()) { at = (at + n - 1) % n; }
+            else if(bn::keypad::down_pressed()) { at = (at + 1) % n; }
+            else if(bn::keypad::a_pressed()) { break; }
+            else if(bn::keypad::b_pressed() && cancel >= 0 && cancel < n) { at = cancel; break; }
+        }
+
+        bn::core::update();
+        return at;
+    }
+
+    // Fade to black (16) or back (0) over `frames` frames.
+    int faded = 0;
+
+    void fade(int to, int frames = 16)
+    {
+        int from = faded;
+        frames = bn::max(1, frames);
+
+        for(int i = 1; i <= frames; ++i)
+        {
+            bn::fixed v = bn::fixed(from + (to - from) * i / frames) / 16;
             bn::bg_palettes::set_fade(bn::color(0, 0, 0), v);
             bn::sprite_palettes::set_fade(bn::color(0, 0, 0), v);
             bn::core::update();
         }
+
+        faded = to;
     }
 
-    void run_event(const mimas::event& e, world& w, bn::sprite_text_generator& gen, name_banner& banner)
+    // Runs an event's page: its script from the map's code (ops in tools/gba_events.py).
+    void run_event(int ev, world& w, bn::sprite_text_generator& gen, name_banner& banner)
     {
-        if(e.sprite >= 0 && ! e.touch)
+        const mimas::page* pg = page_of(ev);
+
+        if(! pg || ! pg->code)
         {
-            w.face_event(&e, OPPOSITE[w.facing]);
+            return;
         }
 
-        for(int i = 0; i < e.command_count; ++i)
+        const mimas::event& e = M->events[ev];
+        const int self_id = e.self_id;
+
+        if(pg->face && w.has_person(ev))
         {
-            const mimas::command& c = e.commands[i];
+            w.face_event(ev, OPPOSITE[w.facing]);
+        }
 
-            if(c.type == mimas::CMD_TEXT && c.bubble)
+        const int16_t* code = M->code;
+        int at = pg->code;
+        text_view view;
+        const mimas::map_info* home = M;
+
+        for(int guard = 0; guard < 10000; ++guard)
+        {
+            // A transfer moved the player to another map: the rest of the script still runs (it's in `code`).
+            switch(code[at])
             {
-                // the top of the speaker's head, relative to the screen's centre
-                int x = w.px + CELL / 2, y = w.py - CELL;
+                case mimas::OP_END:
+                    view = text_view();
+                    return;
 
-                if(c.speaker >= 0 && c.speaker < M->event_count)
+                case mimas::OP_TEXT:
                 {
-                    const mimas::event& sp = M->events[c.speaker];
-                    x = sp.x * CELL + CELL / 2;
-                    y = sp.y * CELL - (sp.sprite >= 0 ? CELL : 0);
+                    int str = code[at + 1], speaker = code[at + 2];
+                    bool hold = code[at + 4] == mimas::OP_CHOICE;
+                    bool bubble = code[at + 3] != 0 && M == home;
+                    int ax = -1000, ay = -1000;
+
+                    if(bubble)
+                    {
+                        int x = w.px + CELL / 2, y = w.py - CELL;
+                        int who = speaker == -3 ? ev : speaker;
+
+                        if(who >= 0 && who < M->event_count)
+                        {
+                            const mimas::event& sp = M->events[who];
+                            x = sp.x * CELL + sp.w * CELL / 2;
+                            y = sp.y * CELL - (w.has_person(who) ? CELL : 0);
+                        }
+
+                        ax = world_x(x) - w.camera.x().right_shift_integer();
+                        ay = world_y(y) - w.camera.y().right_shift_integer();
+                    }
+
+                    show_text(mimas::strings[str], gen, banner, view, ax, ay, hold);
+                    at += 4;
+                    break;
                 }
 
-                show_text(c.text, gen, banner, world_x(x) - w.camera.x().right_shift_integer(),
-                          world_y(y) - w.camera.y().right_shift_integer());
-            }
-            else if(c.type == mimas::CMD_TEXT || c.type == mimas::CMD_BATTLE)
-            {
-                show_text(c.text, gen, banner);
-            }
-            else if(c.type == mimas::CMD_ITEM)
-            {
-                if(c.item >= 0 && c.item < mimas::item_count)
+                case mimas::OP_CHOICE:
                 {
-                    bag[c.item] = uint8_t(bn::min(99, bag[c.item] + c.count));
+                    int n = code[at + 1];
+                    int picked = choose(code + at + 2, n, code[at + 2 + n], gen);
+                    view = text_view();
+                    at = code[at + 3 + n + picked];
+                    break;
                 }
 
-                show_text(c.text, gen, banner);
-            }
-            else if(c.type == mimas::CMD_TRANSFER)
-            {
-                banner.hide();
-                fade(0, 16);
-                w.load(c.map, c.x, c.y, c.dir >= 0 ? c.dir : w.facing);
-                bn::core::update();
-                fade(16, 0);
-                banner.show();
-                return;   // the rest of the event belonged to the old map
+                case mimas::OP_JUMP:
+                    at = code[at + 1];
+                    break;
+
+                case mimas::OP_IF:
+                    at = test(code[at + 1], self_id) ? at + 3 : code[at + 2];
+                    break;
+
+                case mimas::OP_SWITCH:
+                    switches[code[at + 1]] = code[at + 2] != 0;
+                    w.make_people();
+                    at += 3;
+                    break;
+
+                case mimas::OP_VAR:
+                    vars[code[at + 1]] = code[at + 2] ? vars[code[at + 1]] + code[at + 3] : code[at + 3];
+                    w.make_people();
+                    at += 4;
+                    break;
+
+                case mimas::OP_SELF:
+                    if(code[at + 2]) { selfs[self_id] |= uint8_t(1 << code[at + 1]); }
+                    else { selfs[self_id] &= uint8_t(~(1 << code[at + 1])); }
+                    w.make_people();
+                    at += 3;
+                    break;
+
+                case mimas::OP_GIVE:
+                    bag[code[at + 1]] = uint8_t(bn::min(99, bag[code[at + 1]] + code[at + 2]));
+                    if(code[at + 3] >= 0) { show_text(mimas::strings[code[at + 3]], gen, banner, view); }
+                    w.make_people();
+                    at += 4;
+                    break;
+
+                case mimas::OP_TAKE:
+                    bag[code[at + 1]] = uint8_t(bn::max(0, bag[code[at + 1]] - code[at + 2]));
+                    w.make_people();
+                    at += 3;
+                    break;
+
+                case mimas::OP_GOLD:
+                    gold = code[at + 1] ? code[at + 2] : bn::max(0, gold + code[at + 2]);
+                    if(code[at + 3] >= 0) { show_text(mimas::strings[code[at + 3]], gen, banner, view); }
+                    w.make_people();
+                    at += 4;
+                    break;
+
+                case mimas::OP_TRANSFER:
+                {
+                    banner.hide();
+                    bool was_dark = faded >= 16;
+
+                    if(! was_dark)
+                    {
+                        fade(16);
+                    }
+
+                    int d = code[at + 4];
+                    w.load(code[at + 1], code[at + 2], code[at + 3], d >= 0 ? d : w.facing);
+                    bn::core::update();
+
+                    if(! was_dark)
+                    {
+                        fade(0);
+                        banner.show();
+                    }
+
+                    at += 5;
+                    break;
+                }
+
+                case mimas::OP_WAIT:
+                    for(int k = 0; k < code[at + 1]; ++k) { bn::core::update(); }
+                    at += 2;
+                    break;
+
+                case mimas::OP_FADEOUT:
+                    fade(16, code[at + 1]);
+                    at += 2;
+                    break;
+
+                case mimas::OP_FADEIN:
+                    fade(0, code[at + 1]);
+                    if(M != home) { banner.show(); }
+                    at += 2;
+                    break;
+
+                case mimas::OP_BATTLE:
+                    show_text(mimas::strings[code[at + 1]], gen, banner, view);
+                    at += 3;
+                    break;
+
+                default:
+                    return;
             }
         }
+    }
+
+    // An autorun page on this map (it runs as soon as nothing else is going on), or -1.
+    [[nodiscard]] int autorun()
+    {
+        for(int i = 0; i < M->event_count; ++i)
+        {
+            const mimas::page* pg = page_of(i);
+
+            if(pg && pg->trigger == 2 && pg->code)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }
 
 int main()
 {
     bn::core::init();
+
+    gold = mimas::start_gold;
+
+    for(int k = 0; k < mimas::start_item_count; ++k)
+    {
+        bag[mimas::start_items[k * 2]] = uint8_t(bn::min(99, int(mimas::start_items[k * 2 + 1])));
+    }
 
     world w;
     w.load(mimas::start_map, mimas::start_x, mimas::start_y, mimas::start_dir);
@@ -464,10 +805,19 @@ int main()
 
     while(true)
     {
-        const mimas::event* touched = nullptr;
+        int touched = -1;
 
         if(w.moving == 0)
         {
+            int ar = autorun();
+
+            if(ar >= 0)
+            {
+                run_event(ar, w, box_text, banner);
+                bn::core::update();
+                continue;
+            }
+
             int want = -1;
 
             if(bn::keypad::down_held()) { want = DOWN; }
@@ -477,11 +827,16 @@ int main()
 
             if(bn::keypad::a_pressed())
             {
-                const mimas::event* e = event_at(w.cell_x + DX[w.facing], w.cell_y + DY[w.facing]);
+                int e = event_at(w.cell_x + DX[w.facing], w.cell_y + DY[w.facing], 0);
 
-                if(e && ! e->touch)
+                if(e < 0)
                 {
-                    run_event(*e, w, box_text, banner);
+                    e = event_at(w.cell_x, w.cell_y, 0);
+                }
+
+                if(e >= 0)
+                {
+                    run_event(e, w, box_text, banner);
                     want = -1;
                 }
             }
@@ -511,12 +866,7 @@ int main()
                 else if(w.bump == 0)
                 {
                     // walking into a blocked door (a touch event in a wall) uses it
-                    const mimas::event* e = event_at(tx, ty);
-
-                    if(e && e->touch)
-                    {
-                        touched = e;
-                    }
+                    touched = event_at(tx, ty, 1);
 
                     w.bump = 8;
                 }
@@ -538,12 +888,7 @@ int main()
 
             if(w.moving == 0)
             {
-                const mimas::event* e = event_at(w.cell_x, w.cell_y);
-
-                if(e && e->touch)
-                {
-                    touched = e;
-                }
+                touched = event_at(w.cell_x, w.cell_y, 1);
             }
         }
 
@@ -554,9 +899,9 @@ int main()
             w.hop = 0;
         }
 
-        if(touched)
+        if(touched >= 0)
         {
-            run_event(*touched, w, box_text, banner);
+            run_event(touched, w, box_text, banner);
         }
 
         if(bn::keypad::start_pressed())

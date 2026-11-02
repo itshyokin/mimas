@@ -18,6 +18,7 @@ GBA rules this enforces automatically:
 """
 import json
 import math
+from gba_events import Compiler
 import os
 import sys
 from collections import Counter
@@ -784,6 +785,14 @@ def bubble_bg():
     return im
 
 
+def choice_bg(n):
+    """A box for n choices (16 pixels a line), 80 wide, in the top-left corner of a 256x256 bg."""
+    im = Image.new('P', (256, 256), 0)
+    panel(im, 0, 0, 79, 16 * n + 9)
+    put_palette(im, BOX_PAL)
+    return im
+
+
 def bubble_tail():
     """The bubble's tail: a 16x16 sprite, its top rows cover the bubble's frame, the tip points down."""
     pal = BOX_PAL
@@ -812,8 +821,51 @@ def clean_outputs():
     os.makedirs(GFX, exist_ok=True)
     os.makedirs(INC, exist_ok=True)
     for f in os.listdir(GFX):
-        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'textbox', 'text_palette', 'bubble', 'box_palette')):
+        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'textbox', 'text_palette', 'bubble', 'box_palette', 'choice_')):
             os.remove(os.path.join(GFX, f))
+
+
+def draw_props(sm, ground, over, coll):
+    """
+    Saturn props on a GBA map, drawn into the background: the bottom row of each picture behind the player, the
+    rest over (tree tops). Pictures and blocked cells come from the editor (public/gba/props, the map's propCells),
+    written when the map is saved.
+    """
+    W, H = sm['width'], sm['height']
+    missing = set()
+    for p in sorted(sm.get('props', []), key=lambda q: q.get('z', 0)):
+        safe = ''.join(ch if ch.isalnum() or ch in '_.-' else '_' for ch in p.get('type', ''))
+        path = os.path.join(PUBLIC, 'gba', 'props', safe + '.png')
+        if not os.path.exists(path):
+            missing.add(p.get('type'))
+            continue
+        img = hard_alpha(Image.open(path).convert('RGBA'))
+        sc = float(p.get('s', 1) or 1)
+        if sc != 1:
+            img = img.resize((max(1, round(img.width * sc)), max(1, round(img.height * sc))), Image.NEAREST)
+        left = int(round(float(p.get('x', 0)) * CELL - img.width / 2))
+        foot = int(round(float(p.get('z', 0)) * CELL))
+        top = foot - img.height
+        cut = max(0, min(img.height, foot - CELL - top))   # rows above the foot cell go over the player
+        if cut:
+            paste_clipped(over, img.crop((0, 0, img.width, cut)), left, top)
+        if cut < img.height:
+            paste_clipped(ground, img.crop((0, cut, img.width, img.height)), left, top + cut)
+    for x, z in (sm.get('gba') or {}).get('propCells', []):
+        if 0 <= x < W and 0 <= z < H and (sm['gba'].get('pass') or [''] * H)[z][x:x + 1] != 'O':
+            coll[z][x] |= SOLID
+    if missing:
+        print(f'  props without a GBA picture (open and save the map in the editor): {", ".join(sorted(missing))}')
+
+
+def paste_clipped(dst, src, x, y):
+    """alpha_composite that allows the picture to hang off the map's edges."""
+    sx, sy = max(0, -x), max(0, -y)
+    ex, ey = min(src.width, dst.width - x), min(src.height, dst.height - y)
+    if sx >= ex or sy >= ey:
+        return
+    part = src.crop((sx, sy, ex, ey))
+    dst.alpha_composite(part, (x + sx, y + sy))
 
 
 def main():
@@ -852,13 +904,13 @@ def main():
             mp = dict(sm['gba'], width=W, height=H, name=sm.get('name', mid))
             print(f'Exporting GBA map "{mp["name"]}" ({W} x {H})')
             ground, over, coll, hgrid = build_gba_map(gba, mp)
+            draw_props(sm, ground, over, coll)
             start = None
             if mid == db.get('startMap') and db.get('start'):
                 start = [int(db['start'].get('x', 0)), int(db['start'].get('z', 0))]
-            # Saturn events go into the ROM with the next update (pages, switches, commands)
             maps.append({'id': mid, 'name': mp['name'], 'W': W, 'H': H, 'ground': ground, 'over': over,
                          'coll': coll, 'hgrid': hgrid, 'start': start, 'dir': (db.get('start') or {}).get('dir', 'down'),
-                         'events': []})
+                         'events': [], 'saturn': sm})
     else:
         map_id = arg or cfg['map']
         mp = load_json(os.path.join(DATA, 'maps', map_id + '.json'))
@@ -902,7 +954,7 @@ def main():
     put_palette(box_pal, BOX_PAL)
     box_pal.save(os.path.join(GFX, 'box_palette.bmp'))
     write_json(os.path.join(GFX, 'box_palette.json'), {'type': 'bg_palette', 'bpp_mode': 'bpp_4'})
-    for name, im in (('textbox', textbox_bg()), ('bubble', bubble_bg())):
+    for name, im in (('textbox', textbox_bg()), ('bubble', bubble_bg()), ('choice_2', choice_bg(2)), ('choice_3', choice_bg(3)), ('choice_4', choice_bg(4))):
         im.save(os.path.join(GFX, name + '.bmp'))
         write_json(os.path.join(GFX, name + '.json'), {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual', 'palette_item': 'box_palette'})
     bubble_tail().save(os.path.join(GFX, 'bubble_tail.bmp'))
@@ -914,33 +966,40 @@ def main():
     hero.save(os.path.join(GFX, 'hero.bmp'))
     write_json(os.path.join(GFX, 'hero.json'), {'type': 'sprite', 'height': HERO_H})
 
-    # People: one sprite item per overworld sprite used by an event
+    # People: one sprite item per GBA Studio overworld sprite an event page shows
     sprites = {s['id']: s for s in gba.get('sprites', [])}
     palettes = {p['id']: p for p in gba.get('palettes', [])}
     npc_ids = []
     for m in maps:
-        for e in m['events']:
-            sid = e.get('sprite')
-            if sid and sid in sprites and sprites[sid].get('kind') == 'overworld' and sid not in npc_ids:
-                img = project_image(sprites[sid]['image'])
-                pal = palettes.get(sprites[sid].get('palette'))
-                if img is None or not pal:
-                    continue
-                k = len(npc_ids)
-                npc_ids.append(sid)
-                build_sheet(img, [hex_rgb(c) for c in pal['colors']]).save(os.path.join(GFX, f'npc_{k}.bmp'))
-                write_json(os.path.join(GFX, f'npc_{k}.json'), {'type': 'sprite', 'height': HERO_H})
+        for e in (m.get('saturn') or {}).get('events', []):
+            for pg in e.get('pages', []):
+                sid = pg.get('gbaSprite')
+                if sid and sid in sprites and sprites[sid].get('kind') == 'overworld' and sid not in npc_ids:
+                    img = project_image(sprites[sid]['image'])
+                    pal = palettes.get(sprites[sid].get('palette'))
+                    if img is None or not pal:
+                        continue
+                    k = len(npc_ids)
+                    npc_ids.append(sid)
+                    build_sheet(img, [hex_rgb(c) for c in pal['colors']]).save(os.path.join(GFX, f'npc_{k}.bmp'))
+                    write_json(os.path.join(GFX, f'npc_{k}.json'), {'type': 'sprite', 'height': HERO_H})
     if npc_ids:
         print(f'  people sprites: {", ".join(npc_ids)}')
 
-    # The Database: item names (Give item) and troops (Start battle)
-    try:
-        db = load_json(os.path.join(DATA, 'database.json'))
-    except (OSError, ValueError):
-        db = {}
-    item_names = [''.join(ch for ch in (it.get('name') or it.get('id', '?')) if 32 <= ord(ch) < 127) for it in db.get('items', [])]
-    item_index = {it.get('id'): n for n, it in enumerate(db.get('items', []))}
-    troops = {t.get('id'): t for t in db.get('troops', [])}
+    def sprite_of(pg):
+        if pg.get('gbaSprite') in npc_ids:
+            return npc_ids.index(pg['gbaSprite'])
+        if pg.get('gbaSprite') or pg.get('character'):
+            return -2   # the player's sprite stands in (a Saturn character, or a GBA sprite that's missing)
+        return -1
+
+    # Saturn's events, compiled (tools/gba_events.py)
+    comp = Compiler(db, index, lambda text, bubble: text_pages(text, BUBBLE_LINE if bubble else TEXT_LINE))
+    compiled = []
+    for m in maps:
+        compiled.append(comp.map_events(m['id'], m['saturn'], sprite_of) if m.get('saturn') else ([0], [], []))
+    for wmsg in comp.warnings:
+        print('  GBA check: ' + wmsg)
 
     # The header: every map, its collision, heights and events
     out = []
@@ -956,67 +1015,49 @@ def main():
     w(f'constexpr uint8_t ledge_s = {LEDGE_S};\nconstexpr uint8_t ledge_e = {LEDGE_E};\nconstexpr uint8_t ledge_w = {LEDGE_W};\n')
     w(f'constexpr uint8_t water = {WATER};\nconstexpr uint8_t grass = {GRASS};\n')
     w(f'constexpr int hero_frames = {HERO_COLS};\n\n')
-    w('enum command_type : uint8_t { CMD_TEXT, CMD_TRANSFER, CMD_ITEM, CMD_BATTLE };\n\n')
-    w('// Text is pre-wrapped: lines split by \\n, pages (two lines each) by \\f.\n')
-    w('// speaker: -2 nobody, -1 the player, k = event k of this map. bubble: a word bubble over the speaker.\n')
-    w('struct command { command_type type; const char* text; int8_t map; uint8_t x; uint8_t y; int8_t dir; '
-      'int8_t speaker; bool bubble; int16_t item; uint8_t count; };\n\n')
-    w('struct event { uint8_t x; uint8_t y; int8_t sprite; uint8_t dir; bool touch; bool solid; const command* commands; int command_count; };\n\n')
+    w('// Event scripts (tools/gba_events.py has the ops). Text is pre-wrapped: lines split by \\n, pages by \\f.\n')
+    w('enum op : int16_t { OP_END, OP_TEXT, OP_CHOICE, OP_JUMP, OP_IF, OP_SWITCH, OP_VAR, OP_SELF, OP_GIVE, OP_TAKE, OP_GOLD, '
+      'OP_TRANSFER, OP_WAIT, OP_FADEOUT, OP_FADEIN, OP_BATTLE };\n')
+    w('struct condition { uint8_t type; uint8_t op; int16_t a; int16_t b; };\n')
+    w('// sprite: -1 none, -2 the player\'s sprite (a stand-in), k = npc_sprites[k]. trigger: 0 action, 1 touch, 2 autorun, 3 none.\n')
+    w('struct page { int16_t cond; int8_t sprite; uint8_t dir; uint8_t trigger; bool solid; bool face; int16_t code; };\n')
+    w('struct event { uint8_t x; uint8_t y; uint8_t w; uint8_t h; int16_t first_page; uint8_t page_count; int16_t self_id; };\n\n')
     w('struct map_info\n{\n    int width; int height; int bg_width; int bg_height; const char* name;\n'
-      '    const uint8_t* collision; const int8_t* heights; const event* events; int event_count;\n'
+      '    const uint8_t* collision; const int8_t* heights; const event* events; int event_count; const page* pages; const int16_t* code;\n'
       '    const bn::regular_bg_item* ground; const bn::regular_bg_item* over;\n};\n\n')
+    w('constexpr condition conditions[] = {\n    ' + ',\n    '.join(f'{{ {a}, {b}, {c}, {d} }}' for a, b, c, d in comp.conds) + '\n};\n')
+    w('constexpr const char* strings[] = {\n    ' + (',\n    '.join(c_string(x) for x in comp.strings) or '""') + '\n};\n\n')
     infos = []
     for i, m in enumerate(maps):
         W, H = m['W'], m['H']
+        code, pages, events = compiled[i]
         w(c_array(f'map{i}_collision', 'uint8_t', [m['coll'][y][x] for y in range(H) for x in range(W)], W))
         w(c_array(f'map{i}_heights', 'int8_t', [m['hgrid'][y][x] for y in range(H) for x in range(W)], W))
-        evs = []
-        kept = [e for e in m['events'] if 0 <= e.get('x', -1) < W and 0 <= e.get('y', -1) < H]
-        ev_index = {e.get('id'): n for n, e in enumerate(kept)}
-        pages = lambda text, line=TEXT_LINE: '\f'.join('\n'.join(pg) for pg in text_pages(text, line))
-        for k, e in enumerate(kept):
-            cmds = []
-            for c in e.get('commands', []):
-                if c.get('type') == 'text':
-                    sp = c.get('speaker') or ''
-                    speaker = -1 if sp == 'player' else ev_index.get(int(sp[3:]), -2) if sp.startswith('ev:') and sp[3:].isdigit() else -2
-                    bubble = bool(c.get('bubble')) and speaker != -2
-                    txt = pages(c.get('text', ''), BUBBLE_LINE if bubble else TEXT_LINE)
-                    cmds.append(f'{{ CMD_TEXT, {c_string(txt)}, 0, 0, 0, -1, {speaker}, {"true" if bubble else "false"}, -1, 0 }}')
-                elif c.get('type') == 'transfer' and c.get('map') in index:
-                    t = maps[index[c['map']]]
-                    tx = max(0, min(t['W'] - 1, int(c.get('x', 0))))
-                    ty = max(0, min(t['H'] - 1, int(c.get('y', 0))))
-                    cmds.append(f'{{ CMD_TRANSFER, nullptr, {index[c["map"]]}, {tx}, {ty}, {DIRS.get(c.get("dir"), -1)}, -2, false, -1, 0 }}')
-                elif c.get('type') == 'item' and c.get('item') in item_index:
-                    n = max(1, min(99, int(c.get('count', 1))))
-                    nm = item_names[item_index[c['item']]]
-                    got = f'You got {nm} x{n}!' if n > 1 else f'You got {nm}!'   # gotText() in GbaPlaytest.ts
-                    cmds.append(f'{{ CMD_ITEM, {c_string(pages(got))}, 0, 0, 0, -1, -2, false, {item_index[c["item"]]}, {n} }}')
-                elif c.get('type') == 'battle':
-                    tr = troops.get(c.get('troop'))
-                    note = f'Battle: {tr["name"] if tr else "a troop"}! (GBA battles come later.)'
-                    cmds.append(f'{{ CMD_BATTLE, {c_string(pages(note))}, 0, 0, 0, -1, -2, false, -1, 0 }}')
-            if cmds:
-                w(f'constexpr command map{i}_ev{k}[] = {{ ' + ', '.join(cmds) + ' };\n')
-            sid = e.get('sprite')
-            spr = npc_ids.index(sid) if sid in npc_ids else -1
-            ref = f'map{i}_ev{k}' if cmds else 'nullptr'
-            evs.append(f'{{ {e["x"]}, {e["y"]}, {spr}, {DIRS.get(e.get("dir", "down"), 0)}, '
-                       f'{"true" if e.get("trigger") == "touch" else "false"}, '
-                       f'{"true" if spr >= 0 and e.get("solid", True) else "false"}, {ref}, {len(cmds)} }}')
-        if evs:
-            w(f'constexpr event map{i}_events[] = {{\n    ' + ',\n    '.join(evs) + '\n};\n')
+        w(c_array(f'map{i}_code', 'int16_t', code, 24))
+        if pages:
+            w(f'constexpr page map{i}_pages[] = {{\n    ' + ',\n    '.join(
+                f'{{ {c}, {sp}, {d}, {t}, {"true" if so else "false"}, {"true" if fa else "false"}, {cd} }}' for c, sp, d, t, so, fa, cd in pages) + '\n};\n')
+        if events:
+            w(f'constexpr event map{i}_events[] = {{\n    ' + ',\n    '.join(
+                f'{{ {x}, {z}, {ew}, {eh}, {fp}, {pc}, {sid} }}' for x, z, ew, eh, fp, pc, sid in events) + '\n};\n')
         name = ''.join(ch for ch in m['name'] if 32 <= ord(ch) < 127)
         infos.append(f'{{ {W}, {H}, {m["bw"]}, {m["bh"]}, {c_string(name)}, map{i}_collision, map{i}_heights, '
-                     f'{f"map{i}_events" if evs else "nullptr"}, {len(evs)}, '
+                     f'{f"map{i}_events" if events else "nullptr"}, {len(events)}, {f"map{i}_pages" if pages else "nullptr"}, map{i}_code, '
                      f'&bn::regular_bg_items::world_ground_{i}, &bn::regular_bg_items::world_over_{i} }}')
         w('\n')
     w('constexpr map_info maps[] = {\n    ' + ',\n    '.join(infos) + '\n};\n')
+    w(f'constexpr int map_count = {len(maps)};\n')
+    w(f'constexpr int switch_count = {max(1, len(comp.switches))};\nconstexpr int var_count = {max(1, len(comp.vars))};\n')
+    w(f'constexpr int self_count = {max(1, comp.self_count)};\n')
+    item_names = [''.join(ch for ch in n if 32 <= ord(ch) < 127) for n in comp.item_names]
     w('// Database items, in order (the bag counts them).\n')
     w('constexpr const char* item_names[] = { ' + (', '.join(c_string(n) for n in item_names) or '""') + ' };\n')
     w(f'constexpr int item_count = {max(1, len(item_names))};\n')
-    w(f'constexpr int map_count = {len(maps)};\n\n')
+    gold0 = int((db.get('inventory') or {}).get('startGold', 0) or 0)
+    start_items = [(comp.items[s['item']], int(s.get('count', 1))) for s in (db.get('inventory') or {}).get('startItems', []) if s.get('item') in comp.items]
+    w(f'constexpr int start_gold = {gold0};\n')
+    w('constexpr int16_t start_items[] = { ' + (', '.join(f'{a}, {b}' for a, b in start_items) or '-1, 0') + ' };\n')
+    w(f'constexpr int start_item_count = {len(start_items)};\n')
     w('constexpr const bn::sprite_item* npc_sprites[] = { ' +
       (', '.join(f'&bn::sprite_items::npc_{k}' for k in range(len(npc_ids))) or 'nullptr') + ' };\n\n')
 
