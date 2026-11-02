@@ -4,13 +4,16 @@
  * Layers: Ground, Paths & water (corners picked automatically), Cliffs (tiers:
  * paint tier 1, then tier 2 inside it, or right at its edge for a taller cliff),
  * Objects (trees, ledges, stairs, signs, tall grass…), Passability (RPG Maker
- * O / X overrides) and Start (where the player begins).
+ * O / X overrides), Events (people, signs, doors) and Start (where the player begins).
  */
 import { field, h, numberInput, openModal, select, textInput, toast, checkbox, confirmModal } from './dom';
-import { collision, drawMap, footprint, GRASS, LEDGE_E, LEDGE_S, LEDGE_W, SOLID, WATER, type TileLookup } from '../gba/mapRender';
-import { CELL, MAX_TIER, TILE_TYPES, blankMap, resizeMap, type GbaMap, type GbaTile, type TileType } from '../gba/types';
+import { collision, drawMap, eventAt, footprint, GRASS, LEDGE_E, LEDGE_S, LEDGE_W, SOLID, WATER, type TileLookup } from '../gba/mapRender';
+import {
+  CELL, FACINGS, MAX_TIER, TILE_TYPES, blankMap, resizeMap, LEDGE_PIECES, ledgeCell,
+  type Facing, type GbaCommand, type GbaEvent, type GbaMap, type GbaSprite, type GbaTile, type TileType,
+} from '../gba/types';
 
-export type Layer = 'ground' | 'terrain' | 'cliff' | 'objects' | 'pass' | 'start';
+export type Layer = 'ground' | 'terrain' | 'cliff' | 'objects' | 'events' | 'pass' | 'start';
 type MapTool = 'paint' | 'erase' | 'fill' | 'rect';
 
 export const LAYERS: [Layer, string, string][] = [
@@ -18,6 +21,7 @@ export const LAYERS: [Layer, string, string][] = [
   ['terrain', 'Paths & water', 'Paths and water over the ground. Corners and edges are picked for you.'],
   ['cliff', 'Cliffs', 'Paint the area of a raised plateau: the ring of cliff edges is drawn around it and the top stays walkable. Paint tier 2 inside tier 1 for a higher level, or right up to its edge for a taller cliff.'],
   ['objects', 'Objects', 'Trees, ledges, stairs, ladders, signs, flowers, tall grass, doors. Stairs and ladders make a way through cliffs.'],
+  ['events', 'Events', 'People, signs and doors. Click an empty cell to add an event, click one to edit it, drag to move it, right-click to delete it.'],
   ['pass', 'Passability', 'RPG Maker-style overrides: O makes a cell walkable, X blocks it, whatever is drawn there.'],
   ['start', 'Start', 'Click where the player starts on this map.'],
 ];
@@ -29,7 +33,6 @@ const LAYER_TYPES: Partial<Record<Layer, TileType[]>> = {
   objects: ['object', 'decor', 'ledge', 'stairs', 'ladder', 'tallgrass', 'door'],
 };
 
-const LEDGE_PIECES = ['South · left end', 'South · middle', 'South · right end', 'East', 'West'];
 
 /** What the map editor needs from the studio around it. */
 export interface MapHost {
@@ -47,7 +50,13 @@ export interface MapHost {
   centerEl: HTMLElement;
   sideEl: HTMLElement;
   goToTiles(): void;
+  sprites(): GbaSprite[];
+  spriteImage(s: GbaSprite): HTMLCanvasElement | undefined;
+  playtest(mapId: string, at?: { x: number; y: number; dir?: Facing }): void;
 }
+
+const FACING_LABEL: Record<Facing, string> = { down: 'Down', up: 'Up', left: 'Left', right: 'Right' };
+const ROW_OF: Record<Facing, number> = { down: 0, up: 1, left: 2, right: 2 };
 
 export class MapEditor {
   sel?: string;
@@ -60,6 +69,11 @@ export class MapEditor {
   zoom = 0;
   grid = true;
   showBlocked = false;
+  /** The selected event (Events layer). */
+  selEvent?: number;
+  /** Choosing where a transfer lands: back to this map / event / command afterwards. */
+  picking: { from: string; ev: number; cmd: number } | null = null;
+  moveEv: { id: number; before: string; moved: boolean } | null = null;
   undo = new Map<string, string[]>();
   redo = new Map<string, string[]>();
 
@@ -166,8 +180,14 @@ export class MapEditor {
       h('span', { class: 'gs-sep' }),
       h('button', { type: 'button', class: `btn ghost gs-toggle${this.grid ? ' on' : ''}`, onclick: () => { this.grid = !this.grid; this.render(); } }, 'Grid'),
       h('button', { type: 'button', class: `btn ghost gs-toggle${this.showBlocked ? ' on' : ''}`, title: 'Tint every cell the player can’t walk on (as the ROM sees it)',
-        onclick: () => { this.showBlocked = !this.showBlocked; this.render(); } }, 'Show blocked'));
-    const help = LAYERS.find(([l]) => l === this.layer)![2];
+        onclick: () => { this.showBlocked = !this.showBlocked; this.render(); } }, 'Show blocked'),
+      h('span', { class: 'gs-sep' }),
+      h('button', { type: 'button', class: 'btn primary', title: 'Play this map from its start, as the ROM would (includes unsaved changes)',
+        onclick: () => this.host.playtest(m.id) }, '▶ Playtest'));
+    const help = this.picking ? '' : LAYERS.find(([l]) => l === this.layer)![2];
+    const banner = this.picking ? h('div', { class: 'gs-pick-banner' },
+      h('span', {}, `Click where the player arrives on “${m.name}”. Pick another map on the left to land there instead.`),
+      h('button', { type: 'button', class: 'btn ghost small', onclick: () => this.endPick() }, 'Cancel')) : null;
     this.display = h('canvas', { class: 'gs-canvas gs-map-canvas' }) as HTMLCanvasElement;
     this.display.addEventListener('pointerdown', (e) => this.down(e));
     this.display.addEventListener('pointermove', (e) => this.move(e));
@@ -175,7 +195,7 @@ export class MapEditor {
     this.display.addEventListener('pointercancel', (e) => this.up(e));
     this.display.addEventListener('pointerleave', () => { this.hover = null; this.draw(); });
     this.display.addEventListener('contextmenu', (e) => e.preventDefault());
-    this.host.centerEl.replaceChildren(layerBar, toolBar, h('p', { class: 'gs-help' }, help), h('div', { class: 'gs-scroll' }, this.display));
+    this.host.centerEl.replaceChildren(layerBar, toolBar, banner ?? h('p', { class: 'gs-help' }, help), h('div', { class: 'gs-scroll' }, this.display));
     requestAnimationFrame(() => this.draw());
     this.renderSide(m);
   }
@@ -278,6 +298,7 @@ export class MapEditor {
       c.textBaseline = 'middle';
       c.fillText('S', x * S + S / 2, y * S + S / 2 + 1);
     }
+    this.drawEvents(c, m, z);
     // rectangle preview / hover
     const box = this.drag && this.tool === 'rect' ? this.rectOf(this.drag.start, this.drag.last) : this.hover ? [this.hover[0], this.hover[1], this.hover[0], this.hover[1]] : null;
     if (box) {
@@ -285,6 +306,45 @@ export class MapEditor {
       c.strokeStyle = this.drag?.erase || this.tool === 'erase' ? '#ff7b6b' : '#ffffff';
       c.lineWidth = 2;
       c.strokeRect(x0 * S + 1, y0 * S + 1, (x1 - x0 + 1) * S - 2, (y1 - y0 + 1) * S - 2);
+    }
+  }
+
+  /** People are always drawn (they're part of the scene); markers and names on the Events layer. */
+  drawEvents(c: CanvasRenderingContext2D, m: GbaMap, z: number): void {
+    const S = CELL * z;
+    for (const e of m.events ?? []) {
+      const sp = e.sprite ? this.host.sprites().find((s) => s.id === e.sprite) : undefined;
+      const img = sp ? this.host.spriteImage(sp) : undefined;
+      const f = e.dir ?? 'down';
+      if (img) {
+        c.save();
+        c.imageSmoothingEnabled = false;
+        if (f === 'right') { c.translate((e.x + 1) * S, 0); c.scale(-1, 1); c.drawImage(img, 0, ROW_OF[f] * 32, 16, 32, 0, (e.y - 1) * S, S, 2 * S); }
+        else c.drawImage(img, 0, ROW_OF[f] * 32, 16, 32, e.x * S, (e.y - 1) * S, S, 2 * S);
+        c.restore();
+      }
+      if (this.layer !== 'events') continue;
+      const on = e.id === this.selEvent;
+      c.strokeStyle = on ? '#ffd34d' : 'rgba(120,200,255,0.95)';
+      c.lineWidth = on ? 3 : 2;
+      c.strokeRect(e.x * S + 1.5, e.y * S + 1.5, S - 3, S - 3);
+      if (!img) {
+        c.fillStyle = 'rgba(30,60,110,0.75)';
+        c.fillRect(e.x * S + 3, e.y * S + 3, S - 6, S - 6);
+        c.fillStyle = '#fff';
+        c.font = `bold ${Math.max(9, S * 0.45)}px sans-serif`;
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillText(e.trigger === 'touch' ? '⇥' : '!', e.x * S + S / 2, e.y * S + S / 2 + 1);
+      }
+      c.font = `${Math.max(9, Math.min(12, S * 0.32))}px sans-serif`;
+      c.textAlign = 'center';
+      c.textBaseline = 'top';
+      const tw = c.measureText(e.name).width;
+      c.fillStyle = 'rgba(0,0,0,0.65)';
+      c.fillRect(e.x * S + S / 2 - tw / 2 - 2, (e.y + 1) * S, tw + 4, Math.max(11, S * 0.36));
+      c.fillStyle = on ? '#ffd34d' : '#cfe6ff';
+      c.fillText(e.name, e.x * S + S / 2, (e.y + 1) * S + 1);
     }
   }
 
@@ -307,6 +367,8 @@ export class MapEditor {
     const m = this.map, p = this.cellAt(e);
     if (!m || !p) return;
     e.preventDefault();
+    if (this.picking) { this.pickTarget(m, p); return; }
+    if (this.layer === 'events') { this.eventDown(m, p, e); return; }
     this.display!.setPointerCapture(e.pointerId);
     const erase = e.button === 2 || this.tool === 'erase';
     if (!erase && this.needsBrush() && !this.currentBrush()) {
@@ -324,6 +386,10 @@ export class MapEditor {
     const m = this.map, p = this.cellAt(e);
     if (!m) return;
     this.hover = p;
+    if (this.moveEv && p) {
+      const ev = m.events?.find((x) => x.id === this.moveEv!.id);
+      if (ev && (ev.x !== p[0] || ev.y !== p[1]) && !eventAt(m, p[0], p[1])) { ev.x = p[0]; ev.y = p[1]; this.moveEv.moved = true; }
+    }
     if (this.drag && p && (p[0] !== this.drag.last[0] || p[1] !== this.drag.last[1])) {
       if (this.tool === 'paint' || this.tool === 'erase' || (this.drag.erase && this.tool !== 'rect')) this.apply(m, p[0], p[1], this.drag.erase);
       this.drag.last = p;
@@ -333,6 +399,12 @@ export class MapEditor {
 
   up(e: PointerEvent): void {
     const m = this.map;
+    if (m && this.moveEv) {
+      if (this.moveEv.moved) this.pushUndo(m, this.moveEv.before);
+      this.moveEv = null;
+      this.draw();
+      return;
+    }
     if (!m || !this.drag) return;
     if (this.tool === 'rect') {
       const p = this.cellAt(e) ?? this.drag.last;
@@ -358,6 +430,154 @@ export class MapEditor {
     this.drag = null;
     this.draw();
     if (this.layer === 'start') this.renderSide(m);
+  }
+
+  pushUndo(m: GbaMap, before: string): void {
+    const stack = this.undo.get(m.id) ?? [];
+    stack.push(before);
+    if (stack.length > 80) stack.shift();
+    this.undo.set(m.id, stack);
+    this.redo.set(m.id, []);
+    this.host.touchMap(m.id);
+  }
+
+  /* ------------------------------------------------------------------ events */
+
+  eventDown(m: GbaMap, [x, y]: [number, number], e: PointerEvent): void {
+    const hit = eventAt(m, x, y);
+    const before = JSON.stringify(m);
+    if (e.button === 2) {
+      if (!hit) return;
+      m.events = (m.events ?? []).filter((v) => v !== hit);
+      if (this.selEvent === hit.id) this.selEvent = undefined;
+      this.pushUndo(m, before);
+      this.draw();
+      this.renderSide(m);
+      return;
+    }
+    if (hit) {
+      this.selEvent = hit.id;
+      this.moveEv = { id: hit.id, before, moved: false };
+      this.display!.setPointerCapture(e.pointerId);
+    } else {
+      const id = Math.max(0, ...(m.events ?? []).map((v) => v.id)) + 1;
+      const ev: GbaEvent = { id, name: `EV${String(id).padStart(3, '0')}`, x, y, trigger: 'action', solid: true, commands: [{ type: 'text', text: '' }] };
+      m.events = [...(m.events ?? []), ev];
+      this.selEvent = id;
+      this.pushUndo(m, before);
+    }
+    this.draw();
+    this.renderSide(m);
+  }
+
+  /** Change the selected event (with undo) and redraw. */
+  editEvent(m: GbaMap, ev: GbaEvent, fn: (ev: GbaEvent) => void, rerender = false): void {
+    const before = JSON.stringify(m);
+    fn(ev);
+    this.pushUndo(m, before);
+    this.draw();
+    if (rerender) this.renderSide(m);
+  }
+
+  startPick(m: GbaMap, ev: GbaEvent, cmd: number): void {
+    const c = ev.commands[cmd];
+    if (c?.type !== 'transfer') return;
+    this.picking = { from: m.id, ev: ev.id, cmd };
+    if (this.host.maps.has(c.map)) this.sel = c.map;
+    this.zoom = 0;
+    this.render();
+  }
+
+  pickTarget(target: GbaMap, [x, y]: [number, number]): void {
+    const pk = this.picking!;
+    const from = this.host.maps.get(pk.from);
+    const ev = from?.events?.find((v) => v.id === pk.ev);
+    const c = ev?.commands[pk.cmd];
+    if (from && c?.type === 'transfer') {
+      const before = JSON.stringify(from);
+      c.map = target.id;
+      c.x = x;
+      c.y = y;
+      this.pushUndo(from, before);
+      toast(`The player will arrive on “${target.name}” at ${x + 1}, ${y + 1}`);
+    }
+    this.endPick();
+  }
+
+  endPick(): void {
+    const pk = this.picking;
+    this.picking = null;
+    if (pk) { this.sel = pk.from; this.layer = 'events'; this.selEvent = pk.ev; }
+    this.zoom = 0;
+    this.render();
+  }
+
+  eventCard(m: GbaMap): HTMLElement {
+    const ev = m.events?.find((v) => v.id === this.selEvent);
+    const card = h('section', { class: 'gs-card' }, h('h3', {}, 'Event'));
+    if (!ev) {
+      card.append(h('p', { class: 'hint' }, `${(m.events ?? []).length} event(s) on this map. Click an empty cell to add one, or click an event to edit it.`),
+        h('p', { class: 'hint' }, 'A person: pick a sprite, “Talk (A button)”, and a Show text. A sign: no sprite, on the signpost. A door: “Step on it” and a Transfer.'));
+      return card;
+    }
+    const sprites = this.host.sprites().filter((s) => s.kind === 'overworld');
+    const ed = (fn: (ev: GbaEvent) => void, rerender = false) => this.editEvent(m, ev, fn, rerender);
+    card.append(h('div', { class: 'gs-form' },
+      field('Name', textInput(ev.name, (v) => ed((x) => { x.name = v.trim() || x.name; }))),
+      h('p', { class: 'gs-kv' }, h('span', {}, 'Where'), h('span', {}, `column ${ev.x + 1}, row ${ev.y + 1} (drag it on the map to move it)`)),
+      field('Sprite', select([['', 'None (sign, door, trigger)'], ...sprites.map((s): [string, string] => [s.id, s.name])], ev.sprite ?? '',
+        (v) => ed((x) => { x.sprite = v || undefined; }, true)), 'Overworld sprites from the Sprites tab.'),
+      ev.sprite ? field('Facing', select(FACINGS.map((f): [string, string] => [f, FACING_LABEL[f]]), ev.dir ?? 'down', (v) => ed((x) => { x.dir = v as Facing; }))) : null,
+      field('Starts when', select([['action', 'The player faces it and presses A'], ['touch', 'The player steps on it (doors)']], ev.trigger,
+        (v) => ed((x) => { x.trigger = v as GbaEvent['trigger']; }, true))),
+      ev.sprite ? checkbox('Blocks the way', ev.solid !== false, (v) => ed((x) => { x.solid = v; })) : null));
+
+    const cmds = h('div', { class: 'gs-cmds' });
+    ev.commands.forEach((c, i) => {
+      const head = h('div', { class: 'gs-cmd-head' }, h('span', {}, c.type === 'text' ? 'Show text' : 'Transfer player'),
+        h('button', { type: 'button', class: 'icon-btn', title: 'Move up', disabled: i === 0, onclick: () => ed((x) => { [x.commands[i - 1], x.commands[i]] = [x.commands[i], x.commands[i - 1]]; }, true) }, '↑'),
+        h('button', { type: 'button', class: 'icon-btn', title: 'Move down', disabled: i === ev.commands.length - 1, onclick: () => ed((x) => { [x.commands[i + 1], x.commands[i]] = [x.commands[i], x.commands[i + 1]]; }, true) }, '↓'),
+        h('button', { type: 'button', class: 'icon-btn', title: 'Remove', onclick: () => ed((x) => { x.commands.splice(i, 1); }, true) }, '✕'));
+      const box = h('div', { class: 'gs-cmd' }, head);
+      if (c.type === 'text') {
+        const ta = h('textarea', { placeholder: 'What they say. Long text wraps; a blank line starts a new box.' }) as HTMLTextAreaElement;
+        ta.value = c.text;
+        ta.addEventListener('change', () => ed(() => { c.text = ta.value; }));
+        box.append(ta);
+      } else {
+        const maps = this.host.mapIds().map((id): [string, string] => [id, this.host.maps.get(id)?.name ?? id]);
+        const tgt = this.host.maps.get(c.map);
+        box.append(
+          field('Map', select(maps, c.map, (v) => ed(() => { c.map = v; }, true))),
+          h('div', { class: 'gs-size' },
+            field('Column', numberInput(c.x + 1, (v) => ed(() => { c.x = Math.max(0, Math.round(v) - 1); }), { min: 1, max: tgt?.width ?? 128 })),
+            field('Row', numberInput(c.y + 1, (v) => ed(() => { c.y = Math.max(0, Math.round(v) - 1); }), { min: 1, max: tgt?.height ?? 128 }))),
+          field('Then facing', select([['', 'Same as before'], ...FACINGS.map((f): [string, string] => [f, FACING_LABEL[f]])], c.dir ?? '', (v) => ed(() => { c.dir = (v || undefined) as Facing | undefined; }))),
+          h('button', { type: 'button', class: 'btn small', onclick: () => this.startPick(m, ev, i) }, 'Pick the spot on the map…'));
+      }
+      cmds.append(box);
+    });
+    const add = (c: GbaCommand) => ed((x) => { x.commands.push(c); }, true);
+    card.append(h('h3', {}, 'What happens'), cmds,
+      h('div', { class: 'gs-actions' },
+        h('button', { type: 'button', class: 'btn ghost small', onclick: () => add({ type: 'text', text: '' }) }, '+ Show text'),
+        h('button', { type: 'button', class: 'btn ghost small', onclick: () => add({ type: 'transfer', map: m.id, x: m.start?.[0] ?? 0, y: m.start?.[1] ?? 0 }) }, '+ Transfer player')),
+      h('div', { class: 'gs-actions' },
+        h('button', { type: 'button', class: 'btn ghost small', title: 'Play this map starting next to this event', onclick: () => {
+          const spots: [number, number, Facing][] = [[0, 1, 'up'], [0, -1, 'down'], [-1, 0, 'right'], [1, 0, 'left']];
+          const col = collision(m, this.lookup);
+          const ok = spots.find(([dx, dy]) => { const x = ev.x + dx, y = ev.y + dy; return x >= 0 && y >= 0 && x < m.width && y < m.height && !(col[y * m.width + x] & SOLID) && !eventAt(m, x, y); });
+          this.host.playtest(m.id, ok ? { x: ev.x + ok[0], y: ev.y + ok[1], dir: ok[2] } : undefined);
+        } }, '▶ Play from here'),
+        h('button', { type: 'button', class: 'btn ghost small danger', onclick: () => {
+          const before = JSON.stringify(m);
+          m.events = (m.events ?? []).filter((v) => v !== ev);
+          this.selEvent = undefined;
+          this.pushUndo(m, before);
+          this.draw();
+          this.renderSide(m);
+        } }, 'Delete event')));
+    return card;
   }
 
   history(isUndo: boolean): void {
@@ -495,7 +715,8 @@ export class MapEditor {
           c.width = c.height = 32;
           const g = c.getContext('2d')!;
           g.imageSmoothingEnabled = false;
-          g.drawImage(this.host.tileImage(t), i * CELL, 0, CELL, CELL, 0, 0, 32, 32);
+          const [lx, ly] = ledgeCell(i);
+          g.drawImage(this.host.tileImage(t), lx * CELL, ly * CELL, CELL, CELL, 0, 0, 32, 32);
           return h('button', { type: 'button', class: `gs-tile-pick${this.ledgePiece === i ? ' on' : ''}`, title: label, onclick: () => { this.ledgePiece = i; this.render(); } }, c, h('span', {}, label));
         })));
       }
@@ -505,9 +726,12 @@ export class MapEditor {
         h('div', { class: 'gs-tiers' }, ...([['O', 'O · walkable'], ['X', '✕ · blocked'], ['.', 'Clear']] as const).map(([v, label]) =>
           h('button', { type: 'button', class: `btn${this.passBrush === v ? ' primary' : ''}`, onclick: () => { this.passBrush = v; if (this.tool === 'erase') this.tool = 'paint'; this.render(); } }, label))),
         h('p', { class: 'hint' }, 'Red tint: blocked. Blue: water. Orange arrows: ledges (hop that way). Overrides win over everything drawn.')));
+    } else if (this.layer === 'events') {
+      cards.push(this.eventCard(m));
     } else if (this.layer === 'start') {
       cards.push(h('section', { class: 'gs-card' }, h('h3', {}, 'Start'),
         h('p', {}, m.start ? `The player starts at column ${m.start[0] + 1}, row ${m.start[1] + 1}.` : 'No start yet.'),
+        field('Facing', select(FACINGS.map((f): [string, string] => [f, FACING_LABEL[f]]), m.dir ?? 'down', (v) => { m.dir = v as Facing; this.host.touchMap(m.id); })),
         h('p', { class: 'hint' }, 'The dashed box shows how much of the map the GBA screen shows around it.')));
     }
 
@@ -546,6 +770,15 @@ export class MapEditor {
     if ((e.ctrlKey || e.metaKey) && k === 'z') { this.history(!e.shiftKey); return true; }
     if ((e.ctrlKey || e.metaKey) && k === 'y') { this.history(false); return true; }
     if (e.ctrlKey || e.metaKey || e.altKey) return false;
+    if (this.picking && e.key === 'Escape') { this.endPick(); return true; }
+    if (this.layer === 'events' && (e.key === 'Delete' || e.key === 'Backspace') && this.map && this.selEvent) {
+      const m = this.map, before = JSON.stringify(m);
+      m.events = (m.events ?? []).filter((v) => v.id !== this.selEvent);
+      this.selEvent = undefined;
+      this.pushUndo(m, before);
+      this.render();
+      return true;
+    }
     const tool = ({ b: 'paint', p: 'paint', e: 'erase', g: 'fill', r: 'rect' } as Record<string, MapTool>)[k];
     if (tool) { this.tool = tool; this.render(); return true; }
     if (k === '+' || k === '=') { this.setZoom(1); return true; }

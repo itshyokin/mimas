@@ -204,7 +204,7 @@ def rock_cliff(r):
 
 
 def grass_ledge(g):
-    img = new(5 * C, C)
+    img = new(5 * C, 3 * C)  # south L / M / R along the top; east and west columns: top, middle, bottom
     rows = {10: g[4], 11: g[3], 12: g[2], 13: g[1], 14: g[1], 15: g[0]}
     for i in range(3):  # south: left end, middle, right end
         for y, col in rows.items():
@@ -214,10 +214,14 @@ def grass_ledge(g):
                 if i == 2 and x > 15 - ((15 - y) // 2 + 1):
                     continue
                 img.putpixel((i * C + x, y), col)
-    for y in range(C):  # east (drop to the right) and west (drop to the left)
-        for k, col in rows.items():
-            img.putpixel((3 * C + k, y), col)
-            img.putpixel((4 * C + 15 - k, y), col)
+    for r in range(3):  # east (drop to the right) and west (drop to the left), rounded ends at top and bottom
+        for y in range(C):
+            for k, col in rows.items():
+                cut = (15 - k) // 2 + 1
+                if (r == 0 and y < cut) or (r == 2 and y > 15 - cut):
+                    continue
+                img.putpixel((3 * C + k, r * C + y), col)
+                img.putpixel((4 * C + 15 - k, r * C + y), col)
     return img
 
 

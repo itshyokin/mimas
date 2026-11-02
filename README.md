@@ -27,6 +27,7 @@ also has `map-preview.png`, a picture of the exported map.
 |---|---|
 | D-pad | Walk, one tile per step |
 | Hold B | Run |
+| A | Talk to people, read signs, next page of text |
 | START | Show the map name again |
 
 ## The editor
@@ -53,15 +54,44 @@ four tabs: Maps, Tiles, Sprites and Palettes.
 | Ground | The base: grass, sand, floors |
 | Paths & water | Paths and ponds; edges and corners are picked for you |
 | Cliffs | The *area* of a raised plateau, by tier. The ring of cliff edges is drawn around it and the top stays walkable. Paint tier 2 inside tier 1 for a higher level, or right up to its edge for a taller cliff |
-| Objects | Trees (click where the trunk goes), ledges (pick the piece: south left/middle/right, east, west), stairs and ladders (a way through cliffs), signs, flowers, tall grass, doors |
+| Objects | Trees (click where the trunk goes), ledges (pick the piece: south left/middle/right, east or west top/middle/bottom), stairs and ladders (a way through cliffs), signs, flowers, tall grass, doors |
+| Events | People, signs and doors (see below) |
 | Passability | RPG Maker-style overrides: O walkable, ✕ blocked |
 | Start | Where the player begins (the dashed box is the GBA screen) |
+
+Paths and water join up from just the 13 pieces you paint, including
+one-tile-wide streams and paths, dead ends, T-junctions and crossings: each
+tile is built from four 8×8 quarters of your pieces (the RPG Maker trick).
 
 Tools: Paint, Erase (or right-click), Fill, Rectangle (great for tall grass
 patches and ledge rows), undo / redo, zoom. **Show blocked** tints every
 cell the player can't walk on, exactly as the ROM sees it (red blocked, blue
 water, orange arrows for ledges). Tick **The ROM starts on this map** to play
 it; each map is saved in `public/data/gbamaps/`.
+
+**Events.** On the Events layer, click an empty cell to add an event, click
+one to edit it, drag it to move it, and right-click (or Delete) to remove it.
+Each event has:
+- a *Sprite* (any overworld sprite, for people; *None* for signs, doors and
+  invisible triggers) and which way it faces;
+- *Starts when*: the player faces it and presses A (people, signs), or steps
+  on it (doors; walking into a door in a wall works too);
+- *Blocks the way* (people);
+- *What happens*, in order: **Show text** (long text wraps by itself; a blank
+  line starts a new box) and **Transfer player** (to any map, column, row and
+  facing; *Pick the spot on the map…* lets you click where they arrive).
+
+A sign is an event with no sprite on the signpost. A door is an event that
+starts when stepped on, with a Transfer; put another one on the other map to
+come back.
+
+**Playtest.** *▶ Playtest* in the Maps tab plays the map right in the editor,
+the way the ROM does (240×160 screen, walking, running, ledges, people, text,
+doors between maps), with your unsaved changes. *▶ Play from here* on an
+event starts next to it. In the main toolbar, *▶ Play GBA* plays the map the
+ROM starts on. Keys: arrows or WASD walk, Z / Space = A, hold X or Shift = B
+(run), Esc stops; a gamepad works too. (*▶ Saturn playtest* is the old HD-2D
+game.)
 
 A starter set of tiles (grass, dirt path, pond, rock cliff, ledges, stairs,
 ladder, tall grass, flowers, signpost, and a pine tree from your own pine
@@ -92,7 +122,7 @@ corner as you paint.
 | Path / transition | 13 pieces: 3×3 block + 4 inner corners | Walkable |
 | Water | 13 shore pieces, plus animation frames | Blocks until Surf |
 | Cliff / hill | 13 edge pieces; the middle stays empty | Edges and face block; the top is walkable |
-| Ledge | South (ends + middle), east, west | One-way hop down |
+| Ledge | South (left end, middle, right end); east and west (top, middle, bottom). *Make West from East* mirrors the east pieces | One-way hop down |
 | Stairs, Ladder | 1 tile | The way up a cliff |
 | Tall grass | Still + rustling | Walkable; battles later |
 | Tree / big object | Any size up to 8×8 tiles | Bottom row blocks; the top draws over you |
@@ -105,6 +135,12 @@ make a taller cliff; stairs or a ladder in the ring are the way up.
 **Palettes.** Each palette holds 15 colors (slot 0 is always transparent).
 Colors snap to the 32,768 the GBA can show, so what you see is what the GBA
 shows. Changing a color recolors every tile and sprite using that palette.
+
+**Cells.** Click a cell on the sheet (or use the ⬚ *Select a cell* tool, which
+doesn't paint) and the **Cell** card can *Copy*, *Paste*, *Flip ↔*, *Flip ↕*
+or *Clear* it. Copy works across tiles and sprites, so a bush painted in
+*Still* can be pasted into *Rustling* as a start. Water frames can be moved
+earlier or later with *◀ Move* and *Move ▶*.
 
 **Painting.** Left-click paints, right-click erases (on a tablet use the
 *Paint* and *Erase* buttons). Tools: Paint (B), Erase (E), Fill (G, stays
@@ -120,12 +156,14 @@ The mannequins are also in `public/gba/bases/`, with red-bordered versions
 Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 `public/gba/tiles/` and `public/gba/sprites/`.
 
-## What the ROM does (v0.3)
+## What the ROM does (v0.4)
 
-- Plays the GBA map marked **The ROM starts on this map** (now **Starter
-  Meadow**), built from your tiles with their exact colors: ground, paths and
-  water with joined corners, cliff tiers, objects, tree tops drawn over the
-  player.
+- Every GBA map is in the ROM; it starts on the one marked **The ROM starts
+  on this map** (now **Starter Meadow**). Maps are built from your tiles with
+  their exact colors: ground, paths and water with joined corners (one tile
+  wide too), cliff tiers, objects, tree tops drawn over the player.
+- People stand on the map and turn to face you when you talk (A); signs
+  show their text; doors take you to other maps with a fade.
 - Walls, water, cliff edges, tree trunks and signs block; stairs and ladders
   get you through cliffs; **ledges** hop you down (and block the way back up).
 - The player is your GBA Studio sprite, walking Pokémon-style (a foot forward
@@ -133,8 +171,7 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 - With no GBA map set, it plays the Saturn map in `public/data/mimas.json`
   instead (the old Monolith Woods export).
 
-Next up: events and talking (signs, NPCs), doors and map transfers, Surf,
-menus and battles. See [NOTES.md](NOTES.md).
+Next up: people walking around, Surf, menus and battles. See [NOTES.md](NOTES.md).
 
 ## Building the ROM yourself
 

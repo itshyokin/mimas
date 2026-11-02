@@ -13,15 +13,16 @@
 import './gbaStudio.css';
 import { checkbox, confirmModal, field, h, numberInput, openModal, select, textInput, toast } from './dom';
 import type { EditorStore } from './store';
-import { SAMPLE_SHAPE, pieceAt, pieceCell } from '../gba/autotile';
+import { SAMPLE_SHAPE, drawQuarters, quarters } from '../gba/autotile';
 import { MapEditor } from './GbaMapEditor';
+import { openGbaPlaytest } from './GbaPlaytest';
 import {
-  CELL, SPRITE_KINDS, TILE_TYPES, defaultGbaData, gbaColor, hexToRgb, tileSize,
-  type GbaData, type GbaMap, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
+  CELL, SPRITE_KINDS, TILE_TYPES, defaultGbaData, gbaColor, hexToRgb, ledgeCell, tileSize,
+  type Facing, type GbaData, type GbaMap, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
 } from '../gba/types';
 
 type Tab = 'maps' | 'tiles' | 'sprites' | 'palettes';
-type Tool = 'pencil' | 'erase' | 'fill' | 'pick' | 'line' | 'rect';
+type Tool = 'pencil' | 'erase' | 'fill' | 'pick' | 'line' | 'rect' | 'cell';
 type Item = { kind: 'tile'; t: GbaTile } | { kind: 'sprite'; s: GbaSprite };
 
 const TOOLS: [Tool, string, string, string][] = [
@@ -31,9 +32,23 @@ const TOOLS: [Tool, string, string, string][] = [
   ['pick', '⊙', 'Pick a color', 'I'],
   ['line', '╱', 'Line', 'L'],
   ['rect', '▭', 'Rectangle', 'R'],
+  ['cell', '⬚', 'Select a cell (to copy, paste or flip it)', 'S'],
 ];
 
 let open = false;
+
+/** The toolbar's “Play GBA”: plays the map the ROM starts on, from the files (no studio needed). */
+export async function playGbaStartMap(store: EditorStore): Promise<void> {
+  try {
+    const studio = new Studio(store);
+    await studio.load();
+    const id = studio.data.startMap ?? studio.data.maps?.[0];
+    if (!id) { toast('No GBA maps yet. Make one in GBA Studio → Maps.', 'error'); return; }
+    await studio.playtest(id);
+  } catch (err) {
+    toast(`Couldn’t start the GBA playtest: ${(err as Error).message}`, 'error');
+  }
+}
 
 export async function openGbaStudio(store: EditorStore): Promise<void> {
   if (open) return;
@@ -135,6 +150,10 @@ class Studio {
   previewGround = '';
   previewRun = false;
   previewPose = 0;
+  /** The cell (column, row) the Cell tools work on; follows the last cell clicked. */
+  cellSel: [number, number] = [0, 0];
+  /** Copied cell, kept while the studio is open (works across tiles and sprites). */
+  clip: HTMLCanvasElement | null = null;
 
   root!: HTMLElement;
   listEl!: HTMLElement;
@@ -164,11 +183,11 @@ class Studio {
     await Promise.all(paths.map(async (p) => {
       try { this.images.set(p, await blobToCanvas(await project.readFile(p))); } catch { /* made below */ }
     }));
-    for (const t of this.data.tiles) this.ensureTileImage(t);
     await Promise.all((this.data.maps ?? []).map(async (id) => {
       try { this.maps.set(id, JSON.parse(await (await project.readFile(`data/gbamaps/${id}.json`)).text()) as GbaMap); } catch { /* missing file: dropped from the list on save */ }
     }));
     this.data.maps = (this.data.maps ?? []).filter((id) => this.maps.has(id));
+    this.migrateLedges();
     const studio = this;
     this.mapEditor = new MapEditor({
       tiles: () => studio.data.tiles,
@@ -185,12 +204,57 @@ class Studio {
       get centerEl() { return studio.centerEl; },
       get sideEl() { return studio.sideEl; },
       goToTiles: () => { studio.tab = 'tiles'; studio.render(); },
+      sprites: () => studio.data.sprites,
+      spriteImage: (s) => studio.images.get(s.image),
+      playtest: (id, at) => void studio.playtest(id, at),
     });
     for (const s of this.data.sprites) await this.ensureSpriteImage(s);
     this.sel.tiles = this.data.tiles[0]?.id;
     this.sel.sprites = this.data.sprites[0]?.id;
     this.sel.palettes = this.data.palettes[0]?.id;
     this.previewGround = this.data.tiles.find((t) => t.type === 'ground')?.id ?? '';
+  }
+
+  /**
+   * Ledges used to be 5 pieces in a row (south left / middle / right, east, west). Now east and west
+   * have a top, middle and bottom: the old east / west piece fills all three, and maps move along.
+   */
+  migrateLedges(): void {
+    for (const t of this.data.tiles) {
+      const old = this.images.get(t.image);
+      if (t.type === 'ledge' && old && old.height === CELL) {
+        const img = blankCanvas(5 * CELL, 3 * CELL);
+        const c = ctx2d(img);
+        c.drawImage(old, 0, 0, 3 * CELL, CELL, 0, 0, 3 * CELL, CELL);
+        for (let r = 0; r < 3; r++) {
+          c.drawImage(old, 3 * CELL, 0, CELL, CELL, 3 * CELL, r * CELL, CELL, CELL);
+          c.drawImage(old, 4 * CELL, 0, CELL, CELL, 4 * CELL, r * CELL, CELL, CELL);
+        }
+        this.images.set(t.image, img);
+        this.dirtyImages.add(t.image);
+        for (const [id, m] of this.maps) {
+          const v = m.tiles.indexOf(t.id) + 1;
+          if (!v) continue;
+          for (const o of m.objects) if (o.t === v && (o.p === 3 || o.p === 4)) { o.p = o.p === 3 ? 4 : 7; this.dirtyMaps.add(id); }
+        }
+      }
+      this.ensureTileImage(t);
+    }
+  }
+
+  /** Play a GBA map in the editor, with everything as it is now (saved or not). */
+  async playtest(mapId: string, at?: { x: number; y: number; dir?: Facing }): Promise<void> {
+    const sprite = this.data.sprites.find((s) => s.id === this.data.player && s.kind === 'overworld');
+    let player = sprite ? this.images.get(sprite.image) ?? null : null;
+    if (!player) {
+      try { player = await blobToCanvas(await this.store.project.readFile('gba/bases/overworld_base.png')); } catch { player = null; }
+    }
+    openGbaPlaytest({
+      maps: this.maps,
+      look: this.mapEditor.lookup,
+      sprite: (id) => { const s = this.data.sprites.find((x) => x.id === id); return s ? this.images.get(s.image) ?? null : null; },
+      player,
+    }, mapId, at);
   }
 
   ensureTileImage(t: GbaTile): HTMLCanvasElement {
@@ -498,9 +562,14 @@ class Studio {
       frames = h('div', { class: 'gs-frames' }, h('span', {}, 'Frame:'),
         ...Array.from({ length: n }, (_, i) => h('button', { type: 'button', class: `btn${i === this.frame ? ' primary' : ''}`, onclick: () => { this.frame = i; this.renderPainter(); } }, String(i + 1))),
         n < 8 ? h('button', { type: 'button', class: 'btn ghost', title: 'Add a frame (a copy of this one)', onclick: () => this.addFrame(it.t) }, '+ Frame') : null,
-        n > 1 ? h('button', { type: 'button', class: 'btn ghost', title: 'Remove the last frame', onclick: () => this.removeFrame(it.t) }, '− Frame') : null);
+        n > 1 ? h('button', { type: 'button', class: 'btn ghost', title: 'Remove the last frame', onclick: () => this.removeFrame(it.t) }, '− Frame') : null,
+        n > 1 ? h('span', { class: 'gs-sep' }) : null,
+        n > 1 ? h('button', { type: 'button', class: 'btn ghost', title: 'Move this frame left (earlier)', disabled: this.frame === 0, onclick: () => this.moveFrame(it.t, -1) }, '◀ Move') : null,
+        n > 1 ? h('button', { type: 'button', class: 'btn ghost', title: 'Move this frame right (later)', disabled: this.frame === n - 1, onclick: () => this.moveFrame(it.t, 1) }, 'Move ▶') : null);
     }
 
+    const geo = this.geometry(it);
+    if (this.cellSel[0] >= geo.cols || this.cellSel[1] >= geo.rows) this.cellSel = [0, 0];
     this.display = h('canvas', { class: 'gs-canvas' }) as HTMLCanvasElement;
     this.display.addEventListener('pointerdown', (e) => this.pointerDown(e));
     this.display.addEventListener('pointermove', (e) => this.pointerMove(e));
@@ -621,8 +690,15 @@ class Studio {
         c.fillText(l.label, x, y);
       }
     }
+    // the selected cell (for copy / paste / flip)
+    c.save();
+    c.strokeStyle = '#ffd34d';
+    c.lineWidth = 2;
+    c.setLineDash([6, 4]);
+    c.strokeRect(this.cellSel[0] * g.fw * z + 2, this.cellSel[1] * g.fh * z + 2, g.fw * z - 4, g.fh * z - 4);
+    c.restore();
     // hover outline
-    if (this.hover && !this.stroke) {
+    if (this.hover && !this.stroke && this.tool !== 'cell') {
       c.strokeStyle = 'rgba(255,255,255,0.8)';
       c.lineWidth = 1;
       c.strokeRect(this.hover[0] * z + 0.5, this.hover[1] * z + 0.5, z - 1, z - 1);
@@ -661,6 +737,10 @@ class Studio {
     const p = this.pixelAt(e);
     if (!it || !p) return;
     e.preventDefault();
+    const g0 = this.geometry(it);
+    const cell: [number, number] = [Math.floor(p[0] / g0.fw), Math.floor(p[1] / g0.fh)];
+    if (cell[0] !== this.cellSel[0] || cell[1] !== this.cellSel[1]) { this.cellSel = cell; this.renderCellCard(it); }
+    if (this.tool === 'cell') { this.drawDisplay(); return; }
     this.display.setPointerCapture(e.pointerId);
     const erase = e.button === 2 || this.tool === 'erase';
     const img = this.itemImage(it);
@@ -703,11 +783,7 @@ class Studio {
   endStroke(it: Item): void {
     if (!this.stroke) return;
     const path = it.kind === 'tile' ? it.t.image : it.s.image;
-    const stack = this.undo.get(path) ?? [];
-    stack.push(this.stroke.before);
-    if (stack.length > 60) stack.shift();
-    this.undo.set(path, stack);
-    this.redo.set(path, []);
+    this.pushUndo(path, this.stroke.before);
     this.stroke = null;
     this.touch(path);
     this.drawDisplay();
@@ -835,6 +911,130 @@ class Studio {
     this.renderPainter();
   }
 
+  /** Swap the current frame with its neighbour (water animation order). */
+  moveFrame(t: GbaTile, dir: number): void {
+    const { rows, frames } = tileSize(t);
+    const to = this.frame + dir;
+    if (to < 0 || to >= frames) return;
+    const img = this.ensureTileImage(t);
+    const c = ctx2d(img);
+    this.pushUndo(t.image, c.getImageData(0, 0, img.width, img.height));
+    const fh = rows * CELL;
+    const a = c.getImageData(0, this.frame * fh, img.width, fh), b = c.getImageData(0, to * fh, img.width, fh);
+    c.putImageData(b, 0, this.frame * fh);
+    c.putImageData(a, 0, to * fh);
+    this.frame = to;
+    this.touch(t.image);
+    this.renderPainter();
+  }
+
+  pushUndo(path: string, before: ImageData): void {
+    const stack = this.undo.get(path) ?? [];
+    stack.push(before);
+    if (stack.length > 60) stack.shift();
+    this.undo.set(path, stack);
+    this.redo.set(path, []);
+  }
+
+  /* ----------------------------------------------------------------- cells: copy, paste, flip */
+
+  cellLabel(it: Item, [cx, cy]: [number, number]): string {
+    if (it.kind === 'tile') {
+      const gd = TILE_TYPES[it.t.type].guides.find((g) => g.x === cx && g.y === cy);
+      const frames = tileSize(it.t).frames;
+      const base = gd?.label ?? (tileSize(it.t).cols * tileSize(it.t).rows > 1 ? `Cell ${cx + 1}, ${cy + 1}` : TILE_TYPES[it.t.type].label);
+      return frames > 1 ? `${base} (frame ${this.frame + 1})` : base;
+    }
+    const k = SPRITE_KINDS[it.s.kind];
+    return [k.rowLabels[cy], k.colLabels[cx]].filter(Boolean).join(' · ') || `Frame ${cx + 1}, ${cy + 1}`;
+  }
+
+  /** Run `op` on the selected cell's pixels (in the current frame), with undo. */
+  editCell(it: Item, op: (c: CanvasRenderingContext2D, x: number, y: number, w: number, hh: number) => void): void {
+    const g = this.geometry(it);
+    const img = this.itemImage(it);
+    const c = ctx2d(img);
+    const path = it.kind === 'tile' ? it.t.image : it.s.image;
+    this.pushUndo(path, c.getImageData(0, 0, img.width, img.height));
+    op(c, this.cellSel[0] * g.fw, g.offY + this.cellSel[1] * g.fh, g.fw, g.fh);
+    this.touch(path);
+    this.drawDisplay();
+    this.drawPreview();
+    this.refreshThumb(it);
+  }
+
+  copyCell(it: Item): void {
+    const g = this.geometry(it);
+    const clip = blankCanvas(g.fw, g.fh);
+    ctx2d(clip).drawImage(this.itemImage(it), this.cellSel[0] * g.fw, g.offY + this.cellSel[1] * g.fh, g.fw, g.fh, 0, 0, g.fw, g.fh);
+    this.clip = clip;
+    toast(`Copied “${this.cellLabel(it, this.cellSel)}”. Select another cell and Paste.`);
+    this.renderCellCard(it);
+  }
+
+  pasteCell(it: Item): void {
+    const clip = this.clip;
+    if (!clip) return;
+    const pal = this.itemPalette(it);
+    this.editCell(it, (c, x, y, w, hh) => {
+      const tmp = blankCanvas(w, hh);
+      ctx2d(tmp).drawImage(clip, 0, 0); // same size copies exactly; other sizes land in the top-left corner
+      snapToPalette(tmp, pal);
+      c.clearRect(x, y, w, hh);
+      c.drawImage(tmp, x, y);
+    });
+  }
+
+  flipCell(it: Item, horizontal: boolean): void {
+    this.editCell(it, (c, x, y, w, hh) => {
+      const tmp = blankCanvas(w, hh);
+      const t = ctx2d(tmp);
+      t.translate(horizontal ? w : 0, horizontal ? 0 : hh);
+      t.scale(horizontal ? -1 : 1, horizontal ? 1 : -1);
+      t.drawImage(c.canvas, x, y, w, hh, 0, 0, w, hh);
+      c.clearRect(x, y, w, hh);
+      c.drawImage(tmp, x, y);
+    });
+  }
+
+  /** Ledges: the west pieces become the east pieces mirrored. */
+  westFromEast(t: GbaTile): void {
+    const img = this.ensureTileImage(t);
+    const c = ctx2d(img);
+    this.pushUndo(t.image, c.getImageData(0, 0, img.width, img.height));
+    const [ex] = ledgeCell(3), [wx] = ledgeCell(6);
+    const tmp = blankCanvas(CELL, 3 * CELL);
+    const g = ctx2d(tmp);
+    g.translate(CELL, 0);
+    g.scale(-1, 1);
+    g.drawImage(img, ex * CELL, 0, CELL, 3 * CELL, 0, 0, CELL, 3 * CELL);
+    c.clearRect(wx * CELL, 0, CELL, 3 * CELL);
+    c.drawImage(tmp, wx * CELL, 0);
+    this.touch(t.image);
+    this.drawDisplay();
+    this.drawPreview();
+    this.refreshThumb({ kind: 'tile', t });
+    toast('West ledge made from East, mirrored');
+  }
+
+  cellCard: HTMLElement | null = null;
+
+  renderCellCard(it: Item): void {
+    if (!this.cellCard) return;
+    const btn = (label: string, title: string, fn: () => void, disabled = false) =>
+      h('button', { type: 'button', class: 'btn ghost small', title, disabled, onclick: fn }, label);
+    this.cellCard.replaceChildren(
+      h('h3', {}, 'Cell'),
+      h('p', { class: 'gs-kv' }, h('span', {}, 'Selected'), h('strong', {}, this.cellLabel(it, this.cellSel))),
+      h('div', { class: 'gs-actions' },
+        btn('Copy', 'Copy this cell', () => this.copyCell(it)),
+        btn('Paste', this.clip ? 'Replace this cell with the copied one' : 'Copy a cell first', () => this.pasteCell(it), !this.clip),
+        btn('Flip ↔', 'Mirror this cell left to right', () => this.flipCell(it, true)),
+        btn('Flip ↕', 'Flip this cell upside down', () => this.flipCell(it, false)),
+        btn('Clear', 'Erase this whole cell', () => this.editCell(it, (c, x, y, w, hh) => c.clearRect(x, y, w, hh)))),
+      h('p', { class: 'hint' }, 'Click a cell on the sheet to select it (the ⬚ tool selects without painting). Copy works across tiles and sprites, e.g. Still → Rustling.'));
+  }
+
   /* ----------------------------------------------------------------- side panel */
 
   renderSide(it: Item): void {
@@ -863,9 +1063,12 @@ class Studio {
     }
 
     const props = it.kind === 'tile' ? this.tileProps(it.t) : this.spriteProps(it.s);
+    this.cellCard = h('section', { class: 'gs-card' });
+    this.renderCellCard(it);
     this.sideEl.replaceChildren(
       h('section', { class: 'gs-card' }, palRow, swatches, h('p', { class: 'hint' }, 'Left-click paints, right-click erases. On a tablet use the Paint and Erase buttons.')),
       h('section', { class: 'gs-card' }, h('h3', {}, 'Preview'), this.previewCanvas, previewOpts),
+      this.cellCard,
       h('section', { class: 'gs-card' }, props));
     clearInterval(this.previewTimer);
     let tick = 0;
@@ -928,6 +1131,10 @@ class Studio {
     }
     if (info.passChoice) {
       box.append(field('Passability', select([['O', 'O · walkable'], ['X', 'X · blocked'], ['*', '☆ · walk behind']], t.pass ?? 'X', (v) => { t.pass = v as Passage; this.touch(); })));
+    }
+    if (t.type === 'ledge') {
+      box.append(h('button', { type: 'button', class: 'btn small', title: 'Copy the three East pieces into West, mirrored left to right',
+        onclick: () => this.westFromEast(t) }, 'Make West from East (mirrored)'));
     }
     box.append(this.itemButtons({ kind: 'tile', t }));
     return box;
@@ -1068,17 +1275,21 @@ class Studio {
     if (TILE_TYPES[t.type].autotile) {
       const inside = (x: number, y: number) => SAMPLE_SHAPE[y]?.[x] === '#';
       for (let y = 0; y < SAMPLE_SHAPE.length; y++) for (let x = 0; x < SAMPLE_SHAPE[0].length; x++) {
-        const p = pieceAt(inside, x, y);
-        if (!p) continue;
-        if (p === 'c' && t.type === 'cliff') continue; // the top of a cliff shows the ground
-        const [px, py] = pieceCell(p);
-        draw(px, py, x, y);
+        const qs = quarters(inside, x, y);
+        if (!qs) continue;
+        if (t.type === 'cliff' && qs.every((q) => q === 'c')) continue; // the top of a cliff shows the ground
+        const H = CELL / 2;
+        drawQuarters(qs, (px, py, qx, qy) => c.drawImage(img, px * CELL + qx * H, offY + py * CELL + qy * H, H, H,
+          (x * CELL + qx * H) * S, (y * CELL + qy * H) * S, H * S, H * S));
       }
       return;
     }
     if (t.type === 'ledge') {
-      draw(0, 0, 0, 1); for (let x = 1; x < cellsW - 1; x++) draw(1, 0, x, 1); draw(2, 0, cellsW - 1, 1);
-      draw(3, 0, 1, 3); draw(4, 0, 4, 3);
+      const piece = (p: number, x: number, y: number) => { const [lx, ly] = ledgeCell(p); draw(lx, ly, x, y); };
+      // a plateau: west ledges on its left, east ledges on its right, a south row along the bottom
+      piece(6, 1, 0); for (let y = 1; y < cellsH - 2; y++) piece(7, 1, y); piece(8, 1, cellsH - 2);
+      piece(3, cellsW - 2, 0); for (let y = 1; y < cellsH - 2; y++) piece(4, cellsW - 2, y); piece(5, cellsW - 2, cellsH - 2);
+      piece(0, 2, cellsH - 1); for (let x = 3; x < cellsW - 3; x++) piece(1, x, cellsH - 1); piece(2, cellsW - 3, cellsH - 1);
       return;
     }
     if (t.type === 'tallgrass') {

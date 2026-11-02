@@ -30,7 +30,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PUBLIC = os.path.join(ROOT, 'public')
-DATA = os.path.join(PUBLIC, 'data')
+DATA = os.environ.get('MIMAS_DATA') or os.path.join(PUBLIC, 'data')   # MIMAS_DATA: test data elsewhere
 GFX = os.path.join(ROOT, 'game', 'graphics')
 INC = os.path.join(ROOT, 'game', 'include')
 CELL = 16
@@ -307,7 +307,7 @@ def build_map(cfg, mp, assets):
 # ----------------------------------------------------------------------------- GBA Studio maps
 
 # Must match src/gba/types.ts (TILE_TYPES) and src/gba/autotile.ts.
-TYPE_SIZE = {'ground': (1, 1), 'decor': (1, 1), 'path': (5, 3), 'water': (5, 3), 'cliff': (5, 3), 'ledge': (5, 1),
+TYPE_SIZE = {'ground': (1, 1), 'decor': (1, 1), 'path': (5, 3), 'water': (5, 3), 'cliff': (5, 3), 'ledge': (5, 3),
              'stairs': (1, 1), 'ladder': (1, 1), 'tallgrass': (2, 1), 'object': (2, 2), 'door': (1, 1)}
 PIECE_CELL = {'tl': (0, 0), 't': (1, 0), 'tr': (2, 0), 'itl': (3, 0), 'itr': (4, 0),
               'l': (0, 1), 'c': (1, 1), 'r': (2, 1), 'ibl': (3, 1), 'ibr': (4, 1),
@@ -331,6 +331,39 @@ def piece_at(inside, x, y):
     if not inside(x - 1, y + 1): return 'ibl'
     if not inside(x + 1, y + 1): return 'ibr'
     return 'c'
+
+
+# What each 8x8 quarter (TL, TR, BL, BR) of a piece normally shows (match src/gba/autotile.ts).
+CANON = {'tl': ('tl', 't', 'l', 'c'), 't': ('t', 't', 'c', 'c'), 'tr': ('t', 'tr', 'c', 'r'),
+         'l': ('l', 'c', 'l', 'c'), 'c': ('c', 'c', 'c', 'c'), 'r': ('c', 'r', 'c', 'r'),
+         'bl': ('l', 'c', 'bl', 'b'), 'b': ('c', 'c', 'b', 'b'), 'br': ('c', 'r', 'b', 'br'),
+         'itl': ('itl', 'c', 'c', 'c'), 'itr': ('c', 'itr', 'c', 'c'), 'ibl': ('c', 'c', 'ibl', 'c'),
+         'ibr': ('c', 'c', 'c', 'ibr')}
+
+
+def quarters(inside, x, y):
+    """For each quarter TL, TR, BL, BR, the piece whose same quarter is drawn there (1-wide strips work)."""
+    full = piece_at(inside, x, y)
+    if full is None:
+        return None
+    n, s, w, e = inside(x, y - 1), inside(x, y + 1), inside(x - 1, y), inside(x + 1, y)
+
+    def q(v, h, d, corner, vedge, hedge, inner):
+        return corner if not v and not h else vedge if not v else hedge if not h else inner if not d else 'c'
+    want = (q(n, w, inside(x - 1, y - 1), 'tl', 't', 'l', 'itl'), q(n, e, inside(x + 1, y - 1), 'tr', 't', 'r', 'itr'),
+            q(s, w, inside(x - 1, y + 1), 'bl', 'b', 'l', 'ibl'), q(s, e, inside(x + 1, y + 1), 'br', 'b', 'r', 'ibr'))
+    return [full if p == CANON[full][i] else p for i, p in enumerate(want)]
+
+
+def compose(img, qs):
+    """One 16x16 cell built from four 8x8 quarters."""
+    out = Image.new('RGBA', (CELL, CELL), (0, 0, 0, 0))
+    h = CELL // 2
+    for i, p in enumerate(qs):
+        cx, cy = PIECE_CELL[p]
+        qx, qy = i & 1, i >> 1
+        out.paste(img.crop((cx * CELL + qx * h, cy * CELL + qy * h, cx * CELL + qx * h + h, cy * CELL + qy * h + h)), (qx * h, qy * h))
+    return out
 
 
 def build_gba_map(gba, mp):
@@ -378,8 +411,8 @@ def build_gba_map(gba, mp):
             t, img = tile(v)
             if img is None:
                 continue
-            p = piece_at(lambda a, b: inb(a, b) and terrain_g(a, b) == v, x, y)
-            ground.alpha_composite(cell(img, *PIECE_CELL[p]), (x * CELL, y * CELL))
+            qs = quarters(lambda a, b: inb(a, b) and terrain_g(a, b) == v, x, y)
+            ground.alpha_composite(compose(img, qs), (x * CELL, y * CELL))
             if t['type'] == 'water':
                 coll[y][x] |= SOLID | WATER
 
@@ -389,12 +422,12 @@ def build_gba_map(gba, mp):
         inside = lambda a, b: inb(a, b) and cliff_g(a, b) and level_g(a, b) >= k
         for y in range(H):
             for x in range(W):
-                p = piece_at(inside, x, y)
-                if p is None or p == 'c':
+                qs = quarters(inside, x, y)
+                if qs is None or all(p == 'c' for p in qs):
                     continue
                 t, img = tile(cliff_g(x, y))
                 if img is not None:
-                    ground.alpha_composite(cell(img, *PIECE_CELL[p]), (x * CELL, y * CELL))
+                    ground.alpha_composite(compose(img, qs), (x * CELL, y * CELL))
                 coll[y][x] |= SOLID
 
     # 4. objects
@@ -421,9 +454,18 @@ def build_gba_map(gba, mp):
             continue
         px, py = x0 * CELL, y0 * CELL
         if ty == 'ledge':
-            p = max(0, min(4, o.get('p', 1)))
-            ground.alpha_composite(cell(img, p, 0), (px, py))
-            coll[y0][x0] |= SOLID | (LEDGE_S if p < 3 else LEDGE_E if p == 3 else LEDGE_W)
+            p = o.get('p', 1)
+            if img.height <= CELL:
+                # old 5-piece ledges (south left / middle / right, east, west), from before update 4
+                p = max(0, min(4, p))
+                cx, cy, d = p, 0, (LEDGE_S if p < 3 else LEDGE_E if p == 3 else LEDGE_W)
+            else:
+                # 0-2 south left / middle / right, 3-5 east top / middle / bottom, 6-8 west (src/gba/types.ts ledgeCell)
+                p = max(0, min(8, p))
+                cx, cy = (p, 0) if p < 3 else (3, p - 3) if p < 6 else (4, p - 6)
+                d = LEDGE_S if p < 3 else LEDGE_E if p < 6 else LEDGE_W
+            ground.alpha_composite(cell(img, cx, cy), (px, py))
+            coll[y0][x0] |= SOLID | d
         elif ty == 'tallgrass':
             ground.alpha_composite(cell(img, 0, 0), (px, py))
             coll[y0][x0] |= GRASS
@@ -455,9 +497,9 @@ def nearest(c, pal):
     return min(range(len(pal)), key=lambda i: (pal[i][0] - c[0]) ** 2 + (pal[i][1] - c[1]) ** 2 + (pal[i][2] - c[2]) ** 2)
 
 
-def to_banked(ground, over, max_banks=15):
-    """Reduce colors so every 8x8 block fits a 15-color bank; returns indexed images + palette."""
-    opaque = [(r, g, b) for im in (ground, over) for (r, g, b, a) in im.getdata() if a]
+def to_banked(images, max_banks=15):
+    """Reduce colors so every 8x8 block fits a 15-color bank; returns indexed images + one shared palette."""
+    opaque = [(r, g, b) for im in images for (r, g, b, a) in im.getdata() if a]
     sample = Image.new('RGB', (len(opaque), 1))
     sample.putdata(opaque)
     unique = sorted(set(opaque))
@@ -481,7 +523,7 @@ def to_banked(ground, over, max_banks=15):
 
         # Global color index per pixel (-1 = transparent)
         layers = []
-        for im in (ground, over):
+        for im in images:
             w, h = im.size
             data = [gi((r, g, b)) if a else -1 for (r, g, b, a) in im.getdata()]
             layers.append((w, h, data))
@@ -614,6 +656,11 @@ def player_sprite():
 def build_hero():
     sheet, pal, name = player_sprite()
     print(f'  player sprite: {name}')
+    return build_sheet(sheet, pal)
+
+
+def build_sheet(sheet, pal):
+    """An overworld sheet (16x32 frames, rows down / up / left, 6 columns) as a Butano sprite strip."""
     frames = []
     for row in range(len(DIR_ORDER)):
         for col in range(HERO_COLS):
@@ -666,81 +713,240 @@ def write_json(path, obj):
         f.write('\n')
 
 
+TEXT_LINE = 30   # characters per text-box line (matches src/gba/types.ts)
+DIRS = {'down': 0, 'up': 1, 'left': 2, 'right': 3}
+
+
+def text_pages(text):
+    """Word-wrapped pages of up to two lines (a blank line starts a new page), like textPages() in the editor."""
+    pages = []
+    for para in text.replace('\r', '').split('\n\n'):
+        lines = []
+        for raw in para.split('\n'):
+            line = ''
+            for word in raw.split():
+                while len(word) > TEXT_LINE:
+                    if line:
+                        lines.append(line)
+                        line = ''
+                    lines.append(word[:TEXT_LINE])
+                    word = word[TEXT_LINE:]
+                if not word:
+                    continue
+                if not line:
+                    line = word
+                elif len(line) + 1 + len(word) <= TEXT_LINE:
+                    line += ' ' + word
+                else:
+                    lines.append(line)
+                    line = word
+            if line:
+                lines.append(line)
+        for k in range(0, len(lines), 2):
+            pages.append(lines[k:k + 2])
+    return pages or [['']]
+
+
+def c_string(text):
+    """A C string literal; the GBA font only has plain ASCII."""
+    text = ''.join(ch for ch in text if 32 <= ord(ch) < 127 or ch in '\n\f')
+    return '"' + text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\f', '\\f') + '"'
+
+
+def textbox_bg():
+    """The text box: a white panel with a blue frame at the bottom of the screen (a 256x256 bg, centred)."""
+    pal = [(255, 0, 255), (248, 248, 248), (48, 80, 144), (112, 144, 200)] + [(0, 0, 0)] * 12
+    im = Image.new('P', (256, 256), 0)
+    # screen (4, 112)-(236, 156) is bg (12, 160)-(244, 204)
+    x0, y0, x1, y1 = 12, 160, 243, 203
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            edge = min(x - x0, x1 - x, y - y0, y1 - y)
+            corner = min(x - x0, x1 - x) + min(y - y0, y1 - y)
+            if corner < 2:
+                continue
+            im.putpixel((x, y), 2 if edge < 2 or corner < 4 else 3 if edge < 3 else 1)
+    put_palette(im, pal)
+    return im
+
+
+def text_palette():
+    """Dark text with a light shadow for the white box (the font draws with colors 14 and 12)."""
+    pal = [(255, 0, 255)] + [(0, 0, 0)] * 15
+    pal[14] = (48, 48, 56)
+    pal[12] = (200, 200, 208)
+    pal[13] = (120, 120, 136)
+    im = Image.new('P', (16, 16), 0)
+    put_palette(im, pal)
+    return im
+
+
+def clean_outputs():
+    os.makedirs(GFX, exist_ok=True)
+    os.makedirs(INC, exist_ok=True)
+    for f in os.listdir(GFX):
+        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'textbox', 'text_palette')):
+            os.remove(os.path.join(GFX, f))
+
+
 def main():
     cfg = load_json(os.path.join(DATA, 'mimas.json'))
     try:
         gba = load_json(os.path.join(DATA, 'gba.json'))
     except (OSError, ValueError):
         gba = {}
-    # The ROM's map: a GBA Studio map when one is set as the start map, otherwise the Saturn map in mimas.json.
-    gba_map = sys.argv[1][4:] if len(sys.argv) > 1 and sys.argv[1].startswith('gba:') else (None if len(sys.argv) > 1 else gba.get('startMap'))
-    if gba_map:
-        map_id = gba_map
-        mp = load_json(os.path.join(DATA, 'gbamaps', map_id + '.json'))
-        W, H = mp['width'], mp['height']
-        print(f'Exporting GBA map "{mp.get("name", map_id)}" ({W} x {H})')
-        ground, over, coll, hgrid = build_gba_map(gba, mp)
-        if mp.get('start'):
-            cfg = dict(cfg, start=mp['start'], dir=mp.get('dir', 'down'))
+    # The ROM plays the GBA Studio maps when one is set as the start map (all of them go in, so doors work);
+    # otherwise the Saturn map in mimas.json.
+    arg = sys.argv[1] if len(sys.argv) > 1 else None
+    start_id = arg[4:] if arg and arg.startswith('gba:') else (None if arg else gba.get('startMap'))
+    maps = []   # dicts: id, name, W, H, ground, over, coll, hgrid, start, dir, events
+    if start_id:
+        ids = [start_id] + [m for m in gba.get('maps', []) if m != start_id]
+        for mid in ids:
+            path = os.path.join(DATA, 'gbamaps', mid + '.json')
+            if not os.path.exists(path):
+                continue
+            mp = load_json(path)
+            W, H = mp['width'], mp['height']
+            print(f'Exporting GBA map "{mp.get("name", mid)}" ({W} x {H})')
+            ground, over, coll, hgrid = build_gba_map(gba, mp)
+            maps.append({'id': mid, 'name': mp.get('name', mid), 'W': W, 'H': H, 'ground': ground, 'over': over,
+                         'coll': coll, 'hgrid': hgrid, 'start': mp.get('start'), 'dir': mp.get('dir', 'down'),
+                         'events': mp.get('events', [])})
     else:
-        map_id = sys.argv[1] if len(sys.argv) > 1 else cfg['map']
+        map_id = arg or cfg['map']
         mp = load_json(os.path.join(DATA, 'maps', map_id + '.json'))
         assets = load_json(os.path.join(DATA, 'assets.json'))
         W, H = mp['width'], mp['height']
         print(f'Exporting "{mp.get("name", map_id)}" ({W} x {H})')
         ground, over, coll, hgrid = build_map(cfg, mp, assets)
+        maps.append({'id': map_id, 'name': mp.get('name', map_id), 'W': W, 'H': H, 'ground': ground, 'over': over,
+                     'coll': coll, 'hgrid': hgrid, 'start': cfg.get('start'), 'dir': cfg.get('dir', 'down'), 'events': []})
 
-    bw = max(256, math.ceil(W * CELL / 256) * 256)
-    bh = max(256, math.ceil(H * CELL / 256) * 256)
-    ground = pad_to(ground, bw, bh, BACKDROP + (255,))
-    over = pad_to(over, bw, bh, (0, 0, 0, 0))
+    index = {m['id']: i for i, m in enumerate(maps)}
     os.makedirs(os.path.join(ROOT, 'build'), exist_ok=True)
-    ground.alpha_composite(Image.new('RGBA', ground.size, (0, 0, 0, 0)))
-    preview = ground.copy()
-    preview.alpha_composite(over)
-    preview.crop((0, 0, W * CELL, H * CELL)).save(os.path.join(ROOT, 'build', 'preview.png'))
+    layers = []
+    for i, m in enumerate(maps):
+        W, H = m['W'], m['H']
+        m['bw'] = max(256, math.ceil(W * CELL / 256) * 256)
+        m['bh'] = max(256, math.ceil(H * CELL / 256) * 256)
+        g = pad_to(m['ground'], m['bw'], m['bh'], BACKDROP + (255,))
+        o = pad_to(m['over'], m['bw'], m['bh'], (0, 0, 0, 0))
+        preview = g.copy()
+        preview.alpha_composite(o)
+        preview = preview.crop((0, 0, W * CELL, H * CELL))
+        preview.save(os.path.join(ROOT, 'build', 'preview.png' if i == 0 else f'preview_{m["id"]}.png'))
+        layers += [g, o]
 
-    (g_idx, o_idx), palette = to_banked(ground, over)
-    os.makedirs(GFX, exist_ok=True)
-    os.makedirs(INC, exist_ok=True)
-    for im, name in ((g_idx, 'world_ground'), (o_idx, 'world_over')):
-        put_palette(im, palette)
-        im.save(os.path.join(GFX, name + '.bmp'))
-        write_json(os.path.join(GFX, name + '.json'),
-                   {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual', 'palette_item': 'world_palette'})
+    indexed, palette = to_banked(layers)
+    clean_outputs()
+    for i in range(len(maps)):
+        for im, name in ((indexed[2 * i], f'world_ground_{i}'), (indexed[2 * i + 1], f'world_over_{i}')):
+            put_palette(im, palette)
+            im.save(os.path.join(GFX, name + '.bmp'))
+            write_json(os.path.join(GFX, name + '.json'),
+                       {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual', 'palette_item': 'world_palette'})
     pal_img = Image.new('P', (16, 16))
     put_palette(pal_img, palette)
     pal_img.save(os.path.join(GFX, 'world_palette.bmp'))
     write_json(os.path.join(GFX, 'world_palette.json'),
                {'type': 'bg_palette', 'bpp_mode': 'bpp_4', 'colors_count': len(palette)})
+    textbox_bg().save(os.path.join(GFX, 'textbox.bmp'))
+    write_json(os.path.join(GFX, 'textbox.json'), {'type': 'regular_bg', 'bpp_mode': 'bpp_4'})
+    text_palette().save(os.path.join(GFX, 'text_palette.bmp'))
+    write_json(os.path.join(GFX, 'text_palette.json'), {'type': 'sprite_palette', 'bpp_mode': 'bpp_4'})
 
     hero = build_hero()
     hero.save(os.path.join(GFX, 'hero.bmp'))
     write_json(os.path.join(GFX, 'hero.json'), {'type': 'sprite', 'height': HERO_H})
 
-    sx, sz = find_start(cfg, coll, W, H)
-    dirs = {'down': 0, 'up': 1, 'left': 2, 'right': 3}
-    # The GBA font only has plain ASCII letters.
-    name = ''.join(ch for ch in mp.get('name', map_id) if 32 <= ord(ch) < 127)
-    name = name.replace('\\', '\\\\').replace('"', '\\"')
-    flat_coll = [coll[z][x] for z in range(H) for x in range(W)]
-    flat_h = [hgrid[z][x] for z in range(H) for x in range(W)]
+    # People: one sprite item per overworld sprite used by an event
+    sprites = {s['id']: s for s in gba.get('sprites', [])}
+    palettes = {p['id']: p for p in gba.get('palettes', [])}
+    npc_ids = []
+    for m in maps:
+        for e in m['events']:
+            sid = e.get('sprite')
+            if sid and sid in sprites and sprites[sid].get('kind') == 'overworld' and sid not in npc_ids:
+                img = project_image(sprites[sid]['image'])
+                pal = palettes.get(sprites[sid].get('palette'))
+                if img is None or not pal:
+                    continue
+                k = len(npc_ids)
+                npc_ids.append(sid)
+                build_sheet(img, [hex_rgb(c) for c in pal['colors']]).save(os.path.join(GFX, f'npc_{k}.bmp'))
+                write_json(os.path.join(GFX, f'npc_{k}.json'), {'type': 'sprite', 'height': HERO_H})
+    if npc_ids:
+        print(f'  people sprites: {", ".join(npc_ids)}')
+
+    # The header: every map, its collision, heights and events
+    out = []
+    w = out.append
+    w('// Generated by tools/export.py from public/data - do not edit.\n')
+    w('#ifndef MIMAS_MAP_H\n#define MIMAS_MAP_H\n\n#include <cstdint>\n#include "bn_regular_bg_item.h"\n#include "bn_sprite_item.h"\n')
+    for i in range(len(maps)):
+        w(f'#include "bn_regular_bg_items_world_ground_{i}.h"\n#include "bn_regular_bg_items_world_over_{i}.h"\n')
+    for k in range(len(npc_ids)):
+        w(f'#include "bn_sprite_items_npc_{k}.h"\n')
+    w('\nnamespace mimas\n{\n')
+    w(f'constexpr uint8_t solid = {SOLID};\nconstexpr uint8_t bridge = {BRIDGE};\n')
+    w(f'constexpr uint8_t ledge_s = {LEDGE_S};\nconstexpr uint8_t ledge_e = {LEDGE_E};\nconstexpr uint8_t ledge_w = {LEDGE_W};\n')
+    w(f'constexpr uint8_t water = {WATER};\nconstexpr uint8_t grass = {GRASS};\n')
+    w(f'constexpr int hero_frames = {HERO_COLS};\n\n')
+    w('enum command_type : uint8_t { CMD_TEXT, CMD_TRANSFER };\n\n')
+    w('// Text is pre-wrapped: lines split by \\n, pages (two lines each) by \\f.\n')
+    w('struct command { command_type type; const char* text; int8_t map; uint8_t x; uint8_t y; int8_t dir; };\n\n')
+    w('struct event { uint8_t x; uint8_t y; int8_t sprite; uint8_t dir; bool touch; bool solid; const command* commands; int command_count; };\n\n')
+    w('struct map_info\n{\n    int width; int height; int bg_width; int bg_height; const char* name;\n'
+      '    const uint8_t* collision; const int8_t* heights; const event* events; int event_count;\n'
+      '    const bn::regular_bg_item* ground; const bn::regular_bg_item* over;\n};\n\n')
+    infos = []
+    for i, m in enumerate(maps):
+        W, H = m['W'], m['H']
+        w(c_array(f'map{i}_collision', 'uint8_t', [m['coll'][y][x] for y in range(H) for x in range(W)], W))
+        w(c_array(f'map{i}_heights', 'int8_t', [m['hgrid'][y][x] for y in range(H) for x in range(W)], W))
+        evs = []
+        for k, e in enumerate(m['events']):
+            if not (0 <= e.get('x', -1) < W and 0 <= e.get('y', -1) < H):
+                continue
+            cmds = []
+            for c in e.get('commands', []):
+                if c.get('type') == 'text':
+                    txt = '\f'.join('\n'.join(pg) for pg in text_pages(c.get('text', '')))
+                    cmds.append(f'{{ CMD_TEXT, {c_string(txt)}, 0, 0, 0, -1 }}')
+                elif c.get('type') == 'transfer' and c.get('map') in index:
+                    t = maps[index[c['map']]]
+                    tx = max(0, min(t['W'] - 1, int(c.get('x', 0))))
+                    ty = max(0, min(t['H'] - 1, int(c.get('y', 0))))
+                    cmds.append(f'{{ CMD_TRANSFER, nullptr, {index[c["map"]]}, {tx}, {ty}, {DIRS.get(c.get("dir"), -1)} }}')
+            if cmds:
+                w(f'constexpr command map{i}_ev{k}[] = {{ ' + ', '.join(cmds) + ' };\n')
+            sid = e.get('sprite')
+            spr = npc_ids.index(sid) if sid in npc_ids else -1
+            ref = f'map{i}_ev{k}' if cmds else 'nullptr'
+            evs.append(f'{{ {e["x"]}, {e["y"]}, {spr}, {DIRS.get(e.get("dir", "down"), 0)}, '
+                       f'{"true" if e.get("trigger") == "touch" else "false"}, '
+                       f'{"true" if spr >= 0 and e.get("solid", True) else "false"}, {ref}, {len(cmds)} }}')
+        if evs:
+            w(f'constexpr event map{i}_events[] = {{\n    ' + ',\n    '.join(evs) + '\n};\n')
+        name = ''.join(ch for ch in m['name'] if 32 <= ord(ch) < 127)
+        infos.append(f'{{ {W}, {H}, {m["bw"]}, {m["bh"]}, {c_string(name)}, map{i}_collision, map{i}_heights, '
+                     f'{f"map{i}_events" if evs else "nullptr"}, {len(evs)}, '
+                     f'&bn::regular_bg_items::world_ground_{i}, &bn::regular_bg_items::world_over_{i} }}')
+        w('\n')
+    w('constexpr map_info maps[] = {\n    ' + ',\n    '.join(infos) + '\n};\n')
+    w(f'constexpr int map_count = {len(maps)};\n\n')
+    w('constexpr const bn::sprite_item* npc_sprites[] = { ' +
+      (', '.join(f'&bn::sprite_items::npc_{k}' for k in range(len(npc_ids))) or 'nullptr') + ' };\n\n')
+
+    m0 = maps[0]
+    sx, sz = find_start({'start': m0['start'] or [m0['W'] // 2, m0['H'] // 2]}, m0['coll'], m0['W'], m0['H'])
+    w(f'constexpr int start_map = 0;\nconstexpr int start_x = {sx};\nconstexpr int start_y = {sz};\n')
+    w(f'constexpr int start_dir = {DIRS.get(m0["dir"], 0)};\n')
+    w('}\n\n#endif\n')
     with open(os.path.join(INC, 'mimas_map.h'), 'w') as f:
-        f.write('// Generated by tools/export.py from public/data/' + ('gbamaps/' if gba_map else 'maps/') + map_id + '.json - do not edit.\n')
-        f.write('#ifndef MIMAS_MAP_H\n#define MIMAS_MAP_H\n\n#include <cstdint>\n\nnamespace mimas::map\n{\n')
-        f.write(f'constexpr int width = {W};\nconstexpr int height = {H};\n')
-        f.write(f'constexpr int bg_width = {bw};\nconstexpr int bg_height = {bh};\n')
-        f.write(f'constexpr int start_x = {sx};\nconstexpr int start_y = {sz};\n')
-        f.write(f'constexpr int start_dir = {dirs.get(cfg.get("dir", "down"), 0)};\n')
-        f.write(f'constexpr int hero_frames = {HERO_COLS};\n')
-        f.write(f'constexpr const char* name = "{name}";\n')
-        f.write(f'constexpr uint8_t solid = {SOLID};\nconstexpr uint8_t bridge = {BRIDGE};\n')
-        f.write(f'constexpr uint8_t ledge_s = {LEDGE_S};\nconstexpr uint8_t ledge_e = {LEDGE_E};\nconstexpr uint8_t ledge_w = {LEDGE_W};\n')
-        f.write(f'constexpr uint8_t water = {WATER};\nconstexpr uint8_t grass = {GRASS};\n\n')
-        f.write(c_array('collision', 'uint8_t', flat_coll, W))
-        f.write(c_array('heights', 'int8_t', flat_h, W))
-        f.write('}\n\n#endif\n')
-    print(f'  start at {sx}, {sz}; wrote game/graphics and game/include/mimas_map.h')
+        f.write(''.join(out))
+    print(f'  {len(maps)} map(s); start at {sx}, {sz}; wrote game/graphics and game/include/mimas_map.h')
 
 
 if __name__ == '__main__':

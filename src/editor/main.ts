@@ -7,7 +7,7 @@ import './editor.css';
 import { writePlaytest } from '../shared/playtest';
 import { loadEnemyImages } from './CombatEditor';
 import { openDatabase } from './DatabaseEditor';
-import { openGbaStudio } from './GbaStudio';
+import { openGbaStudio, playGbaStartMap } from './GbaStudio';
 import { setCombatPreview } from './combatPreview';
 import { openWorldLayout } from './WorldEditor';
 import type { MapData } from '../world/types';
@@ -162,13 +162,13 @@ function buildUI(): void {
   store.on('meta', update3d);
   store.on('structure', update3d);
   const fitBtn = h('button', { type: 'button', class: 'btn ghost', title: 'Fit map (F)', onclick: () => { view.fit(); updateStatus(); } }, 'Fit');
-  const playBtn = h('a', { class: 'btn play', href: PLAYTEST_URL, target: '_blank', title: 'Play this map in a new tab, including unsaved changes',
+  const playBtn = h('a', { class: 'btn ghost', href: PLAYTEST_URL, target: '_blank', title: 'Play this Saturn (HD-2D) map in a new tab, including unsaved changes. For the GBA game use ▶ Play GBA.',
     onclick: () => {
       // The link opens the game normally; it waits for the data stored under this stamp.
       const stamp = String(Date.now());
       playBtn.href = `${PLAYTEST_URL}=${stamp}`;
       void playtest(stamp);
-    } }, '▶ Playtest');
+    } }, '▶ Saturn playtest');
   const toggleLeft = h('button', { type: 'button', class: 'btn ghost panel-toggle', 'aria-expanded': 'false', onclick: () => togglePanel('left') }, 'Tools');
 
   const toolbar = h('header', { class: 'toolbar' },
@@ -180,6 +180,7 @@ function buildUI(): void {
       mapSelect, h('button', { type: 'button', class: 'btn ghost', onclick: newMapDialog }, 'New map'),
       h('button', { type: 'button', class: 'btn ghost', title: 'Player stats, speeds and stamina costs', onclick: () => openDatabase(store) }, 'Database'),
       h('button', { type: 'button', class: 'btn ghost gba-btn', title: 'Paint GBA tiles and sprites with real GBA palettes', onclick: () => void openGbaStudio(store) }, 'GBA Studio'),
+      h('button', { type: 'button', class: 'btn play', title: 'Play the GBA map the ROM starts on, right here (open GBA Studio to play other maps)', onclick: () => void playGbaStartMap(store) }, '▶ Play GBA'),
       h('button', { type: 'button', class: 'btn ghost', title: 'Lay the maps out as one world: the world map in the pause menu, and seamless edges', onclick: () => void openWorldLayout(store) }, 'World')),
     h('div', { class: 'tb-group' }, undoBtn, redoBtn),
     h('div', { class: 'tb-group zoom' }, zoomOut, fitBtn, zoomIn),

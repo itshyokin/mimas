@@ -5,15 +5,12 @@ dist/
 package-lock.json
 
 # Butano is downloaded at build time
-butano/
+/butano
 
 # Made by tools/export.py
 build/
-game/graphics/world_ground.*
-game/graphics/world_over.*
-game/graphics/world_palette.*
-game/graphics/hero.*
-game/include/mimas_map.h
+game/graphics/
+game/include/
 
 # Made by make
 game/build/

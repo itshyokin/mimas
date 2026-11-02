@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 1, 2026, after Update 3)
+# Handoff: where Mimas stands (Nov 1, 2026, after Update 4)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -15,18 +15,28 @@ Flaming fists, Rapier, Claws; RPG Maker passability stays as an override; GBA St
 
 ## Code map
 - `src/gba/types.ts`: gba.json types, tile types (layouts, labels, behaviour), sprite kinds, palettes, GBA color snap.
-- `src/gba/autotile.ts`: 13-piece picking (`pieceAt`) and the preview shape.
+- `src/gba/autotile.ts`: 13-piece picking (`pieceAt`), `quarters` (each 16×16 cell drawn from four 8×8 quarters, so
+  1-wide strips work; mirrored by `quarters` / `compose` in tools/export.py) and the preview shape.
 - `src/gba/mapRender.ts`: draws a GBA map and computes its collision. Must match `build_gba_map` in tools/export.py
   (same layer order and rules); collision bits SOLID 1, LEDGE_S 4, LEDGE_E 8, LEDGE_W 16, WATER 32, GRASS 64.
-- `src/editor/GbaMapEditor.ts`: the Maps tab (layers, tools, tile picker, tiers, ledge pieces, Show blocked).
+- `src/editor/GbaMapEditor.ts`: the Maps tab (layers, tools, tile picker, tiers, ledge pieces, Show blocked, Events
+  layer with the event card and Pick-the-spot for transfers).
+- `src/editor/GbaPlaytest.ts`: the in-editor GBA playtest (same rules as main.cpp: steps, run, hops, events, text,
+  transfers). Text wrapping: `textPages` in types.ts = `text_pages` in export.py (30 characters, 2 lines a page).
+- Ledges: 9 pieces, `ledgeCell` / `ledgeDir` in types.ts (0-2 south, 3-5 east, 6-8 west; sheet 5×3). Old 5×1
+  ledge sheets are migrated by `migrateLedges` in GbaStudio.ts (maps' p 3→4, 4→7); the exporter detects the old
+  height and reads them the old way.
 - `tools/make_starter.py`: the starter tile set and the Starter Meadow sample map.
 - `src/editor/GbaStudio.ts` + `gbaStudio.css`: the studio (opened from the toolbar in main.ts). Saves through the
   editor's Project API: `write('gba.json')`, `writeFile('gba/tiles|sprites/<id>.png')` (allowed in vite.config.ts and
   tools/editor-server.mjs).
-- `tools/export.py`: Saturn map → GBA backgrounds (16×16 cells, banked 4bpp palettes, ≤15 banks, shared palette
-  item), collision + heights header, hero sprite from gba.json's player.
+- `tools/export.py`: every GBA map (start map first) → `world_ground_N` / `world_over_N` backgrounds sharing one
+  `world_palette` (≤15 banks across all maps), `textbox` bg, `text_palette`, `hero` and `npc_K` sprites, and
+  `game/include/mimas_map.h` (map table with collision, heights, events and commands). Without a GBA start map
+  it exports the Saturn map instead. `MIMAS_DATA=<dir>` reads test data from another folder.
 - `tools/make_bases.py`: draws the mannequins into `public/gba/bases/`.
-- `game/src/main.cpp`: grid movement, collision, camera, layers, walk / run frames.
+- `game/src/main.cpp`: grid movement, collision, camera, layers, walk / run frames, people, events (A to talk,
+  touch for doors), text box, transfers with a fade (blocking loops for text and fades).
 - `.github/workflows/build.yml`: devkitpro/devkitarm container, Butano 21.9.0, export, make, release.
 - No GitHub Pages: the repo stays private (owner's choice, Nov 1). Editing is on the PC (Start Map Editor.bat).
   Later: a public GBA Studio page (separate public repo, no art) that loads / saves the private repo through the

@@ -65,8 +65,59 @@ export interface GbaPlacement {
   t: number;
   x: number;
   y: number;
-  /** Which piece of a ledge (0-4: south left / middle / right, east, west). */
+  /** Which piece of a ledge (0-2 south left / middle / right, 3-5 east top / middle / bottom, 6-8 west top / middle / bottom). */
   p?: number;
+}
+
+export type Facing = 'down' | 'up' | 'left' | 'right';
+export const FACINGS: Facing[] = ['down', 'up', 'left', 'right'];
+
+/** What an event does, in order. */
+export type GbaCommand =
+  | { type: 'text'; text: string }
+  | { type: 'transfer'; map: string; x: number; y: number; dir?: Facing };
+
+/**
+ * Something on the map the player can talk to or step on: a person, a sign, a door.
+ * `action` events run when the player faces them and presses A; `touch` events run
+ * when the player steps onto them (or walks into them when they're blocked).
+ */
+export interface GbaEvent {
+  id: number;
+  name: string;
+  x: number;
+  y: number;
+  /** An overworld sprite id (people); none for signs, doors and invisible triggers. */
+  sprite?: string;
+  dir?: Facing;
+  trigger: 'action' | 'touch';
+  /** People block the way (only events with a sprite). */
+  solid?: boolean;
+  commands: GbaCommand[];
+}
+
+/** Lines of a text box: at most this many characters, two lines a page (the ROM's font fits this). */
+export const TEXT_LINE = 30;
+
+/** Split text into pages of two lines (word-wrapped; a blank line starts a new page). */
+export function textPages(text: string): string[][] {
+  const pages: string[][] = [];
+  for (const para of text.replace(/\r/g, '').split(/\n\s*\n/)) {
+    const lines: string[] = [];
+    for (const raw of para.split('\n')) {
+      let line = '';
+      for (const word of raw.split(/\s+/).filter(Boolean)) {
+        let w = word;
+        while (w.length > TEXT_LINE) { if (line) { lines.push(line); line = ''; } lines.push(w.slice(0, TEXT_LINE)); w = w.slice(TEXT_LINE); }
+        if (!line) line = w;
+        else if (line.length + 1 + w.length <= TEXT_LINE) line += ' ' + w;
+        else { lines.push(line); line = w; }
+      }
+      if (line) lines.push(line);
+    }
+    for (let i = 0; i < lines.length; i += 2) pages.push(lines.slice(i, i + 2));
+  }
+  return pages.length ? pages : [['']];
 }
 
 /**
@@ -88,6 +139,9 @@ export interface GbaMap {
   /** RPG Maker-style overrides per cell: '.' none, 'O' walkable, 'X' blocked. */
   pass: string[];
   start?: [number, number];
+  /** Which way the player faces at the start. */
+  dir?: Facing;
+  events?: GbaEvent[];
 }
 
 export const MAX_TIER = 4;
@@ -110,6 +164,7 @@ export function resizeMap(m: GbaMap, w: number, h: number, fillGround = 0): void
   m.level = fit(m.level);
   m.pass = Array.from({ length: h }, (_, y) => Array.from({ length: w }, (_, x) => m.pass[y]?.[x] ?? '.').join(''));
   m.objects = m.objects.filter((o) => o.x < w && o.y < h);
+  if (m.events) m.events = m.events.filter((e) => e.x < w && e.y < h);
   m.width = w;
   m.height = h;
   if (m.start && (m.start[0] >= w || m.start[1] >= h)) m.start = [Math.min(m.start[0], w - 1), Math.min(m.start[1], h - 1)];
@@ -186,9 +241,14 @@ export const TILE_TYPES: Record<TileType, TileTypeInfo> = {
     behaviour: 'Edges and face block walking; the top is walkable. Stairs or a ladder get you up.',
   },
   ledge: {
-    label: 'Ledge', cols: 5, rows: 1,
-    guides: [{ x: 0, y: 0, label: 'South: left end' }, { x: 1, y: 0, label: 'South: middle' }, { x: 2, y: 0, label: 'South: right end' }, { x: 3, y: 0, label: 'East' }, { x: 4, y: 0, label: 'West' }],
-    help: 'One-way drops. South ledges have ends and a middle to make long rows.',
+    label: 'Ledge', cols: 5, rows: 3,
+    guides: [
+      { x: 0, y: 0, label: 'South: left end' }, { x: 1, y: 0, label: 'South: middle' }, { x: 2, y: 0, label: 'South: right end' },
+      { x: 3, y: 0, label: 'East: top' }, { x: 3, y: 1, label: 'East: middle' }, { x: 3, y: 2, label: 'East: bottom' },
+      { x: 4, y: 0, label: 'West: top' }, { x: 4, y: 1, label: 'West: middle' }, { x: 4, y: 2, label: 'West: bottom' },
+      ...[0, 1, 2].flatMap((x) => [1, 2].map((y) => ({ x, y, label: 'Not used', empty: true }))),
+    ],
+    help: 'One-way drops. South ledges have ends and a middle for long rows; east and west ledges have a top, middle and bottom for long columns. “Make West from East” mirrors the east pieces.',
     behaviour: 'Hop down over it in its direction; blocks the other way.',
   },
   stairs: {
@@ -213,6 +273,22 @@ export const TILE_TYPES: Record<TileType, TileTypeInfo> = {
     help: 'Doors, cave mouths, warp pads.', behaviour: 'Takes you to another map (set on the map).',
   },
 };
+
+/** The nine ledge pieces, in the order the map stores them (`p`). */
+export const LEDGE_PIECES = [
+  'South · left end', 'South · middle', 'South · right end',
+  'East · top', 'East · middle', 'East · bottom',
+  'West · top', 'West · middle', 'West · bottom',
+];
+
+/** Where ledge piece `p` sits in the sheet (column, row). */
+export function ledgeCell(p: number): [number, number] {
+  const q = Math.max(0, Math.min(8, p));
+  return q < 3 ? [q, 0] : q < 6 ? [3, q - 3] : [4, q - 6];
+}
+
+/** Which way ledge piece `p` drops: south, east or west. */
+export const ledgeDir = (p: number): 'S' | 'E' | 'W' => (p < 3 ? 'S' : p < 6 ? 'E' : 'W');
 
 export function tileSize(t: Pick<GbaTile, 'type' | 'w' | 'h' | 'frames'>): { cols: number; rows: number; frames: number } {
   const info = TILE_TYPES[t.type];

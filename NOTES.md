@@ -17,10 +17,17 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       Paint / Erase / Fill / Rectangle, undo, Show blocked overlay. Maps in public/data/gbamaps/<id>.json, gba.json
       `maps` + `startMap`. Exporter builds GBA maps with exact palette colors; ROM: ledge hops (2 cells, arc).
       Starter tiles + Starter Meadow (tools/make_starter.py).
+- [x] Update 4 (Nov 1): one-tile-wide water / paths (tiles built from 8×8 quarters of the 13 pieces); Cell card
+      (copy / paste / flip / clear any cell, across tiles and sprites) and the ⬚ Select-a-cell tool; move water
+      frames left / right; ledges with 9 pieces (east / west get top, middle, bottom; Make West from East mirrors;
+      old 5-piece ledges are converted when the studio opens, and the exporter still reads them); GBA playtest in the
+      editor (Maps tab ▶ Playtest, ▶ Play from here on events, toolbar ▶ Play GBA); Events layer (people, signs,
+      doors: sprite, facing, trigger action / touch, blocks, Show text, Transfer with Pick the spot); the ROM has every
+      GBA map, people, a text box (pre-wrapped at 30 characters, two lines a page) and transfers with a fade.
 
 ## Next (agreed with the owner)
 - [ ] Tall grass rustle, water animation, Surf on water (needs a key item / ability), one-way passability arrows.
-- [ ] Events: signs and talking (text box), doors / transfers between maps.
+- [ ] More event commands: choices, switches / variables, conditions, give item, move route, wait.
 - [ ] NPCs walking around (GBA Studio overworld sprites).
 - [ ] Menus (START), then battles with back-sprites (the poses from GBA Studio) and front sprites.
 - [ ] Move Saturn's Database over piece by piece: items, characters, enemies, heroes as GBA data.
