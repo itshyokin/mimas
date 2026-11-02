@@ -206,6 +206,32 @@ export function setFlatImage(path: string, img: HTMLCanvasElement | null): void 
 }
 export const flatImage = (path: string): HTMLCanvasElement | undefined => flatImages.get(path);
 
+/**
+ * Mimas: an enemy's battle picture at its own pixel size. Enemy art is often pixel art drawn small and saved
+ * scaled up (64 × 64 saved at 192 × 192): the scale is found (every pixel a k × k block) and undone, so the GBA gets
+ * the art as it was drawn instead of a squashed copy. Built-in monsters and characters: their usual picture.
+ */
+export function enemyBattleImage(db: { characters: Record<string, CharacterDef> }, look: EnemyDef['look']): HTMLCanvasElement | null {
+  const src = look.image ? flatImages.get(look.image) : undefined;
+  if (!src) return enemyImage(db, look);
+  const w = src.width, h = src.height, data = src.getContext('2d')!.getImageData(0, 0, w, h).data;
+  const blocky = (k: number) => {
+    if (w % k || h % k) return false;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const a = (y * w + x) * 4, b = ((y - (y % k)) * w + (x - (x % k))) * 4;
+      if (data[a] !== data[b] || data[a + 1] !== data[b + 1] || data[a + 2] !== data[b + 2] || data[a + 3] !== data[b + 3]) return false;
+    }
+    return true;
+  };
+  const k = [8, 6, 5, 4, 3, 2].find(blocky) ?? 1;
+  const c = document.createElement('canvas');
+  c.width = w / k; c.height = h / k;
+  const g = c.getContext('2d')!;
+  g.imageSmoothingEnabled = false;
+  g.drawImage(src, 0, 0, c.width, c.height);
+  return c;
+}
+
 function sheetOf(key: string, def: CharacterDef | undefined): HTMLCanvasElement {
   const imported = def?.sheet ? charSheets.get(def.sheet) : undefined;
   if (imported) return imported;

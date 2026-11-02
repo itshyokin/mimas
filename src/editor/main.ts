@@ -16,7 +16,7 @@ import { openWorldLayout } from './WorldEditor';
 import type { Dir, MapData } from '../world/types';
 import { backspaceAsEscape, confirmModal, field, h, numberInput, openModal, select, textInput, toast } from './dom';
 import { installErrorBar } from '../shared/errorBar';
-import { characterImage, enemyImage, propSprite, tileName } from './editorArt';
+import { characterImage, enemyBattleImage, propSprite, tileName } from './editorArt';
 import { tintCanvas } from '../render/tint';
 import { Inspector } from './Inspector';
 import { save } from './io';
@@ -457,7 +457,7 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
     if (c && c.width && c.height) pics[k] = { blob: await blob(c), w, h: hh };
   }
   for (const e of store.db.enemies ?? []) {
-    let c = enemyImage(store.db, e.look);
+    let c = enemyBattleImage(store.db, e.look);
     if (c && e.tint) c = tintCanvas(c, e.tint);
     if (c && c.width && c.height) pics[`enemy:${e.id}`] = { blob: await blob(c), w: c.width, h: c.height };
   }

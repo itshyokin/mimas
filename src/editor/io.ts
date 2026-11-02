@@ -6,7 +6,7 @@ import { formatDatabase, formatMap } from '../shared/dataFiles';
 import { h, openModal, toast } from './dom';
 import type { EditorStore } from './store';
 import { blockedTiles } from '../world/props';
-import { characterImage, enemyImage, propSprite } from './editorArt';
+import { characterImage, enemyBattleImage, propSprite } from './editorArt';
 import { tintCanvas } from '../render/tint';
 import { builtinIcon, builtinIconName } from '../art/itemIcons';
 import { mainHero } from '../world/heroes';
@@ -88,7 +88,7 @@ async function bakeGameArt(store: EditorStore): Promise<void> {
   if (!store.project.canStoreImages) return;
   const db = store.db, out: [string, HTMLCanvasElement][] = [];
   for (const e of db.enemies ?? []) {
-    let c = enemyImage(db, e.look);
+    let c = enemyBattleImage(db, e.look);
     if (c && e.tint) c = tintCanvas(c, e.tint);
     if (c && c.width && c.height) out.push([`gba/enemies/${e.id}.png`, fitInto(trim(c), 64, 64)]);
   }
