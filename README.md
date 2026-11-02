@@ -38,8 +38,12 @@ also has `map-preview.png`, a picture of the exported map.
   can't open each other's files. The top-left says **Mimas · Map Editor**. Saves go straight into the project
   folder; commit and push them (GitHub Desktop is fine) and GitHub builds a
   new ROM.
-- The repo is private, so there's no online/tablet editor for now. A public
-  GBA Studio page that saves into this private repo is planned for later.
+- **On a phone or tablet:** open **https://itshyokin.github.io/mimas/editor.html**
+  (the repo is public and GitHub Pages publishes the editor and the game on
+  every push). Your changes are kept on that device until you send them:
+  **Project → Push to GitHub** (it asks once for a fine-grained token with
+  *Contents: read and write* on this repo only). **Pull** brings in changes
+  made on the PC. GitHub then builds a new ROM as usual.
 
 ### The map editor
 
