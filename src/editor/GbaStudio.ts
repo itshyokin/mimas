@@ -21,11 +21,11 @@ import { soundField } from './CommandEditor';
 import { ELEMENT_RAMPS, effectFrames } from '../gba/effects';
 import type { Element } from '../world/types';
 import {
-  CELL, SPRITE_KINDS, TILE_TYPES, defaultGbaData, gbaColor, hexToRgb, ledgeCell, tileSize,
+  BATTLEBACK_H, BATTLEBACK_W, BUILTIN_BATTLEBACKS, CELL, SPRITE_KINDS, TILE_TYPES, battlebackList, defaultGbaData, gbaColor, hexToRgb, ledgeCell, tileSize,
   type GbaData, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
 } from '../gba/types';
 
-type Tab = 'tiles' | 'sprites' | 'palettes';
+type Tab = 'tiles' | 'sprites' | 'palettes' | 'backs';
 type Tool = 'pencil' | 'erase' | 'fill' | 'pick' | 'line' | 'rect' | 'cell';
 type Item = { kind: 'tile'; t: GbaTile } | { kind: 'sprite'; s: GbaSprite };
 
@@ -133,7 +133,7 @@ class Studio {
   dirtyImages = new Set<string>();
   dirtyJson = false;
   tab: Tab = 'tiles';
-  sel: { tiles?: string; sprites?: string; palettes?: string } = {};
+  sel: { tiles?: string; sprites?: string; palettes?: string; backs?: string } = {};
   tool: Tool = 'pencil';
   color = 1;                 // 0 = transparent, 1..15 = palette slot
   zoom = 0;                  // 0 = fit
@@ -289,10 +289,10 @@ class Studio {
     this.sideEl = h('div', { class: 'gs-side' });
     this.statusEl = h('span', { class: 'gs-status', role: 'status' });
     const tabs = h('div', { class: 'gs-tabs', role: 'tablist' },
-      ...(['tiles', 'sprites', 'palettes'] as Tab[]).map((t) => h('button', {
+      ...(['tiles', 'sprites', 'palettes', 'backs'] as Tab[]).map((t) => h('button', {
         type: 'button', role: 'tab', class: 'gs-tab', 'data-tab': t,
         onclick: () => { this.tab = t; this.render(); },
-      }, t === 'tiles' ? 'Tiles' : t === 'sprites' ? 'Sprites' : 'Palettes')));
+      }, t === 'tiles' ? 'Tiles' : t === 'sprites' ? 'Sprites' : t === 'palettes' ? 'Palettes' : 'Battle backgrounds')));
     this.root = h('div', { class: 'gba-studio', role: 'dialog', 'aria-label': 'GBA Studio' },
       h('header', { class: 'gs-head' },
         h('span', { class: 'brand-mark' }, 'GBA Studio'),
@@ -343,6 +343,7 @@ class Studio {
     clearInterval(this.previewTimer);
     this.renderList();
     if (this.tab === 'palettes') this.renderPalettes();
+    else if (this.tab === 'backs') void this.renderBacks();
     else this.renderPainter();
     this.renderStatus();
   }
@@ -381,6 +382,18 @@ class Studio {
         rows.push(this.listRow(s.id, s.name + tag, s.id === this.sel.sprites, this.images.get(s.image), () => { this.sel.sprites = s.id; this.render(); }));
       }
       rows.unshift(h('button', { type: 'button', class: 'btn primary gs-new', onclick: () => this.newSprite() }, '+ New sprite'));
+    } else if (this.tab === 'backs') {
+      const list = battlebackList(this.data);
+      rows.push(h('div', { class: 'gs-group' }, 'Built in'));
+      for (const b of list) {
+        if (!b.builtin && rows.length && !rows.some((r) => r.textContent === 'Your own')) rows.push(h('div', { class: 'gs-group' }, 'Your own'));
+        const row = this.listRow(b.id, b.name + (b.replaced ? ' (yours)' : ''), b.id === (this.sel.backs ?? list[0]?.id), this.images.get(b.image), () => { this.sel.backs = b.id; this.render(); });
+        rows.push(row);
+        if (!this.images.has(b.image)) void this.backImage(b.image).then((c) => { if (c && this.tab === 'backs') this.renderList(); });
+      }
+      const fileIn = h('input', { type: 'file', accept: 'image/png,image/*', hidden: true }) as HTMLInputElement;
+      fileIn.addEventListener('change', () => { const f = fileIn.files?.[0]; if (f) void this.importBack(f, null); });
+      rows.unshift(h('button', { type: 'button', class: 'btn primary gs-new', title: 'A new battle background from a picture (240 × 160 is the GBA screen)', onclick: () => fileIn.click() }, '+ New background'), fileIn);
     } else {
       for (const p of this.data.palettes) {
         const sw = h('span', { class: 'gs-mini-pal' }, ...p.colors.slice(0, 8).map((c) => h('i', { style: `background:${c}` })));
@@ -1409,6 +1422,79 @@ class Studio {
   }
 
   /* ----------------------------------------------------------------- palettes tab */
+
+  /* ----------------------------------------------------------------- battle backgrounds */
+
+  /** A battle background's picture (loaded once from the project). */
+  async backImage(path: string): Promise<HTMLCanvasElement | null> {
+    const have = this.images.get(path);
+    if (have) return have;
+    try { const c = await blobToCanvas(await this.store.project.readFile(path)); this.images.set(path, c); return c; } catch { return null; }
+  }
+
+  /** A picture as a battle background: fitted to 240 × 160 (covering, centred), in GBA colours. `id` null: a new one. */
+  async importBack(f: Blob, id: string | null): Promise<void> {
+    const src = await blobToCanvas(f);
+    const c = blankCanvas(BATTLEBACK_W, BATTLEBACK_H), g = ctx2d(c);
+    const k = Math.max(BATTLEBACK_W / src.width, BATTLEBACK_H / src.height);
+    g.imageSmoothingEnabled = k < 1;
+    g.drawImage(src, (BATTLEBACK_W - src.width * k) / 2, (BATTLEBACK_H - src.height * k) / 2, src.width * k, src.height * k);
+    const d = g.getImageData(0, 0, c.width, c.height);
+    for (let i = 0; i < d.data.length; i += 4) { d.data[i] &= 0xf8; d.data[i + 1] &= 0xf8; d.data[i + 2] &= 0xf8; d.data[i + 3] = 255; }
+    g.putImageData(d, 0, 0);
+    const list = (this.data.battlebacks ??= []);
+    let entry = id ? list.find((b) => b.id === id) : undefined;
+    if (!entry) {
+      const builtin = id ? BUILTIN_BATTLEBACKS.find((b) => b.id === id) : undefined;
+      const nid = id ?? slug('background', new Set([...BUILTIN_BATTLEBACKS.map((b) => b.id), ...list.map((b) => b.id)]));
+      entry = { id: nid, name: builtin?.name ?? 'New background' };
+      list.push(entry);
+    }
+    entry.image = `gba/battlebacks/${entry.id}.png`;
+    this.images.set(entry.image, c);
+    this.touch(entry.image);
+    this.touch();
+    this.sel.backs = entry.id;
+    this.render();
+    toast(`${entry.name}: your picture (${BATTLEBACK_W} × ${BATTLEBACK_H}, GBA colours)`);
+  }
+
+  async renderBacks(): Promise<void> {
+    const list = battlebackList(this.data);
+    const b = list.find((x) => x.id === this.sel.backs) ?? list[0];
+    if (!b) { this.centerEl.replaceChildren(); this.sideEl.replaceChildren(); return; }
+    this.sel.backs = b.id;
+    const img = await this.backImage(b.image);
+    if (this.tab !== 'backs' || this.sel.backs !== b.id) return;
+    const view = blankCanvas(BATTLEBACK_W, BATTLEBACK_H);
+    if (img) ctx2d(view).drawImage(img, 0, 0, BATTLEBACK_W, BATTLEBACK_H);
+    view.className = 'gs-back-view';
+    this.centerEl.replaceChildren(h('div', { class: 'gs-back-wrap' }, view,
+      h('p', { class: 'hint' }, 'The GBA screen, 240 × 160. The foe stands on the light oval at the top right; the hero’s panel and the menus cover the bottom.')));
+    const entry = () => { const l = (this.data.battlebacks ??= []); let e = l.find((x) => x.id === b.id); if (!e) { e = { id: b.id, name: b.name }; l.push(e); } return e; };
+    const nameIn = h('input', { type: 'text', value: b.name, 'aria-label': 'Name' }) as HTMLInputElement;
+    nameIn.addEventListener('change', () => { entry().name = nameIn.value.trim() || b.name; this.touch(); this.renderList(); });
+    const fileIn = h('input', { type: 'file', accept: 'image/png,image/*', hidden: true }) as HTMLInputElement;
+    fileIn.addEventListener('change', () => { const f = fileIn.files?.[0]; if (f) void this.importBack(f, b.id); });
+    const restore = () => {
+      const l = this.data.battlebacks ?? [];
+      const e = l.find((x) => x.id === b.id);
+      if (e) delete e.image;
+      this.data.battlebacks = l.filter((x) => x.image || x.name !== BUILTIN_BATTLEBACKS.find((y) => y.id === x.id)?.name);
+      this.touch(); this.render(); toast(`${b.name}: back to the built-in picture`);
+    };
+    const remove = () => { this.data.battlebacks = (this.data.battlebacks ?? []).filter((x) => x.id !== b.id); this.sel.backs = undefined; this.touch(); this.render(); };
+    const download = async () => { if (!img) return; const a = h('a', { href: URL.createObjectURL(await canvasBlob(img)), download: `${b.id}.png` }) as HTMLAnchorElement; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); };
+    this.sideEl.replaceChildren(h('section', { class: 'gs-card' }, h('h3', {}, b.builtin ? 'Built-in background' : 'Your background'),
+      field('Name', nameIn),
+      h('p', { class: 'hint' }, b.builtin ? (b.replaced ? 'Showing your picture in place of the built-in one.' : 'Built in. Replace it with your own picture any time (the built-in one is kept).') : 'Your own picture.'),
+      h('div', { class: 'gs-actions' }, fileIn,
+        h('button', { type: 'button', class: 'btn small', title: 'Use your own picture (fitted to 240 × 160, GBA colours)', onclick: () => fileIn.click() }, b.builtin && !b.replaced ? 'Replace with my picture…' : 'Change picture…'),
+        h('button', { type: 'button', class: 'btn ghost small', title: 'Save it as a PNG to paint over in another program', onclick: () => void download() }, 'Download PNG'),
+        b.builtin && b.replaced ? h('button', { type: 'button', class: 'btn ghost small', onclick: restore }, 'Back to the built-in') : null,
+        !b.builtin ? h('button', { type: 'button', class: 'btn ghost small danger', onclick: remove }, 'Delete') : null),
+      h('p', { class: 'hint' }, 'Maps choose theirs in Map settings → Battles → Battle background.')));
+  }
 
   renderPalettes(): void {
     const pal = this.data.palettes.find((p) => p.id === this.sel.palettes) ?? this.data.palettes[0];

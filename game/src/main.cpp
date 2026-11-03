@@ -429,6 +429,23 @@ namespace
             }
         }
 
+        // The map's backgrounds let go (a battle needs their palettes) and back again.
+        void layers_off()
+        {
+            ground.reset();
+            over.reset();
+        }
+
+        void layers_on()
+        {
+            ground = (M->water_frames > 1 ? M->water[water_at] : M->ground)->create_bg(0, 0);
+            over = M->over->create_bg(0, 0);
+            ground->set_priority(3);
+            over->set_priority(1);
+            ground->set_camera(camera);
+            over->set_camera(camera);
+        }
+
         // Stepped into tall grass: it rustles over the player's feet for a moment. True if it did.
         bool grass_step()
         {

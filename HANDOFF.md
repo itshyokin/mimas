@@ -48,11 +48,7 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Next up
-Waiting on the owner (Nov 3): the battle menu layout preview (mock-up only, nothing built): taller bottom boxes that
-cover the hero sprite's base; the hero panel up ~38 px; the Y log hint just above it, in line with the MP orb; commands
-FIGHT / BAG / PARTY / RUN as 4 centred, bigger buttons (Party / Run always shown, greyed when unusable), no caption
-line; FIGHT as 4 buttons (name, element, MP; 0 for Additions) moved with the arrows; the move's details (hits, type,
-description) in a small note box under "What will Jordan do?". The mock-up script: scratchpad mock.js (not kept).
+Update 12 (Nov 3): the battle menu layout the owner approved; battle backgrounds (below).
 Done the same day: soft fade into battles, no Perfect popups (gba), foes mirrored by "The picture faces", meter
 shape / colours from Database → Menus (playtest root classes; ROM ui_tiles round ends + colours), bigger panel
 text, src/editor/mimasSupport.ts greys Database settings the GBA game doesn't use (lists per tab).
@@ -60,6 +56,17 @@ Update 11 is done (below). The owner's open wishes from NOTES.md: music in the R
 buffs in the ROM, learnsets (moves on level up), NPCs walking, Surf, more event commands. Ask the owner which first.
 
 ## Things to know
+- Update 12, battle screen and backgrounds:
+  - Playtest menus: BattleScreen.gbaGrid (set from turnBased.gba) makes the command bar a 2 × 2 grid (left / right =
+    index ^ 1, up / down = index ^ 2) with no caption; ChoiceItem.move { element, type, mp } draws a FIGHT button;
+    the selected move's detail goes in `.pt-note` inside the text box. TurnBattle.gbaFightMenu passes bar = true.
+    Party is always listed (greyed). Layout in gba.css (--cmd-h 15.6u, hero sprite bottom 24.6%, log hint).
+  - Battle backgrounds: tools/make_battlebacks.py paints public/gba/battlebacks/builtin/<id>.png (240 × 160; the
+    foe's oval at FOE = (171, 53), where the ROM's foe stands too). gba.json `battlebacks` holds renames, your
+    pictures in place of built-ins (gba/battlebacks/<id>.png) and new ones; battlebackList() merges them. GBA
+    Studio tab "Battle backgrounds"; MapData.battleBack (Map settings → Battles). Playtest: BattleScreen.setBackdrop.
+    ROM: export.py writes bback_K (own palettes) and map_info.battleback; battle() lets the world's backgrounds go
+    (world::layers_off / layers_on) and shows it at (8, 48), priority 3.
 - Update 11, battle menu / guard / panels / field:
   - Data: AdditionDef `mp`, `guard`, `guardHeal` (types.ts; AbilitiesEditor fields). The Database has a `guard`
     Addition; heroes start with quick_strike + guard. gbaGame.ts exports additions' `mp` and `guard` (heal %, null

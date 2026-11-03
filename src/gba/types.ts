@@ -67,6 +67,32 @@ export interface GbaData {
   maps?: string[];
   /** The map the ROM starts on (a GBA map id). Without it the ROM uses the Saturn map in mimas.json. */
   startMap?: string;
+  /** Battle backgrounds: the built-ins swapped for your own pictures, and new ones (see battlebackList). */
+  battlebacks?: GbaBattleback[];
+}
+
+/** A battle background (240 × 160, the GBA screen). `image` unset: the built-in picture. */
+export interface GbaBattleback {
+  id: string;
+  name: string;
+  image?: string;
+}
+
+/** The built-in battle backgrounds (tools/make_battlebacks.py paints them). */
+export const BUILTIN_BATTLEBACKS: { id: string; name: string }[] = [
+  { id: 'meadow', name: 'Meadow' }, { id: 'forest', name: 'Forest' }, { id: 'cave', name: 'Cave' },
+  { id: 'town', name: 'Town street' }, { id: 'beach', name: 'Beach' }, { id: 'snow', name: 'Snowfield' },
+];
+export const BATTLEBACK_W = 240;
+export const BATTLEBACK_H = 160;
+export const builtinBattlebackImage = (id: string): string => `gba/battlebacks/builtin/${id}.png`;
+
+/** Every battle background: the built-ins (or your picture in their place), then your own new ones. */
+export function battlebackList(g: Pick<GbaData, 'battlebacks'>): { id: string; name: string; image: string; builtin: boolean; replaced: boolean }[] {
+  const own = new Map((g.battlebacks ?? []).map((b) => [b.id, b]));
+  const list = BUILTIN_BATTLEBACKS.map((b) => { const o = own.get(b.id); return { id: b.id, name: o?.name ?? b.name, image: o?.image ?? builtinBattlebackImage(b.id), builtin: true, replaced: !!o?.image }; });
+  for (const b of g.battlebacks ?? []) if (!BUILTIN_BATTLEBACKS.some((x) => x.id === b.id) && b.image) list.push({ id: b.id, name: b.name, image: b.image, builtin: false, replaced: false });
+  return list;
 }
 
 /** Something placed on the objects layer. `t` is an index into the map's tile list (+1). */

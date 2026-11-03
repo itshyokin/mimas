@@ -1825,7 +1825,7 @@ struct battle_scene
     void set_foe(const foe_spec& spec)
     {
         f = make_foe(spec);
-        foe = mimas::enemies[f.id].sprite->create_sprite(184 - HALF_W, 24 - HALF_H);
+        foe = mimas::enemies[f.id].sprite->create_sprite(171 - HALF_W, 21 - HALF_H);
         foe->set_bg_priority(1);
         draw_foe();
     }
@@ -1887,7 +1887,7 @@ struct battle_scene
         }
 
         const mimas::effect_def& e = mimas::effects[fx];
-        bn::sprite_ptr s = e.sprite->create_sprite(at_foe ? 184 - HALF_W : 60 - HALF_W, at_foe ? 24 - HALF_H : 80 - HALF_H);
+        bn::sprite_ptr s = e.sprite->create_sprite(at_foe ? 171 - HALF_W : 60 - HALF_W, at_foe ? 21 - HALF_H : 80 - HALF_H);
         s.set_bg_priority(0);
 
         if(e.hit && element >= 0 && element < mimas::element_count)
@@ -2077,13 +2077,21 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
     w.people_dir.clear();
     w.hero.set_visible(false);
     w.rustle.reset();
-    w.ground->set_visible(false);
-    w.over->set_visible(false);
+    w.layers_off();
     bn::bg_palettes::set_transparent_color(bn::color(31, 31, 31));
     sfx(mimas::snd_encounter);
     fade(0, 1);
     ui::open();
     ui::clear_all();
+    // The map's battle background (its top-left at the screen's), behind everything.
+    bn::optional<bn::regular_bg_ptr> backdrop;
+
+    if(M->battleback)
+    {
+        backdrop = M->battleback->create_bg(8, 48);
+        backdrop->set_priority(3);
+    }
+
     int result = WON;
     int total_gold = 0;
     bool fought[MAX_PARTY] = {};
@@ -2178,16 +2186,16 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                             }
                             else
                             {
+                                // Like the playtest: its MP (0 for most Additions) and its type (GUARD for a guard).
                                 const mimas::addition_def& a = mimas::additions[mv];
-                                if(a.mp > 0) { r = bn::to_string<4>(a.mp); r += " MP"; }
-                                else if(a.guard >= 0) { r = "GUARD"; }
-                                else { r = bn::to_string<4>(a.hits); r += a.hits == 1 ? " HIT" : " HITS"; }
-                                el = a.element;
+                                r = bn::to_string<4>(a.mp);
+                                r += " MP";
+                                el = a.guard >= 0 ? -1 : a.element;
                                 off = a.mp > m.mp;
                             }
 
                             set_row(ROWS_B[k], move_name(mv), r.c_str(), -1, off);
-                            bn::string_view eln(mimas::element_names[el]);
+                            bn::string_view eln(el >= 0 ? mimas::element_names[el] : "GUARD");
                             for(int c = 0; c < eln.size() && c < 13; ++c) { ROWS_B[k].sub[c] = eln[c]; }
                         }
 
@@ -2719,8 +2727,8 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
     ui::clear_all();
     ui::close();
     bn::bg_palettes::set_transparent_color(bn::nullopt);
-    w.ground->set_visible(true);
-    w.over->set_visible(true);
+    backdrop.reset();
+    w.layers_on();
     w.hero.set_visible(true);
     w.make_people();
     w.place();

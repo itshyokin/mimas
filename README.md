@@ -225,6 +225,10 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   round and gives back some health (10% unless you set it). A move's line
   stays up while its animation plays, and lines like *It's super effective!*
   move on by themselves (A skips). The faster side goes first.
+- **Battle backgrounds**: six built in (meadow, forest, cave, town street,
+  beach, snowfield), chosen per map (Map settings → Battles → Battle
+  background). GBA Studio → Battle backgrounds lists them; swap any for your
+  own 240 × 160 picture (or add new ones) and switch back any time.
   Foes from a troop come out one at a time. Winning gives EXP (levels grow
   each stat by the hero's ranks) and money; losing sends you back to the
   start, healed, with half your money.

@@ -94,3 +94,33 @@ body.gba-mode .battle.layout-pocket .pb-top { font-size: calc(var(--u) * 2.4); }
 body.gba-mode .battle.layout-pocket .pb-lv { font-size: calc(var(--u) * 2.3); }
 body.gba-mode .battle.layout-pocket .pb-k { font-size: calc(var(--u) * 1.75); }
 body.gba-mode .battle.layout-pocket .pb-num { font-size: calc(var(--u) * 2); }
+
+/* Update 12: the bottom boxes are taller (the text box covers the hero sprite's flat base), the hero panel sits
+   above them, and the Y log hint above that, in line with the MP orb. */
+body.gba-mode .battle.layout-pocket > * { --cmd-h: calc(var(--u) * 15.6); }
+body.gba-mode .battle.layout-pocket .battle-party { bottom: 24.6%; }
+body.gba-mode .battle.layout-pocket .battle-log:not(.focused) { top: auto; bottom: calc(var(--g) * 2 + var(--cmd-h) + var(--u) * 13.2 + env(safe-area-inset-bottom, 0px)); right: calc(var(--g) + var(--u) * 1.2 + env(safe-area-inset-right, 0px)); }
+/* FIGHT / BAG / PARTY / RUN: four centred, bigger buttons; greyed when they can't be used; no caption. */
+body.gba-mode .battle.layout-pocket .battle-cmd.bar.gba-grid { grid-template-rows: 1fr; padding: calc(var(--u) * 1.3) calc(var(--u) * 1.6); }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-grid .battle-cmd-cap { display: none; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-grid .battle-cmd-list { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: calc(var(--u) * 0.9) calc(var(--u) * 1.4); height: 100%; }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-tile { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: calc(var(--u) * 1); border-radius: calc(var(--u) * 0.6); border: 2px solid transparent; position: relative; min-height: 0; padding: 0 calc(var(--u) * 1.2); }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-tile svg { display: block; width: calc(var(--u) * 2.7); height: calc(var(--u) * 2.7); color: #303038; flex: none; }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-tile .bcmd-tile-label { font-size: calc(var(--u) * 2.3); text-transform: uppercase; letter-spacing: 0.04em; }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-tile[aria-selected="true"] { background: #e4ecfa; border-color: #7090c8; }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-tile[aria-selected="true"]::before { content: '▶'; position: absolute; left: calc(var(--u) * 1); top: 50%; transform: translateY(-50%); font-size: calc(var(--u) * 1.4); color: #d04040; }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-tile:disabled { opacity: 1; }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-tile:disabled .bcmd-tile-label, body.gba-mode .battle.layout-pocket .gba-grid .bcmd-tile:disabled svg { color: #b8b8c0; }
+/* FIGHT's moves: the name, then the element and MP cost under it. */
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-move { flex-direction: column; align-items: stretch; justify-content: center; gap: calc(var(--u) * 0.6); padding: 0 calc(var(--u) * 1.6) 0 calc(var(--u) * 3); }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-move .bcmd-tile-label { font-size: calc(var(--u) * 2); text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+body.gba-mode .battle.layout-pocket .bcmd-move-row { display: flex; justify-content: space-between; align-items: center; font-size: calc(var(--u) * 1.25); color: #606070; }
+body.gba-mode .battle.layout-pocket .bcmd-move-el { display: inline-flex; align-items: center; gap: calc(var(--u) * 0.5); }
+body.gba-mode .battle.layout-pocket .bcmd-move-el img { width: calc(var(--u) * 1.7); height: calc(var(--u) * 1.7); image-rendering: pixelated; }
+body.gba-mode .battle.layout-pocket .gba-grid .bcmd-move:disabled { opacity: 0.45; }
+/* The chosen move's details, in a small note under "What will Jordan do?". */
+.pt-note { display: none; }
+body.gba-mode .battle.layout-pocket .pocket-text .pt-note:not([hidden]) { display: block; position: absolute; left: calc(var(--u) * 1.6); right: calc(var(--u) * 1.6); bottom: calc(var(--u) * 1.4); border: 2px solid #b8c4dc; border-radius: calc(var(--u) * 0.6); background: #eef2fa; padding: calc(var(--u) * 0.8) calc(var(--u) * 1.2); font-size: calc(var(--u) * 1.35); line-height: 1.5; color: #404050; white-space: pre-line; }
+/* A battle background (Map settings → Battles): the GBA screen's picture, stretched crisp. */
+body.gba-mode .battle.has-backdrop { background-size: 100% 100%; background-position: center; background-repeat: no-repeat; image-rendering: pixelated; }
+body.gba-mode .battle.has-backdrop .battle-log:not(.focused) .battle-log-hint { background: rgba(248, 248, 248, 0.85); color: #404050; opacity: 1; padding: 1px 6px; border-radius: 4px; }

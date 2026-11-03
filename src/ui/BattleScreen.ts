@@ -8,6 +8,7 @@ import { type BattleLayout, type BattlePiece, pieceStyle } from './battleLayout'
 import { DEFAULT_STATUS_PILLS, type StatusPill } from '../game/battle/statusPills';
 import type { Input } from '../game/Input';
 import type { Element, FaceButton, ImpactFx } from '../world/types';
+import { elementIconUrl } from '../art/elementIcons';
 import { ELEMENT_COLORS } from '../game/elements';
 import { elementPill } from './elementPill';
 import { esc } from './InventoryScreen';
@@ -142,6 +143,8 @@ export interface ChoiceItem {
   buffs?: BuffChip[];
   /** Bars under the name (the Swap list: health, magic, EXP), with a face on the left from `iconUrl`. */
   bars?: { hp: number; maxHp: number; mp: number; maxMp: number; xp?: number };
+  /** Mimas's FIGHT buttons: the move's element (its icon and word) and MP cost. */
+  move?: { element: string; type: string; mp: number };
 }
 /** A buff or debuff: an arrow (up or down) over a short tag. */
 export interface BuffChip { tag: string; up: boolean; name: string }
@@ -206,6 +209,8 @@ export class BattleScreen {
   /** Whose turn it is (a party member's shows the arrow over them while they choose). */
   private activeKey: string | null = null;
   private readonly capEl: HTMLElement;
+  /** Mimas (GBA): the command bar is a 2 × 2 grid of big buttons, no caption; moves show their details in a note. */
+  gbaGrid = false;
   private camTimer = 0;
   private vic: Victory | null = null;
   /** The results panel, kept while the battle fades out, removed when the screen closes. */
@@ -253,7 +258,7 @@ export class BattleScreen {
       </div>
       <div class="battle-desc" hidden></div>
       <div class="battle-blocks" aria-label="Foes"></div>
-      <div class="pocket-foes" aria-label="Foes"></div><div class="pocket-heroes" aria-label="Party"></div><div class="pocket-text" aria-live="polite"><div class="pt-line"><img class="pt-icon" alt="" hidden><span class="pt-text"></span></div><span class="pt-next">▼</span><div class="pt-stats" hidden></div></div>
+      <div class="pocket-foes" aria-label="Foes"></div><div class="pocket-heroes" aria-label="Party"></div><div class="pocket-text" aria-live="polite"><div class="pt-line"><img class="pt-icon" alt="" hidden><span class="pt-text"></span></div><span class="pt-next">▼</span><div class="pt-stats" hidden></div><div class="pt-note" hidden></div></div>
       <div class="battle-log" role="log" aria-label="Battle log"><div class="battle-log-lines"></div><div class="battle-log-hint">Y: battle log</div></div>
       <div class="battle-result" hidden></div>`;
     const q = (s: string) => this.root.querySelector(s) as HTMLElement;
@@ -769,6 +774,11 @@ export class BattleScreen {
   }
 
   get pocket(): boolean { return this.layout === 'pocket'; }
+  /** Mimas: a picture behind the battle (a GBA battle background, stretched crisp over the screen), or none. */
+  setBackdrop(url: string | null): void {
+    this.root.style.backgroundImage = url ? `url(${url})` : '';
+    this.root.classList.toggle('has-backdrop', !!url);
+  }
 
   /** Database → Menus → Battle layout: the Pocket Handheld pieces placed by hand (unset ones keep their place). */
   setBoxes(l: BattleLayout | undefined): void {
@@ -1048,7 +1058,7 @@ export class BattleScreen {
   waitForOk(done: () => void): void { this.mode = { kind: 'wait', done }; this.cmdEl.hidden = true; }
 
   /** Nothing to answer (enemies acting, animations). */
-  idle(): void { this.mode = { kind: 'idle' }; this.root.querySelector('.pocket-pick')?.remove(); this.cmdEl.hidden = true; this.descEl.hidden = true; this.root.classList.remove('bar-mode', 'list-mode'); this.clearTargets(); }
+  idle(): void { const nt = this.pocketText.querySelector<HTMLElement>('.pt-note'); if (nt) nt.hidden = true; this.mode = { kind: 'idle' }; this.root.querySelector('.pocket-pick')?.remove(); this.cmdEl.hidden = true; this.descEl.hidden = true; this.root.classList.remove('bar-mode', 'list-mode'); this.clearTargets(); }
 
   /** The victory panel: a heading and lines (EXP, gold, items, level-ups). */
   result(title: string, lines: string[]): void {
@@ -1078,6 +1088,9 @@ export class BattleScreen {
     this.root.classList.toggle('list-mode', !m.bar);
     // The Swap list (Update 125): compact rows that share the panel's height.
     this.cmdEl.classList.toggle('swap', !m.bar && m.items.some((x) => !!x.bars));
+    this.cmdEl.classList.toggle('gba-grid', !!m.bar && this.gbaGrid);
+    const note = this.pocketText.querySelector<HTMLElement>('.pt-note');
+    if (note) { const it = m.items[m.index]; note.hidden = !(this.gbaGrid && m.bar && it?.move && it.detail); note.textContent = note.hidden ? '' : it!.detail!; }
     if (m.bar) {
       this.descEl.hidden = true;
       // Legend of Dragoon: a row of pictures, the chosen one raised, named underneath.
@@ -1089,14 +1102,19 @@ export class BattleScreen {
         b.setAttribute('role', 'option');
         b.setAttribute('aria-selected', String(i === m.index));
         b.setAttribute('aria-label', it.label);
-        b.innerHTML = `${svgIcon(it.icon ?? '')}<span class="bcmd-tile-label"></span>`;
+        if (it.move) {
+          // A move: its name, then its element (icon and word) and MP cost.
+          b.classList.add('bcmd-move');
+          b.innerHTML = `<span class="bcmd-tile-label"></span><span class="bcmd-move-row"><span class="bcmd-move-el"><img alt="" src="${elementIconUrl(it.move.element as Element)}"><span></span></span><span class="bcmd-move-mp">${it.move.mp} MP</span></span>`;
+          (b.querySelector('.bcmd-move-el span') as HTMLElement).textContent = it.move.type;
+        } else b.innerHTML = `${svgIcon(it.icon ?? '')}<span class="bcmd-tile-label"></span>`;
         (b.querySelector('.bcmd-tile-label') as HTMLElement).textContent = it.label;
         b.addEventListener('pointerenter', () => { if (this.mode === m && !it.disabled && m.index !== i) { m.index = i; this.renderList(); m.hover?.(i); } });
         b.addEventListener('click', () => { if (this.mode !== m || it.disabled) return; m.index = i; uiSound('menuOk'); this.idle(); m.pick(i); });
         return b;
       }));
       const it = m.items[m.index];
-      this.capEl.textContent = it ? [it.right, it.detail].filter(Boolean).join(' · ') : '';
+      this.capEl.textContent = this.gbaGrid ? '' : it ? [it.right, it.detail].filter(Boolean).join(' · ') : '';
       return;
     }
     this.capEl.textContent = '';
@@ -1220,10 +1238,17 @@ export class BattleScreen {
         this.renderList();
         m.hover?.(m.index);
       };
+      if (m.bar && this.gbaGrid) {
+        // Mimas: a 2 × 2 grid: left / right across a row, up / down between the rows (greyed ones are skipped).
+        const go = (j: number) => { if (j >= 0 && j < m.items.length && !m.items[j].disabled && j !== m.index) { m.index = j; uiSound('menuMove'); this.renderList(); m.hover?.(j); } };
+        if (i.consume('left') || i.consume('right')) go(m.index ^ 1);
+        if (i.consume('up') || i.consume('down')) go(m.index ^ 2);
+      } else {
       // Pocket Handheld's commands are a 3 × 2 grid: up / down move a row.
       const grid = m.bar && this.layout === 'pocket' ? 3 : 1;
       if (i.consume('down')) step(grid); else if (m.bar && i.consume('right')) step(1);
       if (i.consume('up')) step(-grid); else if (m.bar && i.consume('left')) step(-1);
+      }
       if (i.consume('ok')) { const it = m.items[m.index]; if (it && !it.disabled) { uiSound('menuOk'); this.idle(); m.pick(m.index); } }
       else if (i.consume('cancel') && m.back) { uiSound('menuBack'); this.idle(); m.back(); }
     } else if (m.kind === 'target') {

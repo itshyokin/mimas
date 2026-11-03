@@ -1,3 +1,5 @@
+import { battlebackList } from '../gba/types';
+import { gba } from './gbaShared';
 import { switchInput } from './switchPicker';
 import { teamEditor } from './moveFields';
 import { blankLayers, fitLayers } from '../gba/layers';
@@ -201,6 +203,9 @@ export class Inspector {
       out.push(field('Battle map', select([['', 'None: the flat battle screen'], ...names.map((n) => [n, n] as [string, string])], m.battleMap ?? '', (v) => this.edit(() => { if (v) m.battleMap = v; else delete m.battleMap; })),
         names.length ? 'Turn-based battles on this map are fought on this battle map (a zone in the Spawns layer can choose another).'
           : 'No battle maps yet: make a new map, tick “This is a battle map”, and place party and enemy markers on it (Spawns layer, key 9).'));
+      // Mimas: the picture behind battles here (GBA Studio → Battle backgrounds).
+      out.push(field('Battle background', select([['', 'None: plain white'], ...battlebackList(gba.data).map((b) => [b.id, b.name] as [string, string])], m.battleBack ?? '', (v) => this.edit(() => { if (v) m.battleBack = v; else delete m.battleBack; })),
+        'What battles on this map are fought in front of (GBA Studio → Battle backgrounds: the built-ins, or your own pictures).'));
       // Single battle mode: how battles on this map come out unless a troop or event says.
       out.push(field('Single mode: battles here are', select([['', `The game’s default (Database → Combat)`], ...[['random', 'Wild encounter: one at random'], ['oneByOne', 'Trainer battle: one at a time'], ['full', 'Swarm: all at once']]] as [string, string][], m.encounterPick ?? '', (v) => this.edit(() => { if (v) m.encounterPick = v as EncounterPick; else delete m.encounterPick; })),
         'For Single battle mode: random battles, troops left on their default, enemies bumped into on the map and Start battle events left on their default all come out this way. Wild: one at random (an enemy bumped into fights alone). Trainer: one at a time. Swarm: all at once.'));

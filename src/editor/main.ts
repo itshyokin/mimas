@@ -1,4 +1,5 @@
 /** Map editor entry point: lays out the panels and wires the toolbar and shortcuts. */
+import { battlebackList } from '../gba/types';
 import { View3D } from './View3D';
 import { WEAPON_MANIFEST_PATH, itemWeaponSprite, usedWeaponSprites } from '../game/combat/weaponSprites';
 import { findWeapon, loadWeaponList, loadWeaponSheets } from './weaponPicker';
@@ -434,12 +435,16 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
   const blob = (c: HTMLCanvasElement) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('picture'))), 'image/png'));
   const images: Record<string, Blob> = {};
   for (const [path, c] of gba.images) images[path] = await blob(c);
+  // Battle backgrounds the maps use (the built-ins, or your pictures in their place).
+  const backs = battlebackList(gba.data);
+  const usedBacks = new Set<string>();
   const pics: NonNullable<PlaytestData['gba']>['pics'] = {};
   const maps: MapData[] = [store.map];
   await Promise.all(store.maps.filter((n) => n !== store.mapName).map(async (n) => { try { maps.push(await store.project.readMap(n)); } catch { /* skipped */ } }));
   const want = new Set<string>();
   for (const m of maps) {
     if (!m.gba) continue;
+    if (m.battleBack) usedBacks.add(m.battleBack);
     for (const p of m.props) want.add(`prop:${p.type}`);
     for (const ev of m.events) for (const pg of ev.pages) {
       if (pg.character) { for (const d of ['down', 'up', 'left', 'right']) want.add(`char:${pg.character}:${d}`); want.add(`charsheet:${pg.character}:`); }
@@ -462,6 +467,10 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
     let c = enemyBattleImage(store.db, e.look);
     if (c && e.tint) c = tintCanvas(c, e.tint);
     if (c && c.width && c.height) pics[`enemy:${e.id}`] = { blob: await blob(c), w: c.width, h: c.height };
+  }
+  for (const id of usedBacks) {
+    const b = backs.find((x) => x.id === id);
+    if (b && !images[b.image]) { try { images[b.image] = await store.project.readFile(b.image); } catch { /* none */ } }
   }
   return { data: gba.data, images, pics };
 }

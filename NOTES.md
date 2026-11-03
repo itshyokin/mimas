@@ -67,6 +67,11 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       and the like move on by themselves); no "Go!" lines (party members step in); the ROM's panels like Saturn's
       (EXP bar, element icons, gender symbols); Saturn characters walk the field in the playtest and the ROM (the
       editor's save bakes public/gba/chars/<key>.png); water plays its frames and tall grass rustles (both).
+- [x] Update 12 (Nov 3): the battle screen tidied (big FIGHT / BAG / PARTY / RUN buttons, FIGHT as four move buttons
+      with type and MP, the move's details in a note, taller boxes, bigger panel text, soft fade in, no Perfect
+      popups, foes face the right way, meters follow the Database); Database settings the GBA game doesn't use are
+      greyed; battle backgrounds (six built in, replaceable, per map) in the playtest and the ROM.
+- [ ] Battles with more than one hero and foe out at once (2 v 2 or 3 v 3): owner is thinking about it.
 - [ ] Music in the ROM (tracker files); support spells' buffs in the ROM; learning moves on level up (a learnset).
 - [ ] Surf on water (needs a key item / ability), one-way passability arrows.
 - [ ] More event commands in the ROM: move route, show / hide events, class changes.

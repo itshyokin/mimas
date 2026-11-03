@@ -884,6 +884,8 @@ export interface MapData {
   battleMap?: string;
   /** How battles here begin (one, or several picked at random): shatter, swirl, smudge, blinds, zoom, flash. Unset: any. */
   battleTransitions?: string[];
+  /** Mimas: the battle background behind battles on this map (a GBA Studio battle background id; unset: plain white). */
+  battleBack?: string;
   ambience?: string;
   ambienceNight?: string;
   /** Background sound in autumn and winter (outdoors, by day). Unset: the forest's birds give way to cold wind. */

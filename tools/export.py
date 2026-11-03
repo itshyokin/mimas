@@ -863,7 +863,7 @@ def clean_outputs():
     os.makedirs(GFX, exist_ok=True)
     os.makedirs(INC, exist_ok=True)
     for f in os.listdir(GFX):
-        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'obj_', 'textbox', 'text_palette', 'bubble', 'box_palette', 'choice_')):
+        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'obj_', 'textbox', 'text_palette', 'bubble', 'box_palette', 'choice_', 'bback_')):
             os.remove(os.path.join(GFX, f))
 
 
@@ -1005,6 +1005,41 @@ def main():
         im.save(os.path.join(GFX, name + '.bmp'))
         write_json(os.path.join(GFX, name + '.json'),
                    {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual', 'palette_item': 'world_palette'})
+    # Battle backgrounds the maps use (GBA Studio → Battle backgrounds; Map settings → Battles), each with its own
+    # palettes (the world's backgrounds are let go during a battle).
+    back_ids = []
+    gba_all = {}
+    try:
+        gba_all = load_json(os.path.join(DATA, 'gba.json'))
+    except (OSError, ValueError):
+        pass
+    own = {b['id']: b for b in gba_all.get('battlebacks', [])}
+    for m in maps:
+        bid = (m.get('saturn') or {}).get('battleBack')
+        m['back'] = -1
+        if not bid:
+            continue
+        if bid not in back_ids:
+            rel = (own.get(bid) or {}).get('image') or f'gba/battlebacks/builtin/{bid}.png'
+            img = project_image(rel)
+            if img is None:
+                print(f'  battle background {bid}: no picture ({rel})')
+                continue
+            if img.size != (240, 160):
+                img = img.resize((240, 160), Image.NEAREST)
+            full = Image.new('RGBA', (256, 256), BACKDROP + (255,))
+            full.paste(img.convert('RGBA'), (0, 0))
+            for x in range(240, 256):   # the spare edge: the last column again (never seen)
+                for y in range(160):
+                    full.putpixel((x, y), full.getpixel((239, y)))
+            (bim,), bpal = to_banked([full], max_banks=12)
+            k = len(back_ids)
+            put_palette(bim, bpal)
+            bim.save(os.path.join(GFX, f'bback_{k}.bmp'))
+            write_json(os.path.join(GFX, f'bback_{k}.json'), {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual'})
+            print(f'  battle background {bid}: {len(bpal) // 16} palettes')
+            back_ids.append(bid)
+        m['back'] = back_ids.index(bid)
     pal_img = Image.new('P', (16, 16))
     put_palette(pal_img, palette)
     pal_img.save(os.path.join(GFX, 'world_palette.bmp'))
@@ -1123,6 +1158,8 @@ def main():
         w(f'#include "bn_regular_bg_items_world_ground_{i}.h"\n#include "bn_regular_bg_items_world_over_{i}.h"\n')
         for f in range(1, len(maps[i].get('frames') or []) + 1):
             w(f'#include "bn_regular_bg_items_world_ground_{i}_f{f}.h"\n')
+    for k in range(len(back_ids)):
+        w(f'#include "bn_regular_bg_items_bback_{k}.h"\n')
     for k in range(len(npc_ids)):
         w(f'#include "bn_sprite_items_npc_{k}.h"\n')
     for k in range(len(obj_ids)):
@@ -1143,7 +1180,8 @@ def main():
     w('struct map_info\n{\n    int width; int height; int bg_width; int bg_height; const char* name;\n'
       '    const uint8_t* collision; const int8_t* heights; const event* events; int event_count; const page* pages; const int16_t* code;\n'
       '    const bn::regular_bg_item* ground; const bn::regular_bg_item* over;\n'
-      '    const bn::regular_bg_item* const* water; int water_frames;   // the ground with each frame of its water\n};\n\n')
+      '    const bn::regular_bg_item* const* water; int water_frames;   // the ground with each frame of its water\n'
+      '    const bn::regular_bg_item* battleback;   // behind battles here (nullptr: plain white)\n};\n\n')
     w('constexpr condition conditions[] = {\n    ' + ',\n    '.join(f'{{ {a}, {b}, {c}, {d} }}' for a, b, c, d in comp.conds) + '\n};\n')
     w('constexpr const char* strings[] = {\n    ' + (',\n    '.join(c_string(x) for x in comp.strings) or '""') + '\n};\n\n')
     infos = []
@@ -1166,7 +1204,8 @@ def main():
         infos.append(f'{{ {W}, {H}, {m["bw"]}, {m["bh"]}, {c_string(name)}, map{i}_collision, map{i}_heights, '
                      f'{f"map{i}_events" if events else "nullptr"}, {len(events)}, {f"map{i}_pages" if pages else "nullptr"}, map{i}_code, '
                      f'&bn::regular_bg_items::world_ground_{i}, &bn::regular_bg_items::world_over_{i}, '
-                     f'{f"map{i}_water" if m.get("frames") else "nullptr"}, {len(m.get("frames") or []) + 1} }}')
+                     f'{f"map{i}_water" if m.get("frames") else "nullptr"}, {len(m.get("frames") or []) + 1}, '
+                     f'{f"&bn::regular_bg_items::bback_{m["back"]}" if m.get("back", -1) >= 0 else "nullptr"} }}')
         w('\n')
     w('constexpr map_info maps[] = {\n    ' + ',\n    '.join(infos) + '\n};\n')
     w(f'constexpr int map_count = {len(maps)};\n')

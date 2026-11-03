@@ -21,7 +21,7 @@ import { Input } from '../game/Input';
 import { Inventory } from '../game/inventory';
 import { gbaView } from '../gba/layers';
 import { collision, drawMap, GRASS, LEDGE_E, LEDGE_S, LEDGE_W, SOLID, type TileLookup } from '../gba/mapRender';
-import { tileSize } from '../gba/types';
+import { battlebackList, tileSize } from '../gba/types';
 import type { GbaData } from '../gba/types';
 import { waitForPlaytest, type PlaytestData } from '../shared/playtest';
 import { BattleScreen, type FighterView, type VictoryReport } from '../ui/BattleScreen';
@@ -598,6 +598,18 @@ class GbaGame {
     return { battler, view, who };
   }
 
+  private backdrops = new Map<string, string>();
+  /** The map's battle background (GBA Studio → Battle backgrounds) as a picture URL, or null for plain white. */
+  backdrop(): string | null {
+    const id = this.cur.data.battleBack;
+    const b = id ? battlebackList(this.gba).find((x) => x.id === id) : undefined;
+    const img = b ? this.images.get(b.image) : undefined;
+    if (!b || !img) return null;
+    let u = this.backdrops.get(b.image);
+    if (!u) { u = img.toDataURL(); this.backdrops.set(b.image, u); }
+    return u;
+  }
+
   startBattle(list: (EnemyDef | Foe)[], canRun = true, music?: string, wild = true): void {
     const foes: Foe[] = list.map((f) => ('def' in f ? f : { def: f }));
     if (!foes.length || this.battle.active || this.battlePending) return;
@@ -648,6 +660,7 @@ class GbaGame {
         if (i === 0) entries.push(entry); else waiting.push(entry);
       });
       void wild;
+      this.battleScreen.setBackdrop(this.backdrop());
       this.battle.start(entries, this.cfg.turnBased, 'normal', { canRun, waiting });
     }, 500);
   }
