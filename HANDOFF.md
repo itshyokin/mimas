@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 3, 2026, Update 11 in progress)
+# Handoff: where Mimas stands (Nov 3, 2026, after Update 11)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -47,25 +47,30 @@ Editor (GBA layers + Saturn's props, events, encounter zones). Next: the playtes
 screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy chip versions of the built-in
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
-## Update 11 (in progress, the owner's notes from testing)
-Asked for: Magic and Guard leave the battle menu (spells sit with Additions in FIGHT, showing MP); hero panel like
-Saturn's (EXP bar), element icons on panels (green slime: Nature), gender symbols; "X uses Y!" shows, the animation
-plays and the text moves on without A (Pokémon flow), then any super / not-effective line; no "Go, Jordan!" (party
-members are RPG characters); Guard becomes a move (Addition with `guard: true`) that wards ailments and heals
-`guardHeal` % (default 10); optional MP cost on every Addition (`mp`); Saturn character sprites for the player and
-NPCs on the overworld (not the mannequin); tall grass rustles when stepped in; water plays its frames.
-- Done in the playtest (TypeScript): types.ts AdditionDef mp / guard / guardHeal; AbilitiesEditor fields; database
-  `guard` Addition (heroes start with quick_strike + guard); TurnBattle `turnBased.gba` → FIGHT / BAG / PARTY / RUN,
-  `gbaFightMenu` (moves from Battler.moveOrder `a:<id>` / `s:<id>`), `doGuard(b, heal, move)`; party.ts moves may be
-  `spell:<id>` (spellMove / moveSpell / moveInfo); GbaGame water frames (Loaded.frames, drawn every 15 ticks) and
-  grassStep() (rustle frame + sound); editorArt `characterOverworldSheet` (6×3 of 32×32: walk / run × down, up,
-  left), baked by io.ts to public/gba/chars/<key>.png and by the playtest hand-off as `charsheet:<key>:`.
-- Still to do (check each off here as it lands): playtest draws the charsheet for the player / NPC pages; ROM:
-  FIGHT holds spells (member.moves as int16, -(spell+1)), MP costs, guard moves; auto-advancing battle text; no
-  "Go!"; EXP bar + element / gender icons in panels; Saturn char sheets in export.py build_hero / NPCs; water frames
-  and grass rustle in the ROM; gbaGame.ts adds `mp` / `guard` to additions; docs; commit; push.
+## Next up
+Update 11 is done (below). The owner's open wishes from NOTES.md: music in the ROM (tracker files), support spells'
+buffs in the ROM, learnsets (moves on level up), NPCs walking, Surf, more event commands. Ask the owner which first.
 
 ## Things to know
+- Update 11, battle menu / guard / panels / field:
+  - Data: AdditionDef `mp`, `guard`, `guardHeal` (types.ts; AbilitiesEditor fields). The Database has a `guard`
+    Addition; heroes start with quick_strike + guard. gbaGame.ts exports additions' `mp` and `guard` (heal %, null
+    for none) and heroes' `gender`.
+  - Playtest: TurnBattle with `turnBased.gba` drops Magic / Guard from the commands; `gbaFightMenu` lists the
+    Battler's `moveOrder` (`a:<id>` / `s:<id>`); `doGuard(b, heal, move)`. party.ts moves can be `spell:<id>`
+    (spellMove / moveSpell / moveInfo). gba.css lays the commands out 2 × 2.
+  - Field (playtest): `Loaded.frames` (water frames drawn on demand, a new one every 15 ticks), `grassStep()` +
+    `rustle`; Saturn characters drawn from `charsheet:<key>:` (editorArt `characterOverworldSheet`: 6 × 3 frames of
+    32 × 32, walk / run × down, up, left; right mirrored). gba.json `player` unset = the Saturn character.
+  - ROM: member.moves holds Additions (k) and spells (-(k + 1)); move_name / knows / set_known; learn_spell sends a
+    new spell through learn_move (slots, forget questions). Battle: FIGHT / BAG / PARTY / RUN; grid_pick falls back
+    to a list when names don't fit; bsay_hold (line over the animation) / bsay_auto (moves on after 60 frames) /
+    end_hold; panels draw element icons (elicon_K sprites from public/gba/icons/el_<element>.png, Saturn's icons,
+    committed), the gender sprite and ui::xbar (EXP tiles 40-50 in ui_tiles). Foe sprite at (184, 24).
+  - ROM field: export.py `saturn_sheet(key)` cuts public/gba/chars/<key>.png to 16 × 32 frames for the hero and
+    `char:<key>` NPC sprites; `water_frames` / `build_gba_map(..., frame)` export world_ground_N_fK (water frames are
+    stacked down the tile sheet, 3 cells each); map_info.water / water_frames; world::animate() swaps the ground
+    every 16 frames; world::grass_step() shows the `rustle` sprite (the tall grass tile's 2nd frame) + snd_rustle.
 - Update 10, moves / trainers / effects / sound:
   - Types: world/types.ts MoveRef, TeamMember, TrainerDef (EventPage.trainer), EnemyDef.moves / movesets / mp,
     AdditionDef.element / inflicts / effect / burst, SpellEntry.effect / burst, EnemyAction.mp / look.

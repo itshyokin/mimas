@@ -19,7 +19,7 @@ import type { GbaData } from '../gba/types';
 /** The ailments the ROM knows (its order: their numbers there). */
 export const ROM_AILMENTS = ['poison', 'burn', 'paralyze', 'sleep', 'chill', 'confusion', 'blind', 'silence'] as const;
 /** Sounds the ROM plays besides each effect's (menus, battles, the field). */
-export const ROM_SOUNDS = ['menuMove', 'menuOk', 'menuBack', 'encounter', 'hit', 'weak', 'thump', 'crit', 'defeat', 'levelUp', 'item', 'coin', 'save', 'target', 'dodge', 'jump', 'expDing', 'swing'];
+export const ROM_SOUNDS = ['menuMove', 'menuOk', 'menuBack', 'encounter', 'hit', 'weak', 'thump', 'crit', 'defeat', 'levelUp', 'item', 'coin', 'save', 'target', 'dodge', 'jump', 'expDing', 'swing', 'rustle'];
 
 const inflicts = (l: Inflict[] | undefined) => (l ?? []).filter((x) => (ROM_AILMENTS as readonly string[]).includes(x.ailment)).map((x) => ({ ailment: x.ailment, chance: x.chance }));
 const refs = (l: MoveRef[] | undefined) => (l ?? []).slice(0, 4).map((r) => (r.addition ? { addition: r.addition } : { spell: r.spell }));
@@ -50,7 +50,7 @@ export function romGameData(db: Database, gba: GbaData): unknown {
     heroes: heroes.map((h, i) => ({
       id: h.id, name: h.name, first: i === 0, startsInParty: i === 0 || !!h.startsInParty, joinLevel: h.joinLevel ?? 0,
       stats: attrsFrom(h.stats), gains: levelGains(ranksOf(h.ranks, undefined)),
-      noAdditions: !!h.noAdditions, elements: (h.elements ?? []).slice(0, 2) as Element[],
+      noAdditions: !!h.noAdditions, elements: (h.elements ?? []).slice(0, 2) as Element[], gender: h.gender ?? null,
       moves: h.noAdditions ? [] : [...new Set([...(h.defaultAddition ? [h.defaultAddition] : h.additions?.length ? [] : [additionList(db).find((d) => d.id === 'quick_strike')?.id ?? additionList(db)[0]?.id]), ...(h.additions ?? [])].filter(Boolean))],
       spells: h.spells ?? {}, gear: h.gear ?? {},
     })),
@@ -64,7 +64,8 @@ export function romGameData(db: Database, gba: GbaData): unknown {
     additions: additionList(db).map((d) => {
       const fx = moveEffects({ effect: d.effect, burst: d.burst, element: d.element, inflicts: d.inflicts }, 'addition');
       return { id: d.id, name: d.name, description: d.description ?? '', hits: d.strikes.length, power: d.strikes.reduce((s, x) => s + x.power, 0),
-        element: d.element ?? 'neutral', inflicts: inflicts(d.inflicts), hit: fx.hit, burst: fx.burst };
+        element: d.element ?? 'neutral', inflicts: inflicts(d.inflicts), hit: fx.hit, burst: fx.burst,
+        mp: d.mp ?? 0, guard: d.guard ? d.guardHeal ?? 10 : null };
     }),
     spells: spellList(db).map((s) => ({ id: s.id, name: s.name, kind: s.kind, targets: s.targets ?? 'one', description: s.description ?? '',
       element: s.element ?? 'neutral', inflicts: inflicts(s.inflicts), ...moveEffects({ effect: s.effect, burst: s.burst, element: s.element, inflicts: s.inflicts }, s.kind === 'bolt' ? 'spell' : 'heal'),

@@ -1015,6 +1015,12 @@ class GbaGame {
       fr[k] = c;
     }
     g.drawImage(fr[k]!, -camX, -camZ);
+    // Tall grass just stepped in: its rustling frame for a moment.
+    const r = this.rustle;
+    if (r && r.t > 0) {
+      g.drawImage(r.img, CELL, 0, CELL, CELL, r.x * CELL - camX, r.z * CELL - camZ, CELL, CELL);
+      if (--r.t <= 0) this.rustle = null;
+    }
 
     // Props, people and the player, back to front (by the row their feet are on).
     const items: { z: number; draw: () => void }[] = [];
@@ -1031,6 +1037,9 @@ class GbaGame {
       if (pg.gbaSprite) {
         const sp = this.gba.sprites.find((s) => s.id === pg.gbaSprite), sheet = sp ? this.images.get(sp.image) : undefined;
         if (sheet) items.push({ z: d.z + 0.5, draw: () => this.drawFrame(sheet, ROW[e.dir], e.step ?? 0, e.dir === 'right', Math.round(cx - 8 - camX), foot - 32 - camZ) });
+      } else if (pg.character && this.pics.get(`charsheet:${pg.character}:`)) {
+        const sh = this.pics.get(`charsheet:${pg.character}:`)!.img;
+        items.push({ z: d.z + 0.5, draw: () => this.drawSheet(sh, e.dir, e.step ?? 0, Math.round(cx - 16 - camX), foot - 32 - camZ) });
       } else if (pg.character) {
         const pic = this.pics.get(`char:${pg.character}:${e.dir}`);
         if (pic) items.push({ z: d.z + 0.5, draw: () => g.drawImage(pic.img, Math.round(cx - pic.w / 2 - camX), foot - pic.h - camZ, pic.w, pic.h) });
@@ -1047,6 +1056,7 @@ class GbaGame {
     const sheet = sp ? this.images.get(sp.image) : undefined;
     items.push({ z: this.pz / CELL + 0.6, draw: () => {
       if (sheet) this.drawFrame(sheet, ROW[this.dir], col, this.dir === 'right', this.px - camX, this.pz - CELL - camZ - lift);
+      else if (this.pics.get(`charsheet:${this.db.player}:`)) this.drawSheet(this.pics.get(`charsheet:${this.db.player}:`)!.img, this.dir, col, this.px - 8 - camX, this.pz + CELL - 32 - camZ - lift);
       else { const pic = this.pics.get(`char:${this.db.player}:${this.dir}`); if (pic) g.drawImage(pic.img, this.px + 8 - pic.w / 2 - camX, this.pz + CELL - pic.h - camZ - lift); }
     } });
     items.sort((a, b) => a.z - b.z).forEach((it) => it.draw());
@@ -1073,6 +1083,13 @@ class GbaGame {
     }
     if (this.flash > 0) { g.fillStyle = (this.flash >> 2) & 1 ? '#fff' : '#000'; g.fillRect(0, 0, W, H); }
     if (this.fade > 0) { g.fillStyle = `rgba(0,0,0,${Math.min(1, this.fade)})`; g.fillRect(0, 0, W, H); }
+  }
+
+  /** A Saturn character on the field: its 32×32 sheet (walk / run × down, up, left; right is left mirrored). */
+  drawSheet(img: HTMLCanvasElement | HTMLImageElement, dir: Dir, col: number, x: number, y: number): void {
+    const g = this.g, row = ROW[dir];
+    if (dir === 'right') { g.save(); g.translate(x + 32, y); g.scale(-1, 1); g.drawImage(img, col * 32, row * 32, 32, 32, 0, 0, 32, 32); g.restore(); }
+    else g.drawImage(img, col * 32, row * 32, 32, 32, x, y, 32, 32);
   }
 
   drawFrame(img: HTMLCanvasElement, row: number, col: number, flip: boolean, x: number, y: number): void {

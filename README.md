@@ -214,12 +214,17 @@ The mannequins are also in `public/gba/bases/`, with red-bordered versions
 Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 `public/gba/tiles/` and `public/gba/sprites/`.
 
-## What the ROM does (v0.7)
+## What the ROM does (v0.8)
 
 - **Battles**, Gold / Silver style on a white screen: the foe across from your
-  hero, HP bars, *What will Jordan do?* with FIGHT, MAGIC, BAG, GUARD, PARTY
-  and RUN. FIGHT is the hero's four moves (their Additions, every strike
-  landing); MAGIC their spells (costing MP); the faster side goes first.
+  hero, panels like Saturn's (name, level, gender symbol, element icons, HP,
+  MP and the EXP bar), *What will Jordan do?* with FIGHT, BAG, PARTY and RUN.
+  FIGHT is the hero's four moves: Additions (every strike landing), spells
+  and guards, each showing its MP cost (any Addition can have one). A guard
+  (an Addition with *Guard* ticked) halves damage, keeps ailments off for the
+  round and gives back some health (10% unless you set it). A move's line
+  stays up while its animation plays, and lines like *It's super effective!*
+  move on by themselves (A skips). The faster side goes first.
   Foes from a troop come out one at a time. Winning gives EXP (levels grow
   each stat by the hero's ranks) and money; losing sends you back to the
   start, healed, with half your money.
@@ -255,8 +260,7 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   the line; `\v[name]` and `\s[name]` show values), Show choices (up to 4,
   B for the cancel choice), if / else, switches, variables, self switches,
   give / take items, gold, transfers between GBA maps, waits and fades.
-  People show their GBA sprite (Saturn characters: the player's sprite stands
-  in) and turn to face you when the page says so. Objects events show (a
+  People show their GBA sprite or Saturn character and turn to face you when the page says so. Objects events show (a
   chest, a sign) use their picture at GBA size, so a chest opens when its
   page changes.
 - **Props** are drawn into the map (their tops over the player) and block the
@@ -266,8 +270,13 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   can't do yet, so nothing is left out without you knowing.
 - Walls, water, cliff edges, tree trunks and signs block; stairs and ladders
   get you through cliffs; **ledges** hop you down (and block the way back up).
-- The player is your GBA Studio sprite, walking Pokémon-style (a foot forward
-  each tile, alternating) and running with B. The map name shows on arrival.
+- The player is your Saturn character (or a GBA Studio sprite, when one is
+  ticked *The player walks around as this sprite*), walking Pokémon-style (a
+  foot forward each tile, alternating) and running with B; people events
+  with a Saturn character show it too. Saving a GBA map bakes their field
+  sheets into `public/gba/chars/`. The map name shows on arrival.
+- **Water** plays its frames and **tall grass** rustles (with a sound) when
+  you walk through it.
 - With no GBA map set, it plays the Saturn map in `public/data/mimas.json`
   instead (the old Monolith Woods export).
 

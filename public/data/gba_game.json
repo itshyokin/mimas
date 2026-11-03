@@ -88,8 +88,10 @@
    },
    "noAdditions": false,
    "elements": [],
+   "gender": "male",
    "moves": [
-    "quick_strike"
+    "quick_strike",
+    "guard"
    ],
    "spells": {},
    "gear": {}
@@ -120,8 +122,10 @@
    },
    "noAdditions": false,
    "elements": [],
+   "gender": "female",
    "moves": [
-    "quick_strike"
+    "quick_strike",
+    "guard"
    ],
    "spells": {},
    "gear": {}
@@ -154,8 +158,10 @@
    "elements": [
     "dark"
    ],
+   "gender": "transman",
    "moves": [
-    "quick_strike"
+    "quick_strike",
+    "guard"
    ],
    "spells": {},
    "gear": {}
@@ -188,8 +194,10 @@
    "elements": [
     "fire"
    ],
+   "gender": "female",
    "moves": [
-    "quick_strike"
+    "quick_strike",
+    "guard"
    ],
    "spells": {},
    "gear": {}
@@ -220,8 +228,10 @@
    },
    "noAdditions": false,
    "elements": [],
+   "gender": "female",
    "moves": [
-    "quick_strike"
+    "quick_strike",
+    "guard"
    ],
    "spells": {},
    "gear": {}
@@ -255,8 +265,10 @@
     "nature",
     "light"
    ],
+   "gender": "transwoman",
    "moves": [
-    "quick_strike"
+    "quick_strike",
+    "guard"
    ],
    "spells": {},
    "gear": {}
@@ -573,6 +585,10 @@
    "file": "gba/sounds/swing.wav"
   },
   {
+   "name": "rustle",
+   "file": "gba/sounds/rustle.wav"
+  },
+  {
    "name": "slash",
    "file": "gba/sounds/slash.wav"
   },
@@ -646,7 +662,9 @@
    "element": "neutral",
    "inflicts": [],
    "hit": "fx_slash",
-   "burst": null
+   "burst": null,
+   "mp": 0,
+   "guard": null
   },
   {
    "id": "double_slash",
@@ -657,7 +675,9 @@
    "element": "neutral",
    "inflicts": [],
    "hit": "fx_slash",
-   "burst": null
+   "burst": null,
+   "mp": 0,
+   "guard": null
   },
   {
    "id": "volley",
@@ -668,7 +688,9 @@
    "element": "neutral",
    "inflicts": [],
    "hit": "fx_slash",
-   "burst": null
+   "burst": null,
+   "mp": 0,
+   "guard": null
   },
   {
    "id": "crescent_storm",
@@ -679,7 +701,22 @@
    "element": "neutral",
    "inflicts": [],
    "hit": "fx_slash",
-   "burst": null
+   "burst": null,
+   "mp": 0,
+   "guard": null
+  },
+  {
+   "id": "guard",
+   "name": "Guard",
+   "description": "Braces for the next blow: half damage, no ailments, and a little health back.",
+   "hits": 1,
+   "power": 0,
+   "element": "neutral",
+   "inflicts": [],
+   "hit": "fx_sparkle",
+   "burst": null,
+   "mp": 0,
+   "guard": 10
   }
  ],
  "spells": [

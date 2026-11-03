@@ -22,7 +22,7 @@ MAX_ADDITIONS = 32
 
 # The menus' and battles' colours: the text box palette (index 0-3 as before) and the health bars.
 UI_PAL = [(255, 0, 255), (248, 248, 248), (48, 80, 144), (112, 144, 200),
-          (64, 64, 72), (88, 208, 128), (248, 192, 64), (240, 80, 72), (160, 160, 168), (48, 48, 56)] + [(0, 0, 0)] * 6
+          (64, 64, 72), (88, 208, 128), (248, 192, 64), (240, 80, 72), (160, 160, 168), (48, 48, 56), (72, 152, 240)] + [(0, 0, 0)] * 5
 
 
 def c_str(text):
@@ -99,7 +99,8 @@ def ui_tiles(gfx):
     """
     The window pieces, 8 x 8 tiles in one column (the runtime draws boxes and health bars with them):
     0 empty, 1 white, 2-9 the frame (top-left, top, top-right, left, right, bottom-left, bottom, bottom-right),
-    10-36 health bars (green, yellow, red; 0-8 pixels full), 37 a bar's left end, 38 its right end, 39 the dark line.
+    10-36 health bars (green, yellow, red; 0-8 pixels full), 37 a bar's left end, 38 its right end, 39 the dark line,
+    40-48 the EXP bar, 49 / 50 its ends.
     """
     tiles = []
 
@@ -143,6 +144,20 @@ def ui_tiles(gfx):
     for x in range(8):
         line[4][x] = 9
     tiles.append(line)
+    # 40-48 the EXP bar (thinner, blue; 0-8 pixels full), 49 its left end, 50 its right end
+    for fill in range(9):
+        t = blank(1)
+        for x in range(8):
+            t[2][x] = t[5][x] = 9
+            for y in (3, 4):
+                t[y][x] = 10 if x < fill else 4
+        tiles.append(t)
+    xl, xr = blank(1), blank(1)
+    for y in range(2, 6):
+        xl[y][7] = 9
+        xr[y][0] = 9
+    tiles.append(xl)
+    tiles.append(xr)
     im = Image.new('P', (8, 8 * len(tiles)))
     for i, t in enumerate(tiles):
         for y in range(8):
@@ -169,7 +184,7 @@ def ui_tiles(gfx):
 
 def clean(gfx):
     for f in os.listdir(gfx):
-        if f.split('.')[0].startswith(('enemy_', 'hback_', 'hface_', 'icon_', 'ui_tiles', 'ui_palette', 'cursor', 'fx_', 'fxpal_', 'exclaim')):
+        if f.split('.')[0].startswith(('enemy_', 'hback_', 'hface_', 'icon_', 'ui_tiles', 'ui_palette', 'cursor', 'fx_', 'fxpal_', 'exclaim', 'elicon_', 'gender', 'rustle')):
             os.remove(os.path.join(gfx, f))
 
 
@@ -255,6 +270,42 @@ def exclaim_sprite(gfx):
     write_json(os.path.join(gfx, 'exclaim.json'), {'type': 'sprite', 'height': 16})
 
 
+# The gender symbols on a hero's panel, 8 x 8: male (blue), female (red).
+GENDER_ART = [
+    ['....###.', '.....##.', '....#.#.', '.###....', '#...#...', '#...#...', '#...#...', '.###....'],
+    ['..###...', '.#...#..', '.#...#..', '.#...#..', '..###...', '...#....', '..###...', '...#....'],
+]
+
+
+def gender_sprite(gfx):
+    im = Image.new('P', (8, 16), 0)
+    for f, art in enumerate(GENDER_ART):
+        for y, line in enumerate(art):
+            for x, ch in enumerate(line):
+                if ch == '#':
+                    im.putpixel((x, f * 8 + y), 1 + f)
+    put_pal(im, [(255, 0, 255), (48, 112, 216), (216, 64, 72)] + [(0, 0, 0)] * 13)
+    im.save(os.path.join(gfx, 'gender.bmp'))
+    write_json(os.path.join(gfx, 'gender.json'), {'type': 'sprite', 'height': 8})
+
+
+def element_icons(public, gfx):
+    """Saturn's element icons (baked into public/gba/icons/el_<element>.png), one 16 x 16 sprite each."""
+    for k, el in enumerate(ELEMENTS):
+        img = load_png(public, f'gba/icons/el_{el}.png')
+        sprite_from(img or stand_in(14, (200, 200, 200, 255)), 16, gfx, f'elicon_{k}')
+
+
+def rustle_sprite(public, gba, gfx):
+    """Tall grass rustling (the tall grass tile's second frame), 16 x 16, shown where the player steps in."""
+    t = next((x for x in gba.get('tiles', []) if x.get('type') == 'tallgrass'), None)
+    img = load_png(public, t['image']) if t else None
+    frame = img.crop((16, 0, 32, 16)) if img is not None and img.width >= 32 else Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+    if not any(a for (_, _, _, a) in frame.getdata()):
+        frame.putpixel((0, 15), (0, 0, 0, 255))   # never empty (a sprite needs a colour)
+    sprite_from(frame, 16, gfx, 'rustle')
+
+
 def sounds_out(public, root, sounds):
     """The baked sounds into game/audio (Maxmod): sfx_<name>.wav. Returns {name: item id}."""
     adir = os.path.join(root, 'game', 'audio')
@@ -336,6 +387,9 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     fx_made = effect_sheets(public, gba, effects, gfx)
     fx_index = {e['id']: k for k, e in enumerate(effects) if fx_made[k]}
     exclaim_sprite(gfx)
+    gender_sprite(gfx)
+    rustle_sprite(public, gba, gfx)
+    element_icons(public, gfx)
     snd_ids = sounds_out(public, root, game.get('sounds') or [])
     snd_names = list(snd_ids.keys())
     snd_index = {n: i for i, n in enumerate(snd_names)}
@@ -354,6 +408,10 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     for el in ELEMENTS:
         w(f'#include "bn_sprite_palette_items_fxpal_{el}.h"\n')
     w('#include "bn_sprite_items_exclaim.h"\n')
+    w('#include "bn_sprite_items_gender.h"\n')
+    w('#include "bn_sprite_items_rustle.h"\n')
+    for k in range(len(ELEMENTS)):
+        w(f'#include "bn_sprite_items_elicon_{k}.h"\n')
     for k in range(len(enemies)):
         w(f'#include "bn_sprite_items_enemy_{k}.h"\n')
     for k in range(len(heroes)):
@@ -367,6 +425,7 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w(f'constexpr int max_spells = {MAX_SPELLS};\nconstexpr int max_additions = {MAX_ADDITIONS};\n\n')
     w(f'// Types (elements) and ailments, in this order.\nconstexpr int element_count = {len(ELEMENTS)};\nconstexpr int ailment_count = {len(AILMENTS)};\n')
     w('enum ailment { POISON, BURN, PARALYZE, SLEEP, CHILL, CONFUSION, BLIND, SILENCE };\n')
+    w('constexpr const bn::sprite_item* element_icons[] = { ' + ', '.join(f'&bn::sprite_items::elicon_{k}' for k in range(len(ELEMENTS))) + ' };\n')
     w('constexpr const char* element_names[] = { ' + ', '.join(c_str(e.upper()) for e in ELEMENTS) + ' };\n')
     w('// How much (%) an element does to each element.\n')
     chart = game.get('chart') or [[100] * len(ELEMENTS) for _ in ELEMENTS]
@@ -376,9 +435,11 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w('// An effect: its sprite (64 x 64 frames), frames, whether it\'s a hit (recoloured by element), its sound (-1 none).\n')
     w('struct effect_def { const bn::sprite_item* sprite; uint8_t frames; bool hit; int16_t sound; };\n')
     w('struct hero_def { const char* name; int16_t stats[7]; int8_t gains[7]; int8_t moves[4]; uint8_t move_count; uint8_t spells[max_spells];\n'
-      '    int16_t gear[4]; bool starts; uint8_t join_level; bool no_additions; const bn::sprite_item* back; const bn::sprite_item* face; int8_t elements[2]; };\n')
+      '    int16_t gear[4]; bool starts; uint8_t join_level; bool no_additions; const bn::sprite_item* back; const bn::sprite_item* face; int8_t elements[2];\n'
+      '    int8_t gender; };   // gender: 0 male, 1 female, -1 none shown\n')
     w('// power: the strikes\' powers added up, x100. inflict: an ailment (-1 none) and its chance. hit / burst: effects (-1 none).\n')
-    w('struct addition_def { const char* name; const char* description; uint8_t hits; int16_t power; int8_t element; int8_t inflict; uint8_t chance; int8_t hit; int8_t burst; };\n')
+    w('struct addition_def { const char* name; const char* description; uint8_t hits; int16_t power; int8_t element; int8_t inflict; uint8_t chance; int8_t hit; int8_t burst;\n'
+      '    int16_t mp; int8_t guard; };   // guard: a guarding move\'s health back in % (-1: not a guard)\n')
     w('struct spell_rank { int16_t power; int16_t mp; };\n')
     w('// kind: 0 damage, 1 heal, 2 support (the ROM casts it as a small heal for now). power x10.\n')
     w('struct spell_def { const char* name; const char* description; uint8_t kind; bool all; uint8_t rank_count; spell_rank ranks[5];\n'
@@ -424,7 +485,7 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     # sounds and effects
     w('constexpr const bn::sound_item* sounds[] = { ' + (', '.join(f'&bn::sound_items::{snd_ids[n]}' for n in snd_names) or 'nullptr') + ' };\n')
     w(f'constexpr int sound_count = {len(snd_names)};\n')
-    for n in ['menuMove', 'menuOk', 'menuBack', 'encounter', 'hit', 'weak', 'thump', 'crit', 'defeat', 'levelUp', 'item', 'coin', 'save', 'target', 'dodge', 'jump', 'expDing', 'swing']:
+    for n in ['menuMove', 'menuOk', 'menuBack', 'encounter', 'hit', 'weak', 'thump', 'crit', 'defeat', 'levelUp', 'item', 'coin', 'save', 'target', 'dodge', 'jump', 'expDing', 'swing', 'rustle']:
         w(f'constexpr int snd_{n} = {snd_index.get(n, -1)};\n')
     erow = []
     for k, e in enumerate(effects):
@@ -448,12 +509,15 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
         for sid, rank in (h.get('spells') or {}).items():
             if sid in spell_index and spell_index[sid] < MAX_SPELLS:
                 sp[spell_index[sid]] = max(0, min(5, int(rank or 0)))
+        # Spells they start with are moves too (FIGHT holds both), in the free slots.
+        mv += [-(i + 1) for i, r in enumerate(sp) if r > 0][:max(0, 4 - len(mv))]
         gear = [item_index.get((h.get('gear') or {}).get(s), -1) for s in SLOTS]
         rows.append(f'{{ {c_str(h.get("name"))}, {{ {", ".join(str(i16(st.get(s, 10))) for s in STATS)} }}, {{ {", ".join(str(int(gn.get(s, 2))) for s in STATS)} }}, '
                     f'{{ {", ".join(str(x) for x in (mv + [-1] * 4)[:4])} }}, {len(mv)}, {{ {", ".join(str(x) for x in sp)} }}, {{ {", ".join(str(x) for x in gear)} }}, '
                     f'{"true" if h.get("startsInParty") else "false"}, {int(h.get("joinLevel", 0) or 0)}, {"true" if h.get("noAdditions") else "false"}, '
                     f'&bn::sprite_items::hback_{k}, &bn::sprite_items::hface_{k}, '
-                    f'{{ {", ".join(str(el_index.get(x, -1)) for x in ((h.get("elements") or []) + [None, None])[:2])} }} }}')
+                    f'{{ {", ".join(str(el_index.get(x, -1)) for x in ((h.get("elements") or []) + [None, None])[:2])} }}, '
+                    f'{ {"male": 0, "transman": 0, "female": 1, "transwoman": 1}.get(h.get("gender"), -1) } }}')
     w('constexpr hero_def heroes[] = {\n    ' + ',\n    '.join(rows) + '\n};\n')
     w(f'constexpr int hero_count = {len(heroes)};\n\n')
 
@@ -461,8 +525,9 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     for a in additions:
         inf, ch = inflict_of(a)
         arows.append(f'{{ {c_str(a.get("name"))}, {c_str(a.get("description", ""))}, {int(a.get("hits", 1))}, {i16(float(a.get("power", 1)) * 100)}, '
-                     f'{el_index.get(a.get("element") or "neutral", 0)}, {inf}, {ch}, {fx_of(a.get("hit", "fx_slash"))}, {fx_of(a.get("burst"))} }}')
-    w('constexpr addition_def additions[] = {\n    ' + (',\n    '.join(arows) or '{ "", "", 1, 100, 0, -1, 0, -1, -1 }') + '\n};\n')
+                     f'{el_index.get(a.get("element") or "neutral", 0)}, {inf}, {ch}, {fx_of(a.get("hit", "fx_slash"))}, {fx_of(a.get("burst"))}, '
+                     f'{i16(a.get("mp", 0) or 0)}, {int(a["guard"]) if a.get("guard") is not None else -1} }}')
+    w('constexpr addition_def additions[] = {\n    ' + (',\n    '.join(arows) or '{ "", "", 1, 100, 0, -1, 0, -1, -1, 0, -1 }') + '\n};\n')
     w(f'constexpr int addition_count = {len(additions)};\n')
     srows = []
     for s in spells:

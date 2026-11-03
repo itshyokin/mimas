@@ -357,18 +357,26 @@ def quarters(inside, x, y):
     return [full if p == CANON[full][i] else p for i, p in enumerate(want)]
 
 
-def compose(img, qs):
-    """One 16x16 cell built from four 8x8 quarters."""
+def compose(img, qs, oy=0):
+    """One 16x16 cell built from four 8x8 quarters (`oy`: an animation frame's place in the sheet, frames stacked down)."""
     out = Image.new('RGBA', (CELL, CELL), (0, 0, 0, 0))
     h = CELL // 2
     for i, p in enumerate(qs):
         cx, cy = PIECE_CELL[p]
         qx, qy = i & 1, i >> 1
-        out.paste(img.crop((cx * CELL + qx * h, cy * CELL + qy * h, cx * CELL + qx * h + h, cy * CELL + qy * h + h)), (qx * h, qy * h))
+        out.paste(img.crop((cx * CELL + qx * h, oy + cy * CELL + qy * h, cx * CELL + qx * h + h, oy + cy * CELL + qy * h + h)), (qx * h, qy * h))
     return out
 
 
-def build_gba_map(gba, mp):
+def water_frames(gba, mp):
+    """How many frames this map's water plays (its longest; 1: still)."""
+    defs = {t['id']: t for t in gba.get('tiles', [])}
+    used = [defs.get(n) for n in mp.get('tiles', [])]
+    return max([1] + [max(1, min(8, int(t.get('frames') or 1))) for t in used if t and t.get('type') == 'water'])
+
+
+def build_gba_map(gba, mp, frame=0):
+    """The map's ground and over layers and collision; `frame`: which frame of animated water to draw."""
     W, H = mp['width'], mp['height']
     defs = {t['id']: t for t in gba.get('tiles', [])}
     names = mp.get('tiles', [])
@@ -414,7 +422,8 @@ def build_gba_map(gba, mp):
             if img is None:
                 continue
             qs = quarters(lambda a, b: inb(a, b) and terrain_g(a, b) == v, x, y)
-            ground.alpha_composite(compose(img, qs), (x * CELL, y * CELL))
+            oy = (frame % max(1, min(8, int(t.get('frames') or 1)))) * 3 * CELL if t['type'] == 'water' else 0
+            ground.alpha_composite(compose(img, qs, oy if img.height >= oy + 3 * CELL else 0), (x * CELL, y * CELL))
             if t['type'] == 'water':
                 coll[y][x] |= SOLID | WATER
 
@@ -651,8 +660,40 @@ def player_sprite():
         img = project_image(sprite['image'])
         if img is not None and pal:
             return img, [hex_rgb(c) for c in pal['colors']], sprite.get('name', 'player')
+    try:
+        player = load_json(os.path.join(DATA, 'database.json')).get('player')
+    except (OSError, ValueError):
+        player = None
+    saturn = saturn_sheet(player) if player else None
+    if saturn:
+        return saturn[0], saturn[1], f'{player} (Saturn character)'
     base = project_image('gba/bases/overworld_base.png')
     return base, [hex_rgb(c) for c in MANNEQUIN], 'mannequin'
+
+
+def fit_palette(pixels):
+    """Up to 15 colours for these (r, g, b) pixels (median cut when there are more)."""
+    cols = sorted(set(pixels))
+    if len(cols) > 15:
+        sample = Image.new('RGB', (len(pixels), 1))
+        sample.putdata(pixels)
+        qp = sample.quantize(colors=15, method=Image.Quantize.MEDIANCUT).getpalette()[:45]
+        cols = [tuple(qp[i:i + 3]) for i in range(0, len(qp), 3)]
+    return cols or [(0, 0, 0)]
+
+
+def saturn_sheet(key):
+    """A Saturn character's field sheet, baked by the editor's save to public/gba/chars/<key>.png (32x32 frames,
+    walk / run x down, up, left), cut to the ROM's 16x32 frames (the middle 16 columns) with its own 15 colours."""
+    img = project_image(f'gba/chars/{key}.png')
+    if img is None or img.size != (HERO_COLS * 32, len(DIR_ORDER) * 32):
+        return None
+    out = Image.new('RGBA', (HERO_COLS * HERO_W, len(DIR_ORDER) * HERO_H), (0, 0, 0, 0))
+    for row in range(len(DIR_ORDER)):
+        for col in range(HERO_COLS):
+            out.alpha_composite(img.crop((col * 32 + 8, row * 32, col * 32 + 24, row * 32 + 32)), (col * HERO_W, row * HERO_H))
+    pal = fit_palette([(r, g, b) for (r, g, b, a) in out.getdata() if a >= 128])
+    return out, pal
 
 
 def build_hero():
@@ -906,12 +947,20 @@ def main():
             print(f'Exporting GBA map "{mp["name"]}" ({W} x {H})')
             ground, over, coll, hgrid = build_gba_map(gba, mp)
             draw_props(sm, ground, over, coll)
+            # Animated water: the ground again for each further frame (the ROM swaps them).
+            extra = []
+            for f in range(1, water_frames(gba, mp)):
+                gk, ok, ck, _ = build_gba_map(gba, mp, f)
+                draw_props(sm, gk, ok, ck)
+                extra.append(gk)
+            if extra:
+                print(f'  water: {len(extra) + 1} frames')
             start = None
             if mid == db.get('startMap') and db.get('start'):
                 start = [int(db['start'].get('x', 0)), int(db['start'].get('z', 0))]
             maps.append({'id': mid, 'name': mp['name'], 'W': W, 'H': H, 'ground': ground, 'over': over,
                          'coll': coll, 'hgrid': hgrid, 'start': start, 'dir': (db.get('start') or {}).get('dir', 'down'),
-                         'events': [], 'saturn': sm})
+                         'events': [], 'saturn': sm, 'frames': extra})
     else:
         map_id = arg or cfg['map']
         mp = load_json(os.path.join(DATA, 'maps', map_id + '.json'))
@@ -936,6 +985,11 @@ def main():
         preview = preview.crop((0, 0, W * CELL, H * CELL))
         preview.save(os.path.join(ROOT, 'build', 'preview.png' if i == 0 else f'preview_{m["id"]}.png'))
         layers += [g, o]
+    frame_at = []   # (map, frame number, its place in layers)
+    for i, m in enumerate(maps):
+        for f, gk in enumerate(m.get('frames') or []):
+            frame_at.append((i, f + 1, len(layers)))
+            layers.append(pad_to(gk, m['bw'], m['bh'], BACKDROP + (255,)))
 
     indexed, palette = to_banked(layers)
     clean_outputs()
@@ -945,6 +999,12 @@ def main():
             im.save(os.path.join(GFX, name + '.bmp'))
             write_json(os.path.join(GFX, name + '.json'),
                        {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual', 'palette_item': 'world_palette'})
+    for i, f, li in frame_at:
+        im, name = indexed[li], f'world_ground_{i}_f{f}'
+        put_palette(im, palette)
+        im.save(os.path.join(GFX, name + '.bmp'))
+        write_json(os.path.join(GFX, name + '.json'),
+                   {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual', 'palette_item': 'world_palette'})
     pal_img = Image.new('P', (16, 16))
     put_palette(pal_img, palette)
     pal_img.save(os.path.join(GFX, 'world_palette.bmp'))
@@ -983,6 +1043,15 @@ def main():
                     k = len(npc_ids)
                     npc_ids.append(sid)
                     build_sheet(img, [hex_rgb(c) for c in pal['colors']]).save(os.path.join(GFX, f'npc_{k}.bmp'))
+                    write_json(os.path.join(GFX, f'npc_{k}.json'), {'type': 'sprite', 'height': HERO_H})
+                key = pg.get('character')
+                if key and not pg.get('gbaSprite') and f'char:{key}' not in npc_ids:
+                    got = saturn_sheet(key)
+                    if not got:
+                        continue
+                    k = len(npc_ids)
+                    npc_ids.append(f'char:{key}')
+                    build_sheet(*got).save(os.path.join(GFX, f'npc_{k}.bmp'))
                     write_json(os.path.join(GFX, f'npc_{k}.json'), {'type': 'sprite', 'height': HERO_H})
     if npc_ids:
         print(f'  people sprites: {", ".join(npc_ids)}')
@@ -1031,6 +1100,8 @@ def main():
             return -10 - obj_ids.index(pg['sprite'])   # an object: obj_sprites[-10 - n]
         if pg.get('gbaSprite') in npc_ids:
             return npc_ids.index(pg['gbaSprite'])
+        if not pg.get('gbaSprite') and f"char:{pg.get('character')}" in npc_ids:
+            return npc_ids.index(f"char:{pg['character']}")
         if pg.get('gbaSprite') or pg.get('character'):
             return -2   # the player's sprite stands in (a Saturn character, or a GBA sprite that's missing)
         return -1
@@ -1050,6 +1121,8 @@ def main():
     w('#ifndef MIMAS_MAP_H\n#define MIMAS_MAP_H\n\n#include <cstdint>\n#include "bn_regular_bg_item.h"\n#include "bn_sprite_item.h"\n')
     for i in range(len(maps)):
         w(f'#include "bn_regular_bg_items_world_ground_{i}.h"\n#include "bn_regular_bg_items_world_over_{i}.h"\n')
+        for f in range(1, len(maps[i].get('frames') or []) + 1):
+            w(f'#include "bn_regular_bg_items_world_ground_{i}_f{f}.h"\n')
     for k in range(len(npc_ids)):
         w(f'#include "bn_sprite_items_npc_{k}.h"\n')
     for k in range(len(obj_ids)):
@@ -1069,7 +1142,8 @@ def main():
     w('struct event { uint8_t x; uint8_t y; uint8_t w; uint8_t h; int16_t first_page; uint8_t page_count; int16_t self_id; };\n\n')
     w('struct map_info\n{\n    int width; int height; int bg_width; int bg_height; const char* name;\n'
       '    const uint8_t* collision; const int8_t* heights; const event* events; int event_count; const page* pages; const int16_t* code;\n'
-      '    const bn::regular_bg_item* ground; const bn::regular_bg_item* over;\n};\n\n')
+      '    const bn::regular_bg_item* ground; const bn::regular_bg_item* over;\n'
+      '    const bn::regular_bg_item* const* water; int water_frames;   // the ground with each frame of its water\n};\n\n')
     w('constexpr condition conditions[] = {\n    ' + ',\n    '.join(f'{{ {a}, {b}, {c}, {d} }}' for a, b, c, d in comp.conds) + '\n};\n')
     w('constexpr const char* strings[] = {\n    ' + (',\n    '.join(c_string(x) for x in comp.strings) or '""') + '\n};\n\n')
     infos = []
@@ -1079,6 +1153,9 @@ def main():
         w(c_array(f'map{i}_collision', 'uint8_t', [m['coll'][y][x] for y in range(H) for x in range(W)], W))
         w(c_array(f'map{i}_heights', 'int8_t', [m['hgrid'][y][x] for y in range(H) for x in range(W)], W))
         w(c_array(f'map{i}_code', 'int16_t', code, 24))
+        if m.get('frames'):
+            w(f'constexpr const bn::regular_bg_item* map{i}_water[] = {{ &bn::regular_bg_items::world_ground_{i}, '
+              + ', '.join(f'&bn::regular_bg_items::world_ground_{i}_f{f}' for f in range(1, len(m['frames']) + 1)) + ' };\n')
         if pages:
             w(f'constexpr page map{i}_pages[] = {{\n    ' + ',\n    '.join(
                 f'{{ {c}, {sp}, {d}, {t}, {"true" if so else "false"}, {"true" if fa else "false"}, {cd}, {tr} }}' for c, sp, d, t, so, fa, cd, tr in pages) + '\n};\n')
@@ -1088,7 +1165,8 @@ def main():
         name = ''.join(ch for ch in m['name'] if 32 <= ord(ch) < 127)
         infos.append(f'{{ {W}, {H}, {m["bw"]}, {m["bh"]}, {c_string(name)}, map{i}_collision, map{i}_heights, '
                      f'{f"map{i}_events" if events else "nullptr"}, {len(events)}, {f"map{i}_pages" if pages else "nullptr"}, map{i}_code, '
-                     f'&bn::regular_bg_items::world_ground_{i}, &bn::regular_bg_items::world_over_{i} }}')
+                     f'&bn::regular_bg_items::world_ground_{i}, &bn::regular_bg_items::world_over_{i}, '
+                     f'{f"map{i}_water" if m.get("frames") else "nullptr"}, {len(m.get("frames") or []) + 1} }}')
         w('\n')
     w('constexpr map_info maps[] = {\n    ' + ',\n    '.join(infos) + '\n};\n')
     w(f'constexpr int map_count = {len(maps)};\n')

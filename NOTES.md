@@ -61,8 +61,14 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       up, team with levels and moves, lines, prize, beaten self switch); Start battle levels and moves per foe; the
       ROM: types, ailments, effects, sounds (Maxmod; the editor bakes 8-bit WAVs), trainers; enemy art at its drawn
       size (no more squashed slime).
+- [x] Update 11 (Nov 3): battle menu FIGHT / BAG / PARTY / RUN (spells sit with Additions in FIGHT, with their MP);
+      Guard is a move (an Addition marked as a guard: half damage, no ailments, health back, 10% by default); any
+      Addition can cost MP; Pokémon-style text (the move's line stays up over its animation, then "super effective"
+      and the like move on by themselves); no "Go!" lines (party members step in); the ROM's panels like Saturn's
+      (EXP bar, element icons, gender symbols); Saturn characters walk the field in the playtest and the ROM (the
+      editor's save bakes public/gba/chars/<key>.png); water plays its frames and tall grass rustles (both).
 - [ ] Music in the ROM (tracker files); support spells' buffs in the ROM; learning moves on level up (a learnset).
-- [ ] Tall grass rustle, water animation, Surf on water (needs a key item / ability), one-way passability arrows.
+- [ ] Surf on water (needs a key item / ability), one-way passability arrows.
 - [ ] More event commands in the ROM: move route, show / hide events, class changes.
 - [ ] NPCs walking around (GBA Studio overworld sprites).
 - [ ] Move Saturn's Database over piece by piece: items, characters, enemies, heroes as GBA data.
@@ -72,5 +78,4 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       saving into itshyokin/mimas through the GitHub API with a fine-grained token).
 
 ## Ideas
-- Water animation in the ROM (the frames are already painted in GBA Studio).
 - Day / night palette tint and the moon cycle using the GBA's real-time clock.

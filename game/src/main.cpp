@@ -288,6 +288,8 @@ namespace
             M = &mimas::maps[map];
             place_events();
             ground = M->ground->create_bg(0, 0);
+            water_tick = water_at = 0;
+            rustle.reset();
             over = M->over->create_bg(0, 0);
             ground->set_priority(3);
             over->set_priority(1);
@@ -404,6 +406,43 @@ namespace
             int cam_x = clamp_camera(world_x(px + CELL / 2), M->width * CELL, M->bg_width, HALF_W);
             int cam_y = clamp_camera(world_y(py + CELL / 2), M->height * CELL, M->bg_height, HALF_H);
             camera.set_position(cam_x, cam_y);
+        }
+
+        // Water playing its frames (the ground swapped for the next one now and then) and grass rustling.
+        int water_tick = 0;
+        int water_at = 0;
+        bn::optional<bn::sprite_ptr> rustle;
+        int rustle_t = 0;
+
+        void animate()
+        {
+            if(M->water_frames > 1 && ground && ++water_tick >= 16)
+            {
+                water_tick = 0;
+                water_at = (water_at + 1) % M->water_frames;
+                ground->set_item(*M->water[water_at]);
+            }
+
+            if(rustle && --rustle_t <= 0)
+            {
+                rustle.reset();
+            }
+        }
+
+        // Stepped into tall grass: it rustles over the player's feet for a moment. True if it did.
+        bool grass_step()
+        {
+            if(! (M->collision[cell_index(cell_x, cell_y)] & mimas::grass))
+            {
+                return false;
+            }
+
+            rustle = bn::sprite_items::rustle.create_sprite(world_x(px + CELL / 2), world_y(py + CELL / 2));
+            rustle->set_camera(camera);
+            rustle->set_bg_priority(2);
+            rustle->set_z_order(-(py + CELL - 1) / CELL - 1);
+            rustle_t = 20;
+            return true;
         }
     };
 
@@ -1074,6 +1113,11 @@ int main()
             {
                 touched = event_at(w.cell_x, w.cell_y, 1);
 
+                if(w.grass_step())
+                {
+                    sfx(mimas::snd_rustle);
+                }
+
                 if(touched < 0)
                 {
                     w.place();
@@ -1101,6 +1145,7 @@ int main()
         }
 
         banner.update();
+        w.animate();
         ++play_frames;
         bn::core::update();
     }

@@ -1197,7 +1197,7 @@ class Studio {
       h('p', { class: 'gs-kv' }, h('span', {}, 'Kind'), h('strong', {}, SPRITE_KINDS[s.kind].label)),
       field('Palette', select(this.data.palettes.map((p) => [p.id, p.name]), s.palette, (v) => this.changePalette(s, v)), 'Each character gets its own 15 colors on the GBA.'));
     if (s.kind === 'overworld') {
-      box.append(checkbox('The player walks around as this sprite', this.data.player === s.id, (v) => {
+      box.append(checkbox('The player walks around as this sprite (off: the player\'s Saturn character)', this.data.player === s.id, (v) => {
         this.data.player = v ? s.id : undefined;
         this.touch();
         this.renderList();

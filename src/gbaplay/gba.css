@@ -83,3 +83,5 @@ body.gba-mode .qte, body.gba-mode .qte-pads, body.gba-mode .spell-seq { display:
 
 /* Move animations over the fighters (Mimas), crisp pixels above the battle. */
 .gba-fx { position: fixed; z-index: 50; pointer-events: none; image-rendering: pixelated; }
+/* FIGHT / BAG / PARTY / RUN: two by two, like the handheld games. */
+body.gba-mode .battle.layout-pocket .battle-cmd.bar .battle-cmd-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
