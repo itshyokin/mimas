@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 2, 2026, after Update 9)
+# Handoff: where Mimas stands (Nov 2, 2026, after Update 10)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -48,6 +48,19 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Things to know
+- Update 10, moves / trainers / effects / sound:
+  - Types: world/types.ts MoveRef, TeamMember, TrainerDef (EventPage.trainer), EnemyDef.moves / movesets / mp,
+    AdditionDef.element / inflicts / effect / burst, SpellEntry.effect / burst, EnemyAction.mp / look.
+  - src/gba/effects.ts (element ramps, default hit / burst, recolouring), src/gba/moves.ts (movesAt),
+    src/editor/moveFields.ts (effect pickers with preview, move slots, enemy moves, teamEditor).
+  - Playtest: src/gbaplay/foes.ts turns moves into EnemyActions; TurnBattle calls host.effect() and waits for it;
+    GbaGame.playEffect draws the frames; trainers: spotted() / trainerBattle(). The interpreter only updates while
+    an event runs (an idle one closes the text box the menus use).
+  - Effects art: tools/make_effects.py (run once; --force redraws). New effect sounds in src/audio/synth.ts and
+    chip.ts; io.ts bakeSounds writes public/gba/sounds/*.wav; gba_game.py copies them to game/audio (Maxmod).
+  - ROM: gba_game.py writes the chart, ailments, effects + fxpal_<element> palettes, movesets, custom_moves,
+    trainers; game_systems.hpp battle() / spotted() / trainer_battle(); main.cpp keeps events' positions in
+    ev_x / ev_y. BATTLE op: n (enemy level moves)*n run var lose; page struct has `trainer`.
 - Update 9, the party / menus / battles:
   - Playtest: src/gbaplay/party.ts (members: level, EXP, stats, gear, four moves; the same formulas as the ROM),
     menus.ts (START menu, bag, party, shops, the learn questions), ui.ts (windows on the 240×160 screen; messages and

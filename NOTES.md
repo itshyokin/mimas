@@ -55,6 +55,13 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       battles on a white screen (FIGHT / MAGIC / BAG / GUARD / PARTY / RUN), random battles from zones and map
       tables, Start battle, Party, Learn (forget prompt), Shop, Save (SRAM, CONTINUE / NEW GAME), Change HP / MP,
       Full rest, gear stats, the START menu.
+- [x] Update 10 (Nov 2): enemy moves (four Additions / spells, MP, movesets by level, per-fight overrides); Additions
+      get a type, ailments and an animation; battle effects (GBA Studio effect sprites: 10 hits recoloured by element,
+      9 bursts, each with a chip sound; tools/make_effects.py made the starter set); trainers (sight range, (!), walk
+      up, team with levels and moves, lines, prize, beaten self switch); Start battle levels and moves per foe; the
+      ROM: types, ailments, effects, sounds (Maxmod; the editor bakes 8-bit WAVs), trainers; enemy art at its drawn
+      size (no more squashed slime).
+- [ ] Music in the ROM (tracker files); support spells' buffs in the ROM; learning moves on level up (a learnset).
 - [ ] Tall grass rustle, water animation, Surf on water (needs a key item / ability), one-way passability arrows.
 - [ ] More event commands in the ROM: move route, show / hide events, class changes.
 - [ ] NPCs walking around (GBA Studio overworld sprites).
