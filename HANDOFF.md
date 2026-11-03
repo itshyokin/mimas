@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 3, 2026, after Update 11)
+# Handoff: where Mimas stands (Nov 3, 2026, after Update 12; Updates 13-16 planned below)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -47,13 +47,79 @@ Editor (GBA layers + Saturn's props, events, encounter zones). Next: the playtes
 screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy chip versions of the built-in
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
-## Next up
-Update 12 (Nov 3): the battle menu layout the owner approved; battle backgrounds (below).
-Done the same day: soft fade into battles, no Perfect popups (gba), foes mirrored by "The picture faces", meter
-shape / colours from Database → Menus (playtest root classes; ROM ui_tiles round ends + colours), bigger panel
-text, src/editor/mimasSupport.ts greys Database settings the GBA game doesn't use (lists per tab).
-Update 11 is done (below). The owner's open wishes from NOTES.md: music in the ROM (tracker files), support spells'
-buffs in the ROM, learnsets (moves on level up), NPCs walking, Surf, more event commands. Ask the owner which first.
+## Next up: the owner's plan (agreed Nov 3, 2026). Build in this order, one numbered update and build each.
+Last build: build-25 (Update 12 + fixes). Nothing below is built yet. Owner wants the game NOT too close to Pokémon
+(copyright worry); mechanics are fine, copied wording and look are what we're removing.
+
+### Update 13: text, words, Database split, side view
+- **Text & dialog tab** (Database, GBA side): every built-in line (battle, menus, saving, learning) with its default
+  shown greyed; typing replaces it; Reset restores. Fill-ins like `{name} attacks with {move}!`. Several variants per
+  line allowed (picked at random; the ROM too). Command words live here as well. Store as e.g. db.gbaText
+  { key: string[] }. Playtest: give TurnBattle a host hook (e.g. `host.line?(key, vars)`) used where the pocket
+  layout speaks (TurnBattle.ts: intro ~183, weak/resist/crit ~213-215, "What will" ~447, steps in ~390/477, guard
+  ~981, fled ~991/998, announces 662/746/820/901/963/1028, missed ~1148, immune ~1163, absorbed ~1170, defeated /
+  knocked out ~1329, EXP / level lines in pocketResults ~1433-1439), plus GbaGame (gold ~738) and menus.ts (learn
+  lines ~213). ROM: export the lines as strings (gba_game.py) and use them in game_systems.hpp battle() etc.
+- **New default lines (owner approved):** A wild X appeared → "A Green Slime leaps out!"; What will X do? →
+  "Jordan stands ready."; X used Y → "Jordan attacks with Quick Strike!" (spells: "casts"); It's super effective →
+  "Struck a weakness!"; not very effective → "It was resisted…"; doesn't affect X → "Green Slime is immune!";
+  foe fainted → "Green Slime is defeated!"; hero fainted → "Jordan collapses!"; Got away safely / Can't escape →
+  "You got away!" / "No way out!"; grew to Lv. → "Jordan reached level 5!"; drop "1, 2, and… Poof!" (learning
+  changes in Update 14 anyway). Remove "Go!" style lines (already "steps in").
+- **Command words:** ATTACK / ITEMS / SWAP / FLEE (Saturn's own), playtest and ROM.
+- **Party markers:** diamonds instead of balls (Saturn's orbStyle 'diamond' as Mimas's default).
+- **Remove "Pokémon" from every user-facing editor label** (moveFields.ts h3 "Moves (GBA, Pokémon-style)",
+  CombatEditor.ts option labels ~83/102, gba/types.ts backsprite help ~376, ui/typeChart.ts "super effective").
+- **Database split:** ONE data file, TWO editor views: "Database" (only what the GBA game uses) and "Saturn extras"
+  (everything mimasSupport.ts greys now). Build the views from src/editor/mimasSupport.ts's lists.
+- **Side view is the default battle picture:** HeroDef.battleLook default = their character standing side-on facing
+  the foe (right), scaled ×2 (whole steps). The mannequin stays an option (it's drawn from behind, so it would want
+  a side pose to match).
+
+### Update 14: classes, growth, skill trees, move list
+- **Stats are class-only.** Every hero starts with 10 in each stat; heroes give no bonuses (grey out heroes' own
+  stats / ranks). Each level the class adds its per-level stat bonus (allow fractions, keep the remainder, e.g.
+  +1.5 → +1, +2…). Joining at level N = N-1 levels of their starting class's bonuses. Nodes, gear, items and effects
+  add on top (example: Strength 10 → level up 12 → Strength node 15). Stat cap 100 stays unless the owner says.
+- **HP / MP growth per class:** Database → Classes gets "Health growth" and "Magic growth" dropdowns, each a dice
+  range: 1-4, 1-6, 1-8, 1-10, 1-12. Every level up rolls a new number in that range and adds it (always unique).
+  Melee classes high HP (1-10, 1-12), mages low HP / high MP (HP 1-4, MP 1-12). Endurance bonuses add on top for HP.
+  Retune enemy growth to keep pace. (The ROM's max_hp / max_mp must then come from stored rolled totals per member.)
+- **Class change only through events:** commands "Unlock class" and "Change class" (opens a class picker, e.g. at
+  an NPC). Changing keeps all stats so far; the new class's bonuses apply from the next level. Nodes unlocked
+  under any class stay unlocked (stats and moves kept). The player can VIEW old classes' trees but only SPEND
+  points in the current class's trees. One skill-point pool per hero.
+- **Skill trees in GBA mode** (Saturn's: SkillNode in world/types.ts ~1990: grid x/y, parents, ranks, cost, level,
+  effects {stat,value}, teachesSpell, teachesAddition). Skill points per level (Database → Combat). Nodes: stat
+  boosts and teaching Additions / spells. A Skills page in the START menu (playtest and ROM), the editor's grid.
+  Saturn's Classes tab: un-grey it (ClassDef: bonus, gear, trees) and add the per-level bonuses and growth ranges.
+- **Moves: a vertical list, no limit, no loadout, nothing forgotten.** Physical moves (Additions) first, then a
+  "[ Spells ]" divider row (not selectable), then spells. Each row: name, element icon + type, MP cost (0 for most
+  Additions); the selected move's details in the note box. ROM: a scrolling list (it has pick() lists already),
+  remembering the cursor. Replaces the 4-move system, the forget questions and the moveSlots setting.
+  (Open: order learned, or let Party → Moves reorder? Ask.) Enemies keep their up-to-4 moves.
+
+### Update 15: timed Additions (Legend of Dragoon) with MP
+- Bring back Saturn's timing-based Additions (currently cfg.additionTiming 'auto' + gba.css hides the QTE): a frame
+  closes in around the target, press on time for each strike; a miss ends the combo. Playtest and ROM. Generous
+  windows, adjustable, and an "Automatic" choice (for touch-control lag on Android).
+- **MP regained per Addition, set per Addition in the Database:** "MP per hit landed" and "MP for completing it"
+  (both custom numbers, so the owner can tune them against the bonus EXP).
+- No Addition mastery. Timed spells OFF in one-on-one (maybe back if 3-character battles happen later).
+
+### Update 16: saves, title, achievements, credits
+- **Three save slots:** Save asks which slot (list: lead hero, level, map, play time; overwrite confirms); Load
+  shows the same list. ROM SRAM has room; old saves become unreadable (bump SAVE_MAGIC). Playtest: three slots too.
+- **Title screen:** layers: Saturn Engine's own skybox art (it is in the Saturn engine; it already has the
+  artificial moon graphic, NOT the real moon Mimas; avoid anything Death Star-like) with a slowly scrolling cloud
+  layer and trees in the foreground, looking up. GBA Studio gets a Title screen tab to swap each layer and set the
+  cloud speed. Menu: New Game, Load Game, Achievements, Credits, Quit. (Quit on a GBA: ask the owner: a "you can
+  turn off the power now" screen, or playtest only.)
+- **Achievements in GBA mode** (src/game/achievements.ts): rules event, switch, defeat, addition, spell, level,
+  gold, item, party, and records (steps, kills, battlesWon, flawless, crits, additions, spells, itemsUsed, fled,
+  deaths). Grey out quest rules and Saturn-only records (fish, trees…). Kept on the cartridge apart from the save
+  slots (count across saves). "Achievement unlocked!" pop-up; Achievements screen from the title (and START?).
+- **Credits:** reuse Saturn's Credits tab (un-grey it) for a credits roll.
 
 ## Things to know
 - Nov 3 fixes: greyed commands can be landed on (OK on one buzzes); the hero's lunge / flinch keep their 1.8×
