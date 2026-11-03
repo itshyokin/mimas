@@ -1903,6 +1903,12 @@ body.sleeping :is(.hud-top, .hud-side, .hud-weapons, .hud-xp, .hud-party, .hud-q
 .battle.layout-pocket .battle-enemies { left: auto; right: 6%; width: 46%; top: 9%; bottom: auto; height: 40%; }
 .battle.layout-pocket .battle-party { right: auto; left: 5%; width: 42%; top: auto; bottom: 22%; height: 46%; align-items: flex-start; justify-content: flex-end; }
 .battle.layout-pocket .battle-party .bf-pic { transform: scale(1.8); transform-origin: bottom left; }
+/* Its own lunge and flinch (the plain ones would drop the 1.8× and look like it shrank): a step right, toward the
+   foe, to attack; a small jolt left when hit. */
+.battle.layout-pocket .bfighter.party.lunge .bf-pic { animation: pocket-lunge 0.5s ease; }
+.battle.layout-pocket .bfighter.party.hit .bf-pic { animation: pocket-hit 0.45s ease; }
+@keyframes pocket-lunge { 40% { transform: translateX(22px) scale(1.86); } }
+@keyframes pocket-hit { 15% { transform: translateX(-6px) scale(1.8); filter: brightness(2.4) sepia(1) hue-rotate(-30deg) saturate(4); } 35% { transform: translateX(5px) scale(1.8); } 55% { transform: translateX(-3px) scale(1.8); } 75% { transform: translateX(2px) scale(1.8); } }
 .battle.layout-pocket .battle-enemies .bf-pic { transform: scale(1.3); transform-origin: bottom center; }
 /* Upright screens: everything full width, stacked at the bottom (commands, then the log, then the hero's block). */
 @container (max-aspect-ratio: 1 / 1) {

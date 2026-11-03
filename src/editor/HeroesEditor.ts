@@ -16,6 +16,9 @@ import type { Gender, RoleplayField } from '../world/types';
 import type { AdditionDef, AllyStyle, ClassDef, CombatData, CreationSettings, HeroDef, HeroForm, ItemDef, SpellEntry } from '../world/types';
 import type { CharactersWork } from './CharactersEditor';
 import { checkbox, field, h, numberInput, select, textInput } from './dom';
+import { heroBattleImage } from './battleArt';
+import { characterSheetFrames } from './editorArt';
+import type { Dir } from '../world/types';
 
 export interface HeroesWork { heroes: HeroDef[]; /** Roleplay titles (Update 127), shared with the Roleplay tab. */ rp?: RoleplayField[] }
 
@@ -78,7 +81,8 @@ export function cleanHeroes(w: HeroesWork): HeroDef[] | undefined {
 
 export function heroesTab(w: HeroesWork, people: CharactersWork, combat: CombatData, state: { sel: number }, rerender: () => void, items: ItemDef[] = [],
   learnable: { spells: SpellEntry[]; additions: AdditionDef[]; classes: ClassDef[] } = { spells: [], additions: [], classes: [] },
-  face?: { pick: (hero: HeroDef, done: () => void) => void; url: (path: string) => string }): HTMLElement[] {
+  face?: { pick: (hero: HeroDef, done: () => void) => void; url: (path: string) => string },
+  battlePic?: { pick: (hero: HeroDef, done: () => void) => void; load: (path: string) => Promise<HTMLCanvasElement | null> }): HTMLElement[] {
   state.sel = Math.min(state.sel, w.heroes.length - 1);
   const looks = Object.keys(people.chars).map((k) => [k, k] as [string, string]);
   const add = () => {
@@ -121,6 +125,7 @@ export function heroesTab(w: HeroesWork, people: CharactersWork, combat: CombatD
         x.face ? h('button', { type: 'button', class: 'btn small ghost', onclick: () => { delete x.face; rerender(); } }, 'Use their look') : h('span')),
         'Their face on the battle screen (Dragon Legend layout). Square pictures look best; without one, a face is cut from their look.')] : []),
       heroForms(x, looks, face, rerender),
+      battlePictureSection(x, main ? people.player : x.look, people, rerender, battlePic),
       h('div', { class: 'field' }, h('label', {}, 'Attack sounds'),
         ...(x.attackSounds ?? []).map((src, k) => h('div', { class: 'field-row' }, soundField(`Sound ${k + 1}`, src, (v) => { if (v) x.attackSounds![k] = v; }),
           h('button', { type: 'button', class: 'mini-btn', 'aria-label': `Remove sound ${k + 1}`, onclick: () => { x.attackSounds!.splice(k, 1); if (!x.attackSounds!.length) delete x.attackSounds; rerender(); } }, '✕'))),
@@ -237,4 +242,59 @@ function rpDateField(x: HeroDef, f: RoleplayField): HTMLElement {
   const wrap = h('span', {}, monthDayInput(v ?? '01-01', (val) => set(val), f.title));
   wrap.hidden = !v;
   return field(f.title || f.id, h('div', { class: 'field-row' }, checkbox('Set', !!v, (on) => { set(on ? '01-01' : undefined); wrap.hidden = !on; }), wrap));
+}
+
+/**
+ * Mimas: the picture a hero fights as (seen from behind): GBA Studio's back sprite (the default mannequin), their
+ * character standing, one frame of their sheet, or a picture of their own.
+ */
+function battlePictureSection(x: HeroDef, look: string | undefined, people: CharactersWork, rerender: () => void,
+  hooks?: { pick: (hero: HeroDef, done: () => void) => void; load: (path: string) => Promise<HTMLCanvasElement | null> }): HTMLElement {
+  const bl = x.battleLook ?? { mode: 'default' as const };
+  const set = (v: Partial<NonNullable<HeroDef['battleLook']>>) => { const n = { ...bl, ...v }; if (n.mode === 'default' && !n.image) delete x.battleLook; else x.battleLook = n; rerender(); };
+  const ch = look ? people.chars[look] : undefined;
+  const preview = document.createElement('canvas');
+  preview.width = preview.height = 128;
+  preview.className = 'hero-battle-preview';
+  const draw = (c: HTMLCanvasElement | null) => {
+    const g = preview.getContext('2d')!;
+    g.clearRect(0, 0, 128, 128);
+    g.imageSmoothingEnabled = false;
+    if (c) g.drawImage(c, 0, 0, 128, 128);
+    else { g.fillStyle = '#8890a0'; g.font = '12px sans-serif'; g.textAlign = 'center'; g.fillText(bl.mode === 'default' ? 'GBA Studio’s' : 'No picture yet', 64, 60); g.fillText(bl.mode === 'default' ? 'back sprite' : '', 64, 76); }
+  };
+  if (bl.mode === 'image' && bl.image && hooks) void hooks.load(bl.image).then((c) => draw(heroBattleImage(people.chars, x, look, c)));
+  else draw(heroBattleImage(people.chars, x, look));
+  const parts: HTMLElement[] = [
+    field('Picture', select([['default', 'Default: GBA Studio’s back sprite (the mannequin)'], ['overworld', 'Their character, standing'], ['frame', 'A frame from their character sheet'], ['image', 'A picture of my own']],
+      bl.mode, (v) => set({ mode: v as NonNullable<HeroDef['battleLook']>['mode'] }))),
+  ];
+  if (bl.mode === 'overworld') parts.push(field('Facing', select([['up', 'Away (from behind)'], ['left', 'Left'], ['right', 'Right'], ['down', 'Toward you']], bl.dir ?? 'up', (v) => set({ dir: v as Dir }))));
+  if (bl.mode === 'frame' && ch && look) {
+    // The whole sheet, a grid over its frames: click one.
+    const f = characterSheetFrames(look, ch);
+    const k = Math.max(1, Math.min(4, Math.floor(480 / f.sheet.width)));
+    const c = document.createElement('canvas');
+    c.width = f.sheet.width * k; c.height = f.sheet.height * k;
+    c.className = 'hero-sheet-pick';
+    const g = c.getContext('2d')!;
+    g.imageSmoothingEnabled = false;
+    g.fillStyle = '#20242e'; g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(f.sheet, 0, 0, c.width, c.height);
+    g.strokeStyle = 'rgba(255,255,255,0.22)'; g.lineWidth = Math.max(2, c.width / 480);
+    for (let cx = 0; cx <= f.cols; cx++) { g.beginPath(); g.moveTo(cx * f.fw * k + 0.5, 0); g.lineTo(cx * f.fw * k + 0.5, c.height); g.stroke(); }
+    for (let cy = 0; cy <= f.rows; cy++) { g.beginPath(); g.moveTo(0, cy * f.fh * k + 0.5); g.lineTo(c.width, cy * f.fh * k + 0.5); g.stroke(); }
+    g.strokeStyle = '#ffb030'; g.lineWidth = Math.max(3, c.width / 240);
+    g.strokeRect((bl.col ?? 0) * f.fw * k + 1, (bl.row ?? 0) * f.fh * k + 1, f.fw * k - 2, f.fh * k - 2);
+    c.addEventListener('click', (e) => {
+      const r = c.getBoundingClientRect(), sx = c.width / r.width, sy = c.height / r.height;
+      set({ col: Math.floor(((e.clientX - r.left) * sx) / (f.fw * k)), row: Math.floor(((e.clientY - r.top) * sy) / (f.fh * k)) });
+    });
+    parts.push(h('div', { class: 'field' }, h('label', {}, 'Frame (click one)'), h('div', { class: 'hero-sheet-scroll' }, c)));
+  }
+  if ((bl.mode === 'overworld' || bl.mode === 'frame') && !ch) parts.push(h('p', { class: 'note' }, 'They need a look (a character) first.'));
+  if (bl.mode === 'image') parts.push(h('div', { class: 'field-row' }, h('button', { type: 'button', class: 'btn small', onclick: () => hooks?.pick(x, rerender) }, bl.image ? 'Change picture…' : 'Choose a picture…')));
+  return h('section', { class: 'db-section' }, h('h3', {}, 'Battle picture (GBA)'),
+    h('div', { class: 'hero-battle-pic' }, h('div', {}, ...parts), preview),
+    h('p', { class: 'note' }, 'How they look in GBA battles, seen from behind (fitted into 64 × 64; small art is scaled up in whole steps). Saving a GBA map bakes it for the ROM.'));
 }

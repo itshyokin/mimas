@@ -1,5 +1,7 @@
 /** Map editor entry point: lays out the panels and wires the toolbar and shortcuts. */
 import { battlebackList } from '../gba/types';
+import { heroBattleImage } from './battleArt';
+import { mainHero } from '../world/heroes';
 import { View3D } from './View3D';
 import { WEAPON_MANIFEST_PATH, itemWeaponSprite, usedWeaponSprites } from '../game/combat/weaponSprites';
 import { findWeapon, loadWeaponList, loadWeaponSheets } from './weaponPicker';
@@ -430,6 +432,16 @@ async function playGba(): Promise<void> {
   }
 }
 
+/** A project picture (this session's copy first) as a canvas, or null. */
+async function readCanvasFile(path: string): Promise<HTMLCanvasElement | null> {
+  try {
+    const bmp = await createImageBitmap(store.files.get(path) ?? await store.project.readFile(path));
+    const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+    c.getContext('2d')!.drawImage(bmp, 0, 0); bmp.close();
+    return c;
+  } catch { return null; }
+}
+
 /** GBA Studio's art and the pictures the editor draws for props, characters and enemies, for the GBA playtest. */
 async function gbaHandoff(): Promise<PlaytestData['gba']> {
   const blob = (c: HTMLCanvasElement) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('picture'))), 'image/png'));
@@ -467,6 +479,16 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
     let c = enemyBattleImage(store.db, e.look);
     if (c && e.tint) c = tintCanvas(c, e.tint);
     if (c && c.width && c.height) pics[`enemy:${e.id}`] = { blob: await blob(c), w: c.width, h: c.height };
+  }
+  // Each hero's battle picture (Database → Heroes → Battle picture), when it isn't the default back sprite.
+  for (const hero of store.db.heroes ?? []) {
+    const bl = hero.battleLook;
+    if (!bl || bl.mode === 'default') continue;
+    let custom: HTMLCanvasElement | null = null;
+    if (bl.mode === 'image' && bl.image) custom = await readCanvasFile(bl.image);
+    const look = hero.look ?? (hero.id === mainHero(store.db).id ? store.db.player : undefined);
+    const c = heroBattleImage(store.db.characters, hero, look, custom);
+    if (c) pics[`heroback:${hero.id}`] = { blob: await blob(c), w: c.width, h: c.height };
   }
   for (const id of usedBacks) {
     const b = backs.find((x) => x.id === id);

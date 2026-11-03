@@ -56,6 +56,12 @@ Update 11 is done (below). The owner's open wishes from NOTES.md: music in the R
 buffs in the ROM, learnsets (moves on level up), NPCs walking, Surf, more event commands. Ask the owner which first.
 
 ## Things to know
+- Nov 3 fixes: greyed commands can be landed on (OK on one buzzes); the hero's lunge / flinch keep their 1.8×
+  (pocket-lunge / pocket-hit in styles.css); battle text 2.5u. HeroDef.battleLook { mode default | overworld | frame
+  | image, dir, col, row, image } (Heroes → Battle picture (GBA); src/editor/battleArt.ts heroBattleImage); the
+  playtest gets `heroback:<id>` pics, the ROM bakes gba/heroes/<id>_back.png, and gba_game.py uses GBA Studio's
+  back sprite for 'default'. Open questions to the owner: level-up learning (skill trees vs learnsets) and
+  rewording the lines borrowed from Pokémon.
 - Update 12, battle screen and backgrounds:
   - Playtest menus: BattleScreen.gbaGrid (set from turnBased.gba) makes the command bar a 2 × 2 grid (left / right =
     index ^ 1, up / down = index ^ 2) with no caption; ChoiceItem.move { element, type, mp } draws a FIGHT button;

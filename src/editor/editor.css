@@ -1023,3 +1023,10 @@ body.resizing-side { user-select: none; cursor: col-resize; }
 .db-tab.mimas-off-tab { opacity: 0.4; }
 .db-tab.mimas-off-tab[aria-selected="true"] { opacity: 0.75; }
 .mimas-off-note { border-left: 3px solid #8a8a96; padding-left: 8px; }
+
+/* Database → Heroes → Battle picture (GBA). */
+.hero-battle-pic { display: flex; gap: 16px; align-items: flex-start; }
+.hero-battle-pic > div { flex: 1; min-width: 0; }
+.hero-battle-preview { width: 128px; height: 128px; image-rendering: pixelated; background: repeating-conic-gradient(#2a2e3a 0 25%, #232631 0 50%) 0 0 / 16px 16px; border-radius: 6px; flex: none; }
+.hero-sheet-scroll { max-height: 340px; overflow: auto; border-radius: 6px; }
+.hero-sheet-pick { display: block; max-width: 100%; image-rendering: pixelated; cursor: crosshair; }

@@ -1125,6 +1125,12 @@ export interface HeroDef {
   id: string;
   name: string;
   /** Update 127: their gender (a coloured symbol on stat blocks), and which version of worn clothes they wear. */
+  /**
+   * Mimas: the picture they fight as, seen from behind. 'default' GBA Studio's back sprite (the mannequin);
+   * 'overworld' their character standing (facing `dir`, default up); 'frame' one frame of their sheet (`col`, `row`);
+   * 'image' a picture of your own (`image`, a project file).
+   */
+  battleLook?: { mode: 'default' | 'overworld' | 'frame' | 'image'; dir?: Dir; col?: number; row?: number; image?: string };
   gender?: Gender;
   outfit?: 'masc' | 'femme';
   /** Update 127: their answers to the roleplay titles (Database → Party → Roleplay), by title id. */

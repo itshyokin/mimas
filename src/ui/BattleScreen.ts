@@ -1109,7 +1109,7 @@ export class BattleScreen {
           (b.querySelector('.bcmd-move-el span') as HTMLElement).textContent = it.move.type;
         } else b.innerHTML = `${svgIcon(it.icon ?? '')}<span class="bcmd-tile-label"></span>`;
         (b.querySelector('.bcmd-tile-label') as HTMLElement).textContent = it.label;
-        b.addEventListener('pointerenter', () => { if (this.mode === m && !it.disabled && m.index !== i) { m.index = i; this.renderList(); m.hover?.(i); } });
+        b.addEventListener('pointerenter', () => { if (this.mode === m && (!it.disabled || this.gbaGrid) && m.index !== i) { m.index = i; this.renderList(); m.hover?.(i); } });
         b.addEventListener('click', () => { if (this.mode !== m || it.disabled) return; m.index = i; uiSound('menuOk'); this.idle(); m.pick(i); });
         return b;
       }));
@@ -1240,7 +1240,8 @@ export class BattleScreen {
       };
       if (m.bar && this.gbaGrid) {
         // Mimas: a 2 × 2 grid: left / right across a row, up / down between the rows (greyed ones are skipped).
-        const go = (j: number) => { if (j >= 0 && j < m.items.length && !m.items[j].disabled && j !== m.index) { m.index = j; uiSound('menuMove'); this.renderList(); m.hover?.(j); } };
+        // The cursor can rest on a greyed one (Run, Party…); it just won't open.
+        const go = (j: number) => { if (j >= 0 && j < m.items.length && j !== m.index) { m.index = j; uiSound('menuMove'); this.renderList(); m.hover?.(j); } };
         if (i.consume('left') || i.consume('right')) go(m.index ^ 1);
         if (i.consume('up') || i.consume('down')) go(m.index ^ 2);
       } else {
@@ -1249,7 +1250,7 @@ export class BattleScreen {
       if (i.consume('down')) step(grid); else if (m.bar && i.consume('right')) step(1);
       if (i.consume('up')) step(-grid); else if (m.bar && i.consume('left')) step(-1);
       }
-      if (i.consume('ok')) { const it = m.items[m.index]; if (it && !it.disabled) { uiSound('menuOk'); this.idle(); m.pick(m.index); } }
+      if (i.consume('ok')) { const it = m.items[m.index]; if (it && !it.disabled) { uiSound('menuOk'); this.idle(); m.pick(m.index); } else if (it) uiSound('block'); }
       else if (i.consume('cancel') && m.back) { uiSound('menuBack'); this.idle(); m.back(); }
     } else if (m.kind === 'target') {
       const n = m.keys.length;

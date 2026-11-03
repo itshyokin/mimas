@@ -52,7 +52,7 @@ export function romGameData(db: Database, gba: GbaData): unknown {
     heroes: heroes.map((h, i) => ({
       id: h.id, name: h.name, first: i === 0, startsInParty: i === 0 || !!h.startsInParty, joinLevel: h.joinLevel ?? 0,
       stats: attrsFrom(h.stats), gains: levelGains(ranksOf(h.ranks, undefined)),
-      noAdditions: !!h.noAdditions, elements: (h.elements ?? []).slice(0, 2) as Element[], gender: h.gender ?? null,
+      noAdditions: !!h.noAdditions, elements: (h.elements ?? []).slice(0, 2) as Element[], gender: h.gender ?? null, battleLook: h.battleLook?.mode ?? 'default',
       moves: h.noAdditions ? [] : [...new Set([...(h.defaultAddition ? [h.defaultAddition] : h.additions?.length ? [] : [additionList(db).find((d) => d.id === 'quick_strike')?.id ?? additionList(db)[0]?.id]), ...(h.additions ?? [])].filter(Boolean))],
       spells: h.spells ?? {}, gear: h.gear ?? {},
     })),

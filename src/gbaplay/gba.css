@@ -124,3 +124,5 @@ body.gba-mode .battle.layout-pocket .pocket-text .pt-note:not([hidden]) { displa
 /* A battle background (Map settings → Battles): the GBA screen's picture, stretched crisp. */
 body.gba-mode .battle.has-backdrop { background-size: 100% 100%; background-position: center; background-repeat: no-repeat; image-rendering: pixelated; }
 body.gba-mode .battle.has-backdrop .battle-log:not(.focused) .battle-log-hint { background: rgba(248, 248, 248, 0.85); color: #404050; opacity: 1; padding: 1px 6px; border-radius: 4px; }
+/* Battle lines ("Jordan used Quick Strike!") about 1.4× bigger. */
+body.gba-mode .battle.layout-pocket .pocket-text { font-size: calc(var(--u) * 2.5); line-height: 1.4; }

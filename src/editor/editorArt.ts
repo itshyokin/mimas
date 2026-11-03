@@ -244,6 +244,14 @@ function sheetOf(key: string, def: CharacterDef | undefined): HTMLCanvasElement 
   return s;
 }
 
+/** A character's whole sheet and its frame size (for picking one frame: a hero's battle picture). */
+export function characterSheetFrames(key: string, def: CharacterDef | undefined): { sheet: HTMLCanvasElement; fw: number; fh: number; cols: number; rows: number } {
+  const sheet = sheetOf(key, def);
+  const L = def?.sheet && charSheets.has(def.sheet) ? def.anim : undefined;
+  const fw = L ? L.frame : sheet.width / 3, fh = L ? L.frame : sheet.height / 4;
+  return { sheet, fw, fh, cols: Math.max(1, Math.floor(sheet.width / fw)), rows: Math.max(1, Math.floor(sheet.height / fh)) };
+}
+
 /** One standing frame at the sheet's own size (thumbnails in lists). */
 export function characterFrame(key: string, def: CharacterDef | undefined, dir: Dir = 'down'): HTMLCanvasElement {
   const id = `${key}:${def?.sheet ?? ''}:${dir}:full`;

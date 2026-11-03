@@ -371,7 +371,7 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
   };
   const renderTab = () => {
     if (tab === 'stats') { content.replaceChildren(statOrderSection()); return; }
-    if (tab === 'heroes') { content.replaceChildren(...heroesTab(heroes, people, combat, heroState, render, work.items, { spells, additions, classes }, { pick: (x, done) => pickFace(store, x, done), url: (p) => { const b = store.files.get(p); return b ? URL.createObjectURL(b) : p; } })); return; }
+    if (tab === 'heroes') { content.replaceChildren(...heroesTab(heroes, people, combat, heroState, render, work.items, { spells, additions, classes }, { pick: (x, done) => pickFace(store, x, done), url: (p) => { const b = store.files.get(p); return b ? URL.createObjectURL(b) : p; } }, { pick: (x, done) => pickBattlePicture(store, x, done), load: (p) => loadPicture(store, p) })); return; }
     if (tab === 'characters') {
       // Looks (the sprites and models) or Chatter (what each hero says out of battle).
       const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Characters view' },
@@ -927,6 +927,42 @@ function diffFromDefaults(cfg: PlayerConfig): PlayerConfigData | undefined {
 }
 
 /** Database → Heroes → Face art: import a picture into assets/faces/. */
+/** A hero's own battle picture (Mimas): saved as a PNG beside the baked ones (public/gba/heroes/<id>_custom.png). */
+function pickBattlePicture(store: EditorStore, x: HeroDef, done: () => void): void {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/png,image/webp,image/gif,image/jpeg';
+  input.addEventListener('change', async () => {
+    const f = input.files?.[0];
+    if (!f) return;
+    const bmp = await createImageBitmap(f);
+    const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+    c.getContext('2d')!.drawImage(bmp, 0, 0); bmp.close();
+    const png = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/png'));
+    if (!png) return;
+    const path = `gba/heroes/${x.id}_custom.png`;
+    const p = store.project, persistent = p.canSave && p.canStoreImages;
+    try { if (persistent) await p.writeFile(path, png); }
+    catch (err) { toast(`Couldn’t save the picture: ${err instanceof Error ? err.message : String(err)}`, 'error'); return; }
+    store.files.set(path, png);
+    x.battleLook = { ...(x.battleLook ?? {}), mode: 'image', image: path };
+    if (!persistent) toast('Picture kept for this session only: open the project folder itself to save imported images.');
+    done();
+  });
+  input.click();
+}
+
+/** A project picture as a canvas (this session's copy first). */
+async function loadPicture(store: EditorStore, path: string): Promise<HTMLCanvasElement | null> {
+  try {
+    const blob = store.files.get(path) ?? await store.project.readFile(path);
+    const bmp = await createImageBitmap(blob);
+    const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+    c.getContext('2d')!.drawImage(bmp, 0, 0); bmp.close();
+    return c;
+  } catch { return null; }
+}
+
 function pickFace(store: EditorStore, x: HeroDef, done: () => void): void {
   const input = document.createElement('input');
   input.type = 'file';

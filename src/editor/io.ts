@@ -2,6 +2,7 @@
  * Saving through the current project (dev server or project folder).
  * When the editor can't write files (a hosted or preview copy) it shows an export dialog instead.
  */
+import { fitInto, heroBattleImage, trim } from './battleArt';
 import { formatDatabase, formatMap } from '../shared/dataFiles';
 import { h, openModal, toast } from './dom';
 import type { EditorStore } from './store';
@@ -54,30 +55,14 @@ async function bakeProps(store: EditorStore): Promise<void> {
 /** What was written this session (by file), so unchanged pictures aren't written again. */
 const bakedArt = new Map<string, string>();
 
-/** A picture fitted into a box (nearest-neighbour, keeping its shape), bottom-centred. */
-function fitInto(src: HTMLCanvasElement, w: number, h: number, bottom = true): HTMLCanvasElement {
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  // Small art is scaled up by whole steps (crisp pixels), big art down to fit.
-  const fit = Math.min(w / src.width, h / src.height) || 1;
-  const k = fit >= 1 ? Math.floor(fit) : fit;
-  const dw = Math.max(1, Math.round(src.width * k)), dh = Math.max(1, Math.round(src.height * k));
-  const g = c.getContext('2d')!;
-  g.imageSmoothingEnabled = false;
-  g.drawImage(src, Math.floor((w - dw) / 2), bottom ? h - dh : Math.floor((h - dh) / 2), dw, dh);
-  return c;
-}
-
-/** The part of a picture that's drawn (no empty rows or columns around it). */
-function trim(src: HTMLCanvasElement): HTMLCanvasElement {
-  const d = src.getContext('2d')!.getImageData(0, 0, src.width, src.height).data;
-  let x0 = src.width, y0 = src.height, x1 = -1, y1 = -1;
-  for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) if (d[(y * src.width + x) * 4 + 3] > 16) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-  if (x1 < 0) return src;
-  const c = document.createElement('canvas');
-  c.width = x1 - x0 + 1; c.height = y1 - y0 + 1;
-  c.getContext('2d')!.drawImage(src, x0, y0, c.width, c.height, 0, 0, c.width, c.height);
-  return c;
+/** A project picture as a canvas (null if it can't be read). */
+export async function readCanvas(store: EditorStore, path: string): Promise<HTMLCanvasElement | null> {
+  try {
+    const bmp = await createImageBitmap(await store.project.readFile(path));
+    const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+    c.getContext('2d')!.drawImage(bmp, 0, 0); bmp.close();
+    return c;
+  } catch { return null; }
 }
 
 async function blobOf(c: HTMLCanvasElement): Promise<Blob | null> { return new Promise((res) => c.toBlob(res, 'image/png')); }
@@ -98,10 +83,13 @@ async function bakeGameArt(store: EditorStore): Promise<void> {
   const first = mainHero(db).id;
   for (const hero of db.heroes ?? []) {
     const look = hero.look ?? (hero.id === first ? db.player : undefined);
+    // The battle picture (Database → Heroes → Battle picture; the default is GBA Studio's back sprite).
+    const custom = hero.battleLook?.mode === 'image' && hero.battleLook.image ? await readCanvas(store, hero.battleLook.image) : null;
+    const bp = heroBattleImage(db.characters, hero, look, custom);
+    if (bp) out.push([`gba/heroes/${hero.id}_back.png`, bp]);
     const ch = look ? db.characters[look] : undefined;
     if (!look || !ch) continue;
-    const back = characterImage(look, ch, 'up'), front = characterImage(look, ch, 'down');
-    if (back.width && back.height) out.push([`gba/heroes/${hero.id}_back.png`, fitInto(trim(back), 64, 64)]);
+    const front = characterImage(look, ch, 'down');
     if (front.width && front.height) {
       const t = trim(front), head = document.createElement('canvas');
       head.width = t.width; head.height = Math.min(t.height, t.width);

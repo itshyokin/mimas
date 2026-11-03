@@ -586,14 +586,16 @@ class GbaGame {
     const look = m.def.look ?? (who === 0 || m === this.party[0] ? this.db.player : undefined);
     const isHero = m.def.id === (this.db.heroes?.[0]?.id ?? 'hero');
     const sp = isHero ? this.gba.sprites.find((s2) => s2.id === this.gba.player && s2.kind === 'overworld') : undefined;
-    const back = isHero ? this.gba.sprites.find((s2) => s2.kind === 'backsprite') : undefined;
+    // The battle picture (Database → Heroes → Battle picture): theirs, else GBA Studio's back sprite (the mannequin).
+    const own = this.pics.get(`heroback:${m.def.id}`)?.img;
+    const back = own ? undefined : this.gba.sprites.find((s2) => s2.kind === 'backsprite');
     const sheet = sp ? this.images.get(sp.image) : undefined, backSheet = back ? this.images.get(back.image) : undefined;
     const charUp = this.pics.get(`char:${look}:up`)?.img, charSide = this.pics.get(`char:${look}:left`)?.img;
     const picture = frame(sheet, 0, 2 * 32, 16, 32, 3) ?? (charSide ? frame(charSide, 0, 0, charSide.width, charSide.height, 2) : undefined) ?? document.createElement('canvas');
     const view: FighterView = {
       key, side: 'party', name: m.def.name, picture, icon: this.faceOf(m) ?? '', level: m.level,
       xp: { have: m.xp, next: xpToNext(this.cfg, m.level) },
-      back: frame(backSheet, 0, 0, 64, 64, 2) ?? (charUp ? frame(charUp, 0, 0, charUp.width, charUp.height, 2) : undefined),
+      back: (own ? frame(own, 0, 0, own.width, own.height, 2) : undefined) ?? frame(backSheet, 0, 0, 64, 64, 2) ?? (charUp ? frame(charUp, 0, 0, charUp.width, charUp.height, 2) : undefined),
     };
     return { battler, view, who };
   }

@@ -387,11 +387,12 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
         if img is None:
             missing.append(e['name'])
         sprite_from(img or stand_in(64, (120, 200, 120, 255)), 64, gfx, f'enemy_{k}')
-    # the hero you play: GBA Studio's backsprite when there is one
+    # Each hero's battle picture (Database → Heroes → Battle picture): 'default' is GBA Studio's back sprite (the
+    # mannequin); the others the editor bakes into public/gba/heroes/<id>_back.png.
     gba_back = next((s for s in gba.get('sprites', []) if s.get('kind') == 'backsprite'), None)
     for k, h in enumerate(heroes):
         back = None
-        if h.get('first') and gba_back:
+        if h.get('battleLook', 'default') == 'default' and gba_back:
             back = load_png(public, gba_back['image'])
             if back is not None:
                 back = back.crop((0, 0, min(64, back.width), min(64, back.height)))
