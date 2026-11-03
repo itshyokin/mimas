@@ -11,6 +11,7 @@ import { findAddition, findSpell, learnSpell, rankName } from '../game/abilities
 import { Interpreter, type EventContext } from '../events/Interpreter';
 import { BattleStatus } from '../game/battle/status';
 import { TurnBattle, type BattleEntry, type BattleHost } from '../game/battle/TurnBattle';
+import { TEXT_BY_KEY, gbaLine, type TextVars } from '../gba/text';
 import type { Battler } from '../game/battle/rules';
 import { impactOf } from '../game/battle/impact';
 import { enemyAgility } from '../game/battle/rules';
@@ -85,7 +86,7 @@ function showError(msg: string): void {
 function meterStyles(db: Database): void {
   const mn = db.menus, root = document.documentElement, bars = mn?.bars ?? {};
   for (const k of ['hp', 'mp', 'xp', 'sp'] as const) { if (bars[k]) root.style.setProperty(`--c-${k}`, bars[k]!); else root.style.removeProperty(`--c-${k}`); }
-  const fill = mn?.barFill ?? (mn?.barsSolid ? 'flat' : 'gradient'), shape = mn?.barShape ?? (mn?.barsSquare ? 'rect' : 'pill'), orb = mn?.orbStyle ?? 'sphere';
+  const fill = mn?.barFill ?? (mn?.barsSolid ? 'flat' : 'gradient'), shape = mn?.barShape ?? (mn?.barsSquare ? 'rect' : 'pill'), orb = mn?.orbStyle ?? 'diamond';
   root.classList.add(`bar-fill-${fill}`, `bar-shape-${shape}`, `orb-${orb}`);
 }
 
@@ -224,6 +225,7 @@ class GbaGame {
       sound: (n) => this.audio.play(n as Sfx),
       save: () => this.save(),
       playTime: () => this.playBefore + (performance.now() - this.playStart) / 1000,
+      t: (k, v) => this.t(k, v),
     });
 
     // The open map: from the game's start when it's the start map, otherwise the walkable spot nearest its middle.
@@ -358,6 +360,17 @@ class GbaGame {
 
   get busy(): boolean { return this.interp.running || this.message.isOpen || this.ui.busy || this.battle.active || this.battlePending || this.fade > 0 || this.fadeTarget > 0; }
 
+  /** A random battle ("A Green Slime leaps out!") or one from an event or a trainer. */
+  wildBattle = true;
+
+  /** A line in the game's own words (Database → Text & dialog), filled in; nothing for a key it doesn't have. */
+  line(key: string, vars: TextVars = {}): string | undefined {
+    if (!TEXT_BY_KEY.has(key)) return undefined;
+    return gbaLine(this.db, key === 'battle.appear' && !this.wildBattle ? 'battle.appear_event' : key, vars);
+  }
+  /** The same, always a string. */
+  t(key: string, vars: TextVars = {}): string { return this.line(key, vars) ?? key; }
+
   /** Everyone back to full (a rest, an inn, losing a battle). */
   healAll(): void { for (const m of this.party) { const mx = this.maxOf(m); m.hp = mx.hp; m.mp = mx.mp; } }
 
@@ -370,10 +383,10 @@ class GbaGame {
       if (at >= 0) return;
       if (this.party.length >= MAX_PARTY) { if (!quiet) await this.ui.say(`There’s no room in the party for ${def.name}.`); return; }
       this.party.push(newMember(this.db, def, def.joinLevel ?? this.lead?.level ?? 1));
-      if (!quiet) { this.audio.play('questDone'); await this.ui.say(`${def.name} joined the party!`); }
+      if (!quiet) { this.audio.play('questDone'); await this.ui.say(this.t('party.joined', { name: def.name })); }
     } else if (at > 0) {
       this.party.splice(at, 1);
-      if (!quiet) await this.ui.say(`${def.name} left the party.`);
+      if (!quiet) await this.ui.say(this.t('party.left', { name: def.name }));
     }
   }
 
@@ -661,7 +674,7 @@ class GbaGame {
         const entry: BattleEntry = { battler, view: { key: battler.key, side: 'enemy', name, level, picture: big, icon: '', scale: d.scale, elements: d.elements }, ref: d };
         if (i === 0) entries.push(entry); else waiting.push(entry);
       });
-      void wild;
+      this.wildBattle = wild;
       this.battleScreen.setBackdrop(this.backdrop());
       this.battle.start(entries, this.cfg.turnBased, 'normal', { canRun, waiting });
     }, 500);
@@ -735,7 +748,7 @@ class GbaGame {
     if (this.lastOutcome !== 'victory') return;
     this.state.setSwitch(GameState.selfKey(e.selfId, t.beaten ?? 'D'), true);
     if (t.lose) await this.ui.say(t.lose);
-    if (t.gold) { this.inventory.gold += t.gold; this.audio.play('coin'); await this.ui.say(`Got $${t.gold} for winning!`); }
+    if (t.gold) { this.inventory.gold += t.gold; this.audio.play('coin'); await this.ui.say(this.t('battle.gold', { n: t.gold })); }
     this.refreshEvents();
   }
 
@@ -885,6 +898,7 @@ class GbaGame {
         }
       },
       log: () => {},
+      line: (k, v) => this.line(k, v),
     };
   }
   /** The foes in this battle by their key (for their EXP). */

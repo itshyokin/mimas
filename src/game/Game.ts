@@ -7076,7 +7076,7 @@ export class Game {
     this.hud.staminaSteady = !!this.db.menus?.staminaSteady;
     // Meter and orb styles (Update 126; the older solid / square switches still count).
     const mn = this.db.menus, cl = document.documentElement.classList;
-    const fill = mn?.barFill ?? (mn?.barsSolid ? 'flat' : 'gradient'), shape = mn?.barShape ?? (mn?.barsSquare ? 'rect' : 'pill'), orb = mn?.orbStyle ?? 'sphere';
+    const fill = mn?.barFill ?? (mn?.barsSolid ? 'flat' : 'gradient'), shape = mn?.barShape ?? (mn?.barsSquare ? 'rect' : 'pill'), orb = mn?.orbStyle ?? 'diamond';
     for (const c of [...cl]) if (/^(bar-fill|bar-shape|orb)-/.test(c)) cl.remove(c);
     cl.add(`bar-fill-${fill}`, `bar-shape-${shape}`, `orb-${orb}`);
     cl.remove('bars-solid', 'bars-square');

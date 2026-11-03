@@ -15,6 +15,7 @@ import type { Database, Element, Inflict, MoveRef } from '../world/types';
 import { ELEMENT_LIST, elementResult } from '../game/elements';
 import { effectSprites, moveEffects } from '../gba/effects';
 import type { GbaData } from '../gba/types';
+import { TEXT_LINES, lineVersions } from '../gba/text';
 
 /** The ailments the ROM knows (its order: their numbers there). */
 export const ROM_AILMENTS = ['poison', 'burn', 'paralyze', 'sleep', 'chill', 'confusion', 'blind', 'silence'] as const;
@@ -90,5 +91,7 @@ export function romGameData(db: Database, gba: GbaData): unknown {
       moves: refs(e.moves), movesets: (e.movesets ?? []).map((m) => ({ level: m.level, moves: refs(m.moves) })).sort((a, b) => a.level - b.level),
     })),
     troops: (db.troops ?? []).map((t) => ({ id: t.id, members: t.members.map((m) => ({ enemy: m.enemy, min: m.min ?? 1, max: m.max ?? m.min ?? 1 })), pick: t.pick ?? 'all', noRun: !!t.noRun })),
+    // The game's lines and command words (Database → Text & dialog): every version, by key.
+    text: Object.fromEntries(TEXT_LINES.map((l) => [l.key, lineVersions(db, l.key)])),
   };
 }

@@ -2843,5 +2843,256 @@
    "pick": "all",
    "noRun": false
   }
- ]
+ ],
+ "text": {
+  "cmd.attack": [
+   "ATTACK"
+  ],
+  "cmd.items": [
+   "ITEMS"
+  ],
+  "cmd.swap": [
+   "SWAP"
+  ],
+  "cmd.flee": [
+   "FLEE"
+  ],
+  "menu.party": [
+   "PARTY"
+  ],
+  "menu.bag": [
+   "BAG"
+  ],
+  "menu.save": [
+   "SAVE"
+  ],
+  "menu.exit": [
+   "EXIT"
+  ],
+  "battle.appear": [
+   "A {foe} leaps out!"
+  ],
+  "battle.appear_event": [
+   "{foe} appears!"
+  ],
+  "battle.ask": [
+   "{name} stands ready."
+  ],
+  "battle.attack": [
+   "{name} attacks!"
+  ],
+  "battle.addition": [
+   "{name} attacks with {move}!"
+  ],
+  "battle.spell": [
+   "{name} casts {move}!"
+  ],
+  "battle.guard_move": [
+   "{name} uses {move}!"
+  ],
+  "battle.guarding": [
+   "{name} is guarding!"
+  ],
+  "battle.guard_heal": [
+   "{name} is guarding and got back {n} HP!"
+  ],
+  "battle.heal": [
+   "{name} recovered health!"
+  ],
+  "battle.foe_attack": [
+   "{foe} attacks!"
+  ],
+  "battle.foe_addition": [
+   "{foe} attacks with {move}!"
+  ],
+  "battle.foe_spell": [
+   "{foe} casts {move}!"
+  ],
+  "battle.foe_heal": [
+   "{foe} recovered health!"
+  ],
+  "battle.no_mp": [
+   "Not enough MP!"
+  ],
+  "battle.silenced": [
+   "Silenced: no spells!"
+  ],
+  "battle.crit": [
+   "A critical hit!"
+  ],
+  "battle.weak": [
+   "Struck a weakness!"
+  ],
+  "battle.resist": [
+   "It was resisted…"
+  ],
+  "battle.immune": [
+   "{target} is immune!"
+  ],
+  "battle.absorb": [
+   "{target} absorbed it!"
+  ],
+  "battle.miss": [
+   "{name}’s attack missed!"
+  ],
+  "battle.dodge": [
+   "{target} dodged it!"
+  ],
+  "battle.hits": [
+   "Hit {n} times!"
+  ],
+  "ail.poison": [
+   "{target} is poisoned!"
+  ],
+  "ail.burn": [
+   "{target} is burned!"
+  ],
+  "ail.paralyze": [
+   "{target} is paralyzed!"
+  ],
+  "ail.sleep": [
+   "{target} falls asleep!"
+  ],
+  "ail.frozen": [
+   "{target} is frozen solid!"
+  ],
+  "ail.confusion": [
+   "{target} is confused!"
+  ],
+  "ail.blind": [
+   "{target} is blinded!"
+  ],
+  "ail.silence": [
+   "{target} is silenced!"
+  ],
+  "ail.still_asleep": [
+   "{name} is fast asleep."
+  ],
+  "ail.woke": [
+   "{name} wakes up!"
+  ],
+  "ail.still_frozen": [
+   "{name} is frozen solid!"
+  ],
+  "ail.thawed": [
+   "{name} thaws out!"
+  ],
+  "ail.cant_move": [
+   "{name} can’t move!"
+  ],
+  "ail.still_confused": [
+   "{name} is confused!"
+  ],
+  "ail.snapped": [
+   "{name} snaps out of it!"
+  ],
+  "ail.hurt_self": [
+   "{name} stumbles and gets hurt!"
+  ],
+  "ail.poison_hurt": [
+   "{name} is hurt by poison!"
+  ],
+  "ail.burn_hurt": [
+   "{name} is hurt by the burn!"
+  ],
+  "ail.sight": [
+   "{name} can see again!"
+  ],
+  "ail.voice": [
+   "{name} can cast again!"
+  ],
+  "battle.defeated": [
+   "{foe} is defeated!"
+  ],
+  "battle.down": [
+   "{name} collapses!"
+  ],
+  "battle.all_down": [
+   "There’s no one left to fight!"
+  ],
+  "battle.exp": [
+   "{name} gained {n} EXP!"
+  ],
+  "battle.level": [
+   "{name} reached level {level}!"
+  ],
+  "battle.gold": [
+   "You earned ${n}!"
+  ],
+  "battle.fled": [
+   "You got away!"
+  ],
+  "battle.no_escape": [
+   "No way out!"
+  ],
+  "battle.cant_run": [
+   "There’s no running from this fight!"
+  ],
+  "battle.swap_out": [
+   "{name} steps back."
+  ],
+  "battle.step_in": [
+   "{name} steps in!"
+  ],
+  "battle.send_who": [
+   "Send in whom?"
+  ],
+  "battle.no_items": [
+   "There’s nothing to use."
+  ],
+  "battle.no_one": [
+   "There’s no one else to send in."
+  ],
+  "battle.cant_fight": [
+   "They’re in no shape to fight!"
+  ],
+  "battle.already": [
+   "They’re already fighting!"
+  ],
+  "learn.learned": [
+   "{name} learned {move}!"
+  ],
+  "learn.knows": [
+   "{name} already knows {move}."
+  ],
+  "item.no_effect": [
+   "It won’t have any effect."
+  ],
+  "item.revived": [
+   "{name} was revived!"
+  ],
+  "item.equipped": [
+   "{name} equipped {item}."
+  ],
+  "party.joined": [
+   "{name} joined the party!"
+  ],
+  "party.left": [
+   "{name} left the party."
+  ],
+  "save.ask": [
+   "Would you like to save the game?"
+  ],
+  "save.done": [
+   "{name} saved the game!"
+  ],
+  "shop.hello": [
+   "Welcome! What can I get you?"
+  ],
+  "shop.again": [
+   "Anything else?"
+  ],
+  "shop.thanks": [
+   "Thank you kindly!"
+  ],
+  "shop.bye": [
+   "Come back anytime!"
+  ],
+  "shop.no_money": [
+   "You don’t have enough money."
+  ],
+  "shop.no_room": [
+   "You have no room for it."
+  ]
+ }
 }

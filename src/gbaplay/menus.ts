@@ -16,6 +16,7 @@ import type { Inventory } from '../game/inventory';
 import type { Database, EquipSlot, ItemDef } from '../world/types';
 import { battleNumbers, knownMoves, MAX_MOVES, maxOf, moveInfo, moveSpell, type Member } from './party';
 import type { GbaUi, Row } from './ui';
+import type { TextVars } from '../gba/text';
 
 export interface MenuHost {
   db: Database;
@@ -32,6 +33,8 @@ export interface MenuHost {
   /** Write the save; false if it couldn't. */
   save(): boolean;
   playTime(): number;
+  /** A line in the game's own words (Database → Text & dialog), filled in. */
+  t(key: string, vars?: TextVars): string;
   /** Close the game (EXIT on the menu does nothing; this is the playtest's Stop). */
 }
 
@@ -61,11 +64,11 @@ export class Menus {
   async start(): Promise<void> {
     const h = this.h, hero = h.party[0];
     const rows = (): Row[] => [
-      { label: 'PARTY', detail: 'Check and organize your party.', disabled: !h.party.length },
-      { label: 'BAG', detail: 'Items, gear and key items you carry.' },
+      { label: h.t('menu.party'), detail: 'Check and organize your party.', disabled: !h.party.length },
+      { label: h.t('menu.bag'), detail: 'Items, gear and key items you carry.' },
       { label: (hero?.def.name ?? 'HERO').toUpperCase(), detail: 'Your money and play time.' },
-      { label: 'SAVE', detail: 'Save your progress.' },
-      { label: 'EXIT', detail: 'Close this menu.' },
+      { label: h.t('menu.save'), detail: 'Save your progress.' },
+      { label: h.t('menu.exit'), detail: 'Close this menu.' },
     ];
     await this.ui.run(async () => {
       h.sound('menuOk');
@@ -94,10 +97,10 @@ export class Menus {
   }
 
   async saveFlow(): Promise<boolean> {
-    if ((await this.ui.ask('Would you like to save the game?')) !== 0) return false;
+    if ((await this.ui.ask(this.h.t('save.ask'))) !== 0) return false;
     const ok = this.h.save();
     if (ok) this.h.sound('save');
-    await this.ui.say(ok ? `${this.h.party[0]?.def.name ?? 'You'} saved the game!` : 'The game couldn’t be saved.');
+    await this.ui.say(ok ? this.h.t('save.done', { name: this.h.party[0]?.def.name ?? 'You' }) : 'The game couldn’t be saved.');
     return ok;
   }
 
@@ -107,7 +110,7 @@ export class Menus {
     const h = this.h;
     return h.party.map((m) => {
       const max = maxOf(h.db, m, (id) => h.items.get(id));
-      return { label: m.def.name, icon: h.face(m), sub: `Lv${m.level}${m.hp <= 0 ? '  FNT' : ''}`, bar: m.hp / max.hp, right: note?.(m) ?? `${Math.max(0, m.hp)}/${max.hp}` };
+      return { label: m.def.name, icon: h.face(m), sub: `Lv${m.level}${m.hp <= 0 ? '  KO' : ''}`, bar: m.hp / max.hp, right: note?.(m) ?? `${Math.max(0, m.hp)}/${max.hp}` };
     });
   }
 
@@ -190,14 +193,14 @@ export class Menus {
     const equip = this.h.cfg.turnBased.moveSlots === 'equip';
     if (sid ? !spellList(this.h.db).some((x) => x.id === sid) : !d || m.def.noAdditions) return;
     const known = sid ? wasKnown : !!m.abil.additions && id in m.abil.additions;
-    if (m.moves.includes(id) || (known && !equip)) { if (!sid) await this.ui.say(`${who} already knows ${name}.`); return; }
+    if (m.moves.includes(id) || (known && !equip)) { if (!sid) await this.ui.say(this.h.t('learn.knows', { name: who, move: name })); return; }
     // Known from now on (a spell: learnSpell already did it).
     const forget = (k: string) => { const s2 = moveSpell(k); if (s2) delete m.abil.spells?.[s2]; else delete m.abil.additions?.[k]; };
     if (!sid) (m.abil.additions ??= {})[id] ??= 0;
     if (m.moves.length < MAX_MOVES) {
       m.moves.push(id);
       this.h.sound('levelUp');
-      await this.ui.say(`${who} learned ${name}!`);
+      await this.ui.say(this.h.t('learn.learned', { name: who, move: name }));
       return;
     }
     await this.ui.say(`${who} is trying to learn ${name}.`);
@@ -297,7 +300,7 @@ export class Menus {
     const k = await this.pickMember(`Equip ${d.name} on whom?`, (m) => (m.equip[d.slot!] ? 'swap' : ''));
     if (k < 0) return;
     const m = this.h.party[k];
-    if (this.equip(m, d.slot!, d.id)) await this.ui.say(`${m.def.name} equipped ${d.name}.`);
+    if (this.equip(m, d.slot!, d.id)) await this.ui.say(this.h.t('item.equipped', { name: m.def.name, item: d.name }));
     else await this.ui.say('There’s no room in the bag for what they had on.');
   }
 
@@ -307,18 +310,18 @@ export class Menus {
     const k = await this.pickMember(`Use on which hero?`);
     if (k < 0) return;
     const m = h.party[k], max = maxOf(h.db, m, (id) => h.items.get(id));
-    if (m.hp <= 0 && !d.revive) { await this.ui.say('It won’t have any effect.'); return; }
+    if (m.hp <= 0 && !d.revive) { await this.ui.say(this.h.t('item.no_effect')); return; }
     const hp = (d.restore?.hp ?? 0) + Math.round(((d.restorePct?.hp ?? 0) * max.hp) / 100);
     const mp = (d.restore?.mp ?? 0) + Math.round(((d.restorePct?.mp ?? 0) * max.mp) / 100);
     const before = { hp: m.hp, mp: m.mp };
     if (d.revive && m.hp <= 0) m.hp = Math.max(1, Math.min(max.hp, hp || Math.round(max.hp / 2)));
     else m.hp = Math.min(max.hp, m.hp + hp);
     m.mp = Math.min(max.mp, m.mp + mp);
-    if (m.hp === before.hp && m.mp === before.mp) { await this.ui.say('It won’t have any effect.'); return; }
+    if (m.hp === before.hp && m.mp === before.mp) { await this.ui.say(this.h.t('item.no_effect')); return; }
     h.inventory.remove(d.id, 1);
     h.sound('item');
     const parts = [m.hp > before.hp ? `${m.hp - Math.max(0, before.hp)} HP` : '', m.mp > before.mp ? `${m.mp - before.mp} MP` : ''].filter(Boolean).join(' and ');
-    await this.ui.say(before.hp <= 0 ? `${m.def.name} was revived!` : `${m.def.name} recovered ${parts}.`);
+    await this.ui.say(before.hp <= 0 ? this.h.t('item.revived', { name: m.def.name }) : `${m.def.name} recovered ${parts}.`);
   }
 
   /** "How many?": up / down by one, left / right by ten. */
@@ -353,7 +356,7 @@ export class Menus {
     const showCash = () => this.ui.setRows(cash, [{ label: this.money() }]);
     let first = true;
     for (;;) {
-      const what = await this.ui.ask(first ? `Hi there! ${name ? `Welcome to ${name}. ` : ''}May I help you?` : 'Is there anything else I may do for you?', canSell ? ['BUY', 'SELL', 'QUIT'] : ['BUY', 'QUIT']);
+      const what = await this.ui.ask(first ? `${name ? `${name}. ` : ''}${this.h.t('shop.hello')}` : this.h.t('shop.again'), canSell ? ['BUY', 'SELL', 'QUIT'] : ['BUY', 'QUIT']);
       first = false;
       if (what === 0) {
         const win = this.ui.open({ x: 88, y: 4, w: 148, max: 6, detail: true, cls: 'bag', rows: [...wares.map((g) => { const d = h.items.get(g.item)!; return { label: d.name, icon: this.icon(d), right: `$${priceOf(g)}`, detail: d.description }; }), { label: 'CANCEL' }] });
@@ -362,13 +365,13 @@ export class Menus {
           if (i < 0 || i >= wares.length) break;
           const g = wares[i], d = h.items.get(g.item)!, p = priceOf(g);
           const most = Math.min(99, p > 0 ? Math.floor(inv.gold / p) : 99, inv.room(d.id));
-          if (most < 1) { await this.ui.say(inv.room(d.id) < 1 ? 'You have no room for it.' : 'You don’t have enough money.'); continue; }
+          if (most < 1) { await this.ui.say(inv.room(d.id) < 1 ? this.h.t('shop.no_room') : this.h.t('shop.no_money')); continue; }
           const n = d.slot || d.kind === 'key' ? 1 : await this.count(most, `${d.name}?`, p);
           if (!n) continue;
           if ((await this.ui.ask(`${d.name}${n > 1 ? `, and you want ${n}` : ''}? That will be $${(p * n).toLocaleString()}. OK?`)) !== 0) continue;
           inv.gold -= p * n; inv.add(d.id, n); showCash();
           h.sound('coin');
-          await this.ui.say('Here you are! Thank you!');
+          await this.ui.say(this.h.t('shop.thanks'));
         }
         this.ui.close(win);
       } else if (what === 1 && canSell) {
@@ -394,6 +397,6 @@ export class Menus {
       } else break;
     }
     this.ui.close(cash);
-    await this.ui.say('Please come again!');
+    await this.ui.say(this.h.t('shop.bye'));
   }
 }

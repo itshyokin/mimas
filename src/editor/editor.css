@@ -1020,8 +1020,16 @@ body.resizing-side { user-select: none; cursor: col-resize; }
 .mimas-off { opacity: 0.42; filter: grayscale(0.8); }
 .mimas-off:hover, .mimas-off:focus-within { opacity: 0.7; }
 .field.mimas-off > label::after, label.check.mimas-off::after, .db-section.mimas-off > h3::after { content: 'Saturn only'; margin-left: 6px; padding: 0 5px; border-radius: 3px; font-size: 0.72em; font-weight: 600; background: #5a5a66; color: #fff; vertical-align: middle; }
-.db-tab.mimas-off-tab { opacity: 0.4; }
-.db-tab.mimas-off-tab[aria-selected="true"] { opacity: 0.75; }
+/* The two views: Database (what the GBA game uses) and Saturn extras (only what it doesn't, not greyed there). */
+.db-view-seg { margin-bottom: 6px; }
+.db-view-gba .mimas-off, .db-view-gba .mimas-off-note { display: none !important; }
+.db-view-saturn .mimas-off { opacity: 1; filter: none; }
+.db-view-saturn .field.mimas-off > label::after, .db-view-saturn label.check.mimas-off::after, .db-view-saturn .db-section.mimas-off > h3::after { content: none; }
+.db-view-saturn.db-partial .field:not(.mimas-off):not(.mimas-off .field),
+.db-view-saturn.db-partial label.check:not(.mimas-off):not(.mimas-off label.check),
+.db-view-saturn.db-partial .db-section:not(.mimas-off):not(:has(.mimas-off)),
+.db-view-saturn.db-partial .db-section:not(.mimas-off) > :not(h3):not(.mimas-off):not(:has(.mimas-off)) { display: none !important; }
+.db-jump-btn[hidden] { display: none; }
 .mimas-off-note { border-left: 3px solid #8a8a96; padding-left: 8px; }
 
 /* Database → Heroes → Battle picture (GBA). */
@@ -1030,3 +1038,24 @@ body.resizing-side { user-select: none; cursor: col-resize; }
 .hero-battle-preview { width: 128px; height: 128px; image-rendering: pixelated; background: repeating-conic-gradient(#2a2e3a 0 25%, #232631 0 50%) 0 0 / 16px 16px; border-radius: 6px; flex: none; }
 .hero-sheet-scroll { max-height: 340px; overflow: auto; border-radius: 6px; }
 .hero-sheet-pick { display: block; max-width: 100%; image-rendering: pixelated; cursor: crosshair; }
+
+/* Mimas: Database → Text & dialog */
+.gtext-search { width: 100%; max-width: 320px; }
+/* One column, wide rows (the Database's usual grid would squeeze them). */
+.gtext-group, .gtext-intro { grid-column: 1 / -1; max-width: 980px; }
+.gtext-group { gap: 4px; }
+.gtext-row { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) auto; gap: 4px 10px; align-items: start; padding: 5px 0; border-top: 1px solid var(--line, rgba(127,127,127,.18)); }
+.gtext-row[hidden] { display: none; }
+.gtext-label { font-size: 13px; padding-top: 5px; }
+.gtext-row.changed .gtext-label { font-weight: 600; }
+.gtext-row.changed .gtext-label::before { content: '● '; color: var(--accent, #5a9cff); }
+.gtext-body { display: grid; gap: 3px; min-width: 0; }
+.gtext-versions { display: grid; gap: 3px; }
+.gtext-input { width: 100%; box-sizing: border-box; }
+.gtext-input.word { max-width: 150px; text-transform: uppercase; }
+.gtext-input::placeholder { color: var(--muted); opacity: 0.75; }
+.gtext-more { display: flex; gap: 4px; align-items: center; }
+.gtext-preview { font-size: 12px; min-height: 0; }
+.gtext-preview:empty { display: none; }
+.gtext-tools { display: flex; gap: 4px; padding-top: 2px; }
+@media (max-width: 720px) { .gtext-row { grid-template-columns: 1fr; } }

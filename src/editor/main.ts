@@ -480,10 +480,10 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
     if (c && e.tint) c = tintCanvas(c, e.tint);
     if (c && c.width && c.height) pics[`enemy:${e.id}`] = { blob: await blob(c), w: c.width, h: c.height };
   }
-  // Each hero's battle picture (Database → Heroes → Battle picture), when it isn't the default back sprite.
+  // Each hero's battle picture (Database → Heroes → Battle picture), unless it's GBA Studio's back sprite.
   for (const hero of store.db.heroes ?? []) {
-    const bl = hero.battleLook;
-    if (!bl || bl.mode === 'default') continue;
+    const bl = hero.battleLook ?? { mode: 'default' as const };
+    if (bl.mode === 'mannequin') continue;
     let custom: HTMLCanvasElement | null = null;
     if (bl.mode === 'image' && bl.image) custom = await readCanvasFile(bl.image);
     const look = hero.look ?? (hero.id === mainHero(store.db).id ? store.db.player : undefined);

@@ -49,6 +49,93 @@ bn::random rng;
 uint32_t play_frames = 0;
 bn::sprite_text_generator* G = nullptr;   // the dark text for the white windows
 
+// ------------------------------------------------------------------------------------------------ the game's lines
+
+// Fill-ins for a line: tv().N("Jordan").M("Quick Strike") and so on.
+struct tv
+{
+    const char* name = "";
+    const char* foe = "";
+    const char* target = "";
+    const char* move = "";
+    const char* item = "";
+    int n = 0;
+    int level = 0;
+
+    tv& N(const char* v) { name = v; return *this; }
+    tv& F(const char* v) { foe = v; return *this; }
+    tv& T(const char* v) { target = v; return *this; }
+    tv& M(const char* v) { move = v; return *this; }
+    tv& I(const char* v) { item = v; return *this; }
+    tv& num(int v) { n = v; return *this; }
+    tv& lv(int v) { level = v; return *this; }
+};
+
+[[nodiscard]] bool vowel(char c)
+{
+    return c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U' || c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+}
+
+// A line in the game's own words (Database > Text & dialog, mimas::text_lines): one of its versions at random,
+// filled in. "A {foe}" becomes "An ..." before a vowel, as in the playtest.
+[[nodiscard]] bn::string<160> txt(int id, const tv& v = tv())
+{
+    const mimas::text_line& l = mimas::text_lines[id];
+    const char* s = l.versions[l.count > 1 ? rng.get_int(l.count) : 0];
+    bn::string<160> out;
+
+    while(*s)
+    {
+        if(*s == '{')
+        {
+            const char* e = s + 1;
+            while(*e && *e != '}') { ++e; }
+
+            if(*e == '}')
+            {
+                bn::string_view k(s + 1, int(e - s - 1));
+                bn::string<12> num;
+                const char* val = nullptr;
+
+                if(k == "name") { val = v.name; }
+                else if(k == "foe") { val = v.foe; }
+                else if(k == "target") { val = v.target; }
+                else if(k == "move") { val = v.move; }
+                else if(k == "item") { val = v.item; }
+                else if(k == "n") { num = bn::to_string<12>(v.n); }
+                else if(k == "level") { num = bn::to_string<12>(v.level); }
+                else { k = bn::string_view(); }
+
+                if(! k.empty())
+                {
+                    bn::string_view w = val ? bn::string_view(val) : bn::string_view(num);
+                    int z = out.size();
+
+                    if(z >= 2 && out[z - 1] == ' ' && (out[z - 2] == 'A' || out[z - 2] == 'a') && (z == 2 || out[z - 3] == ' ') &&
+                       ! w.empty() && vowel(w[0]) && z < out.max_size())
+                    {
+                        out[z - 1] = 'n';
+                        out.push_back(' ');
+                    }
+
+                    for(char c : w)
+                    {
+                        if(out.size() < out.max_size()) { out.push_back(c); }
+                    }
+
+                    s = e + 1;
+                    continue;
+                }
+            }
+        }
+
+        if(out.size() < out.max_size()) { out.push_back(*s); }
+        ++s;
+    }
+
+    return out;
+}
+
 struct totals
 {
     int attrs[7];
@@ -777,7 +864,7 @@ int how_many(int most, int price)
 {
     bn::string<32> t = "Lv";
     t += bn::to_string<4>(m.level);
-    t += m.hp > 0 ? "  " : "  FNT ";
+    t += m.hp > 0 ? "  " : "  KO ";
     t += bn::to_string<6>(bn::max(0, int(m.hp)));
     t += "/";
     t += bn::to_string<6>(max_hp(m));
@@ -1073,7 +1160,7 @@ void learn_move(member& m, int a, bool silent)
 
     if(has_move(m, a) || (a >= 0 && knows(m, a) && ! mimas::equip_moves))
     {
-        if(! silent) { t = who; t += " already knows "; t += name; t += "."; say(t); }
+        if(! silent) { say(txt(mimas::T_learn_knows, tv().N(who).M(name))); }
         return;
     }
 
@@ -1082,7 +1169,7 @@ void learn_move(member& m, int a, bool silent)
     if(m.move_count < MAX_MOVES)
     {
         m.moves[m.move_count++] = int8_t(a);
-        if(! silent) { t = who; t += " learned "; t += name; t += "!"; say(t); }
+        if(! silent) { say(txt(mimas::T_learn_learned, tv().N(who).M(name))); }
         return;
     }
 
@@ -1174,10 +1261,7 @@ void learn_spell(member& m, int sp, int rank, bool silent)
 
     if(! silent)
     {
-        bn::string<96> t = name_of(m);
-        t += " learned ";
-        t += mimas::spells[sp].name;
-        t += "!";
+        bn::string<160> t = txt(mimas::T_learn_learned, tv().N(name_of(m)).M(mimas::spells[sp].name));
         say(t);
     }
 }
@@ -1241,7 +1325,7 @@ bool use_item(int item, int who)
 
     if(m.hp <= 0 && ! it.revive)
     {
-        say("It won't have any effect.");
+        say(txt(mimas::T_item_no_effect));
         return false;
     }
 
@@ -1252,16 +1336,16 @@ bool use_item(int item, int who)
 
     if(m.hp == before_hp && m.mp == before_mp)
     {
-        say("It won't have any effect.");
+        say(txt(mimas::T_item_no_effect));
         return false;
     }
 
     --bag[item];
-    bn::string<96> t = name_of(m);
+    bn::string<160> t = name_of(m);
 
     if(before_hp <= 0)
     {
-        t += " was revived!";
+        t = txt(mimas::T_item_revived, tv().N(name_of(m)));
     }
     else
     {
@@ -1337,10 +1421,7 @@ void bag_menu()
             if(who >= 0)
             {
                 equip_item(party[who], it.slot, item);
-                bn::string<96> t = name_of(party[who]);
-                t += " equipped ";
-                t += it.name;
-                t += ".";
+                bn::string<160> t = txt(mimas::T_item_equipped, tv().N(name_of(party[who])).I(it.name));
                 say(t);
             }
         }
@@ -1390,7 +1471,7 @@ void shop(const int16_t* goods, int n, bool can_sell)
     while(true)
     {
         int what;
-        ui::say(first ? "Hi there! May I help you?" : "Is there anything else I may do for you?", true);
+        ui::say(txt(first ? mimas::T_shop_hello : mimas::T_shop_again), true);
         first = false;
         set_row(ROWS_C[0], "BUY");
         set_row(ROWS_C[1], "SELL", "", -1, ! can_sell);
@@ -1429,7 +1510,7 @@ void shop(const int16_t* goods, int n, bool can_sell)
 
                 if(most < 1)
                 {
-                    say(bag[item] >= 99 ? "You have no room for it." : "You don't have enough money.");
+                    say(txt(bag[item] >= 99 ? mimas::T_shop_no_room : mimas::T_shop_no_money));
                     continue;
                 }
 
@@ -1452,7 +1533,7 @@ void shop(const int16_t* goods, int n, bool can_sell)
                     sfx(mimas::snd_coin);
                     bag[item] = uint8_t(bag[item] + cnt);
                     money_box(money);
-                    say("Here you are! Thank you!");
+                    say(txt(mimas::T_shop_thanks));
                 }
             }
         }
@@ -1503,7 +1584,7 @@ void shop(const int16_t* goods, int n, bool can_sell)
 
     money.clear();
     ui::clear(0, 0, 10, 4);
-    say("Please come again!");
+    say(txt(mimas::T_shop_bye));
     ui::close();
 }
 
@@ -1575,16 +1656,14 @@ void load_save()
 
 bool save_flow(int map, int x, int y, int dir)
 {
-    if(! ask("Would you like to save the game?"))
+    if(! ask(txt(mimas::T_save_ask)))
     {
         return false;
     }
 
     write_save(map, x, y, dir);
     sfx(mimas::snd_save);
-    bn::string<64> t = name_of(party[0]);
-    t += " saved the game!";
-    say(t);
+    say(txt(mimas::T_save_done, tv().N(name_of(party[0]))));
     return true;
 }
 
@@ -1606,8 +1685,9 @@ struct ailing
 };
 
 constexpr const char* AIL_TAG[] = { "PSN", "BRN", "PAR", "SLP", "FRZ", "CNF", "BLD", "SIL" };
-constexpr const char* AIL_GOT[] = { " was poisoned!", " was burned!", " is paralyzed! It may be unable to move!", " fell asleep!",
-                                    " was frozen solid!", " became confused!", " was blinded!", " was silenced!" };
+// The line for each ailment taking hold (Text & dialog), in the ailments' order.
+constexpr int AIL_GOT[] = { mimas::T_ail_poison, mimas::T_ail_burn, mimas::T_ail_paralyze, mimas::T_ail_sleep,
+                            mimas::T_ail_frozen, mimas::T_ail_confusion, mimas::T_ail_blind, mimas::T_ail_silence };
 
 // An enemy in battle: its numbers at its level, its moves, its magic, its ailment.
 struct foe_rt
@@ -1997,43 +2077,38 @@ bool give_ailment(ailing& st, int ail, int chance, uint8_t resists, const char* 
 
     st.ailment = int8_t(ail);
     st.turns = uint8_t(ail == mimas::SLEEP ? 1 + rng.get_int(3) : ail == mimas::CONFUSION ? 2 + rng.get_int(3) : ail >= mimas::BLIND ? 3 : 0);
-    bn::string<96> t = name;
-    t += AIL_GOT[ail];
-    bsay_auto(t);
+    bsay_auto(txt(AIL_GOT[ail], tv().N(name).T(name)));
     return true;
 }
 
 // Before acting: asleep, frozen, paralyzed or confused (it may hit itself: `hurt` is set). True if they act.
 bool can_act(ailing& st, const char* name, bool& hurt)
 {
-    bn::string<96> t = name;
+    const tv v = tv().N(name).T(name);
     hurt = false;
 
     switch(st.ailment)
     {
         case mimas::SLEEP:
             if(st.turns > 0) { --st.turns; }
-            if(st.turns == 0) { st.ailment = -1; t += " woke up!"; bsay(t); return true; }
-            t += " is fast asleep.";
-            bsay(t);
+            if(st.turns == 0) { st.ailment = -1; bsay(txt(mimas::T_ail_woke, v)); return true; }
+            bsay(txt(mimas::T_ail_still_asleep, v));
             return false;
 
         case mimas::CHILL:
-            if(rng.get_int(5) == 0) { st.ailment = -1; t += " thawed out!"; bsay(t); return true; }
-            t += " is frozen solid!";
-            bsay(t);
+            if(rng.get_int(5) == 0) { st.ailment = -1; bsay(txt(mimas::T_ail_thawed, v)); return true; }
+            bsay(txt(mimas::T_ail_still_frozen, v));
             return false;
 
         case mimas::PARALYZE:
-            if(rng.get_int(4) == 0) { t += " is paralyzed! It can't move!"; bsay(t); return false; }
+            if(rng.get_int(4) == 0) { bsay(txt(mimas::T_ail_cant_move, v)); return false; }
             return true;
 
         case mimas::CONFUSION:
             if(st.turns > 0) { --st.turns; }
-            if(st.turns == 0) { st.ailment = -1; t += " snapped out of its confusion!"; bsay(t); return true; }
-            t += " is confused!";
-            bsay(t);
-            if(rng.get_int(3) == 0) { bsay("It hurt itself in its confusion!"); hurt = true; return false; }
+            if(st.turns == 0) { st.ailment = -1; bsay(txt(mimas::T_ail_snapped, v)); return true; }
+            bsay(txt(mimas::T_ail_still_confused, v));
+            if(rng.get_int(3) == 0) { bsay(txt(mimas::T_ail_hurt_self, v)); hurt = true; return false; }
             return true;
 
         default:
@@ -2044,27 +2119,26 @@ bool can_act(ailing& st, const char* name, bool& hurt)
 // After their turn: poison and burns hurt; blindness and silence wear off. The damage (0: none).
 int after_turn(ailing& st, int max, const char* name)
 {
-    bn::string<96> t = name;
+    const tv v = tv().N(name).T(name);
 
-    if(st.ailment == mimas::POISON) { t += " is hurt by poison!"; bsay(t); return bn::max(1, max / 8); }
-    if(st.ailment == mimas::BURN) { t += " is hurt by its burn!"; bsay(t); return bn::max(1, max / 16); }
+    if(st.ailment == mimas::POISON) { bsay(txt(mimas::T_ail_poison_hurt, v)); return bn::max(1, max / 8); }
+    if(st.ailment == mimas::BURN) { bsay(txt(mimas::T_ail_burn_hurt, v)); return bn::max(1, max / 16); }
 
     if((st.ailment == mimas::BLIND || st.ailment == mimas::SILENCE) && st.turns > 0 && --st.turns == 0)
     {
-        t += st.ailment == mimas::BLIND ? " can see again!" : " can use spells again!";
+        bsay(txt(st.ailment == mimas::BLIND ? mimas::T_ail_sight : mimas::T_ail_voice, v));
         st.ailment = -1;
-        bsay(t);
     }
 
     return 0;
 }
 
-// What a type match did ("It's super effective!").
+// What a type match did ("Struck a weakness!").
 void say_type(int mult, const char* target)
 {
-    if(mult == 0) { bn::string<64> t = "It doesn't affect "; t += target; t += "..."; bsay_auto(t); }
-    else if(mult > 100) { sfx(mimas::snd_weak); bsay_auto("It's super effective!"); }
-    else if(mult > 0 && mult < 100) { bsay_auto("It's not very effective..."); }
+    if(mult == 0) { bsay_auto(txt(mimas::T_battle_immune, tv().T(target).F(target))); }
+    else if(mult > 100) { sfx(mimas::snd_weak); bsay_auto(txt(mimas::T_battle_weak, tv().T(target))); }
+    else if(mult > 0 && mult < 100) { bsay_auto(txt(mimas::T_battle_resist, tv().T(target))); }
 }
 
 // A battle against these foes, one at a time. `can_run`: Run works (never from a boss). `prize`: a trainer's money
@@ -2106,11 +2180,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
         {
             sc.set_foe(foes[fi]);
             const mimas::enemy_def& e = mimas::enemies[sc.f.id];
-            bn::string<64> t;
-
-            if(wild) { t = "A wild "; t += e.name; t += " appeared!"; }
-            else { t = e.name; t += " appeared!"; }
-
+            bn::string<160> t = txt(wild ? mimas::T_battle_appear : mimas::T_battle_appear_event, tv().F(e.name).N(e.name).T(e.name));
             bsay(t);
 
             int cmd_at = 0;
@@ -2125,20 +2195,29 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                 while(choice < 0)
                 {
-                    bn::vector<bn::sprite_ptr, 16> q;
+                    bn::vector<bn::sprite_ptr, 24> q;
                     ui::box(0, 14, 11, 6);
-                    ui::text(12, 118, "What will", q);
-                    bn::string<32> who_do = name_of(m);
-                    who_do += " do?";
-                    ui::text(12, 134, who_do, q);
-                    // FIGHT (Additions, guards and spells) / BAG / PARTY / RUN, two by two.
-                    constexpr const char* cmds[] = { "FIGHT", "BAG", "PARTY", "RUN" };
+                    {
+                        // "Jordan stands ready." (Text & dialog), on two lines at most.
+                        bn::string<320> ask = wrap(txt(mimas::T_battle_ask, tv().N(name_of(m))), 11 * 8 - 20);
+                        const char* p = ask.c_str();
+
+                        for(int ln = 0; ln < 2 && *p; ++ln)
+                        {
+                            const char* end = p;
+                            while(*end && *end != '\n') { ++end; }
+                            ui::text(12, 118 + ln * 16, bn::string_view(p, end - p), q);
+                            p = *end ? end + 1 : end;
+                        }
+                    }
+                    // ATTACK (Additions, guards and spells) / ITEMS / SWAP / FLEE, two by two (Text & dialog's words).
+                    constexpr int cmds[] = { mimas::T_cmd_attack, mimas::T_cmd_items, mimas::T_cmd_swap, mimas::T_cmd_flee };
                     bn::vector<bn::sprite_ptr, 16> labels;
                     ui::box(11, 14, 19, 6);
 
                     for(int k = 0; k < 4; ++k)
                     {
-                        ui::text(11 * 8 + 18 + (k % 2) * 70, 118 + (k / 2) * 16, cmds[k], labels);
+                        ui::text(11 * 8 + 18 + (k % 2) * 70, 118 + (k / 2) * 16, txt(cmds[k]), labels);
                     }
 
                     bn::sprite_ptr cur = bn::sprite_items::cursor.create_sprite(0, 0);
@@ -2229,7 +2308,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                         if(! c)
                         {
-                            bsay("There's nothing to use.");
+                            bsay(txt(mimas::T_battle_no_items));
                             continue;
                         }
 
@@ -2245,15 +2324,15 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                     {
                         if(party_count < 2)
                         {
-                            bsay("There's no one else to send in.");
+                            bsay(txt(mimas::T_battle_no_one));
                             continue;
                         }
 
-                        int k = pick_member("Send in whom?");
+                        int k = pick_member(txt(mimas::T_battle_send_who).c_str());
 
                         if(k >= 0 && k != sc.who && party[k].hp > 0) { choice = 4; arg = k; }
-                        else if(k >= 0 && party[k].hp <= 0) { bsay("They're in no shape to fight!"); }
-                        else if(k == sc.who) { bsay("They're already fighting!"); }
+                        else if(k >= 0 && party[k].hp <= 0) { bsay(txt(mimas::T_battle_cant_fight, tv().N(name_of(party[k])))); }
+                        else if(k == sc.who) { bsay(txt(mimas::T_battle_already, tv().N(name_of(party[k])))); }
 
                         sc.draw_foe();
                         sc.draw_hero();
@@ -2262,7 +2341,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                     {
                         if(! can_run || e.boss)
                         {
-                            bsay("There's no running from this fight!");
+                            bsay(txt(mimas::T_battle_cant_run));
                             continue;
                         }
 
@@ -2282,23 +2361,19 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                     if(rng.get_int(100) < chance)
                     {
-                        bsay("Got away safely!");
+                        bsay(txt(mimas::T_battle_fled, tv().N(name_of(m))));
                         result = RAN;
                         break;
                     }
 
-                    bsay("Can't escape!");
+                    bsay(txt(mimas::T_battle_no_escape, tv().N(name_of(m))));
                 }
                 else if(choice == 4)
                 {
-                    t = name_of(m);
-                    t += ", come back!";
-                    bsay(t);
+                    bsay(txt(mimas::T_battle_swap_out, tv().N(name_of(m))));
                     sc.set_hero(arg);
                     fought[arg] = true;
-                    t = name_of(party[arg]);
-                    t += " steps in!";
-                    bsay(t);
+                    bsay(txt(mimas::T_battle_step_in, tv().N(name_of(party[arg]))));
                 }
                 else if(choice == 2)
                 {
@@ -2312,26 +2387,11 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                     // A guarding move: its MP, half damage and no ailments this round, and a little health back.
                     const mimas::addition_def& a = mimas::additions[arg];
                     m.mp = int16_t(bn::max(0, m.mp - a.mp));
-                    t = name_of(m);
-                    t += " used ";
-                    t += a.name;
-                    t += "!";
-                    bsay_hold(t);
+                    bsay_hold(txt(mimas::T_battle_guard_move, tv().N(name_of(m)).M(a.name)));
                     sc.play_move(a.hit, a.burst, a.element, false);
                     int before = m.hp;
                     sc.drain_hero(m.hp + max_hp(m) * a.guard / 100);
-                    t = name_of(m);
-                    t += " is guarding";
-
-                    if(m.hp > before)
-                    {
-                        t += " and got back ";
-                        t += bn::to_string<6>(m.hp - before);
-                        t += " HP";
-                    }
-
-                    t += "!";
-                    bsay_auto(t);
+                    bsay_auto(m.hp > before ? txt(mimas::T_battle_guard_heal, tv().N(name_of(m)).num(m.hp - before)) : txt(mimas::T_battle_guarding, tv().N(name_of(m))));
                 }
 
                 // ---- the attacks, faster first
@@ -2366,23 +2426,17 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                             if(a && a->mp > hm.mp)
                             {
-                                bsay("Not enough MP!");
+                                bsay(txt(mimas::T_battle_no_mp, tv().N(name_of(hm))));
                                 continue;
                             }
 
                             if(a) { hm.mp = int16_t(hm.mp - a->mp); sc.draw_hero(); }
-                            t = name_of(hm);
-                            t += a ? " used " : " attacks";
-                            if(a) { t += a->name; }
-                            t += "!";
-                            bsay_hold(t);
+                            bsay_hold(a ? txt(mimas::T_battle_addition, tv().N(name_of(hm)).M(a->name).T(e.name).F(e.name)) : txt(mimas::T_battle_attack, tv().N(name_of(hm)).T(e.name).F(e.name)));
 
                             if(hs.ailment == mimas::BLIND && rng.get_int(2) == 0)
                             {
                                 sfx(mimas::snd_dodge);
-                                t = name_of(hm);
-                                t += "'s attack missed!";
-                                bsay(t);
+                                bsay(txt(mimas::T_battle_miss, tv().N(name_of(hm)).T(e.name)));
                                 continue;
                             }
 
@@ -2397,9 +2451,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                             if(mult < 0)
                             {
                                 sc.drain_foe(sc.f.hp + bn::max(1, int(dmg / 100)));
-                                t = e.name;
-                                t += " absorbed it!";
-                                bsay_auto(t);
+                                bsay_auto(txt(mimas::T_battle_absorb, tv().T(e.name).F(e.name).N(name_of(hm))));
                                 continue;
                             }
 
@@ -2409,13 +2461,10 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                             if(hits > 1 && dmg)
                             {
-                                t = "Hit ";
-                                t += bn::to_string<4>(hits);
-                                t += " times!";
-                                bsay_auto(t);
+                                bsay_auto(txt(mimas::T_battle_hits, tv().num(hits)));
                             }
 
-                            if(crit && dmg) { sfx(mimas::snd_crit); bsay_auto("A critical hit!"); }
+                            if(crit && dmg) { sfx(mimas::snd_crit); bsay_auto(txt(mimas::T_battle_crit)); }
                             say_type(mult, e.name);
                             if(a && dmg && sc.f.hp > 0) { give_ailment(sc.f.st, a->inflict, a->chance, e.resists, e.name); sc.draw_foe(); }
                         }
@@ -2426,23 +2475,19 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                             if(hm.mp < r.mp)
                             {
-                                bsay("Not enough MP!");
+                                bsay(txt(mimas::T_battle_no_mp, tv().N(name_of(hm))));
                                 continue;
                             }
 
                             if(hs.ailment == mimas::SILENCE)
                             {
-                                bsay("Silenced: no spells!");
+                                bsay(txt(mimas::T_battle_silenced, tv().N(name_of(hm))));
                                 continue;
                             }
 
                             hm.mp = int16_t(hm.mp - r.mp);
                             sc.draw_hero();
-                            t = name_of(hm);
-                            t += " cast ";
-                            t += sp.name;
-                            t += "!";
-                            bsay_hold(t);
+                            bsay_hold(txt(mimas::T_battle_spell, tv().N(name_of(hm)).M(sp.name).T(e.name).F(e.name)));
                             int power = r.power * (40 + th.attrs[mimas::MAG]) / 50;   // x10
 
                             if(sp.kind == 0)
@@ -2454,9 +2499,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                                 if(mult < 0)
                                 {
                                     sc.drain_foe(sc.f.hp + bn::max(1, dmg));
-                                    t = e.name;
-                                    t += " absorbed it!";
-                                    bsay_auto(t);
+                                    bsay_auto(txt(mimas::T_battle_absorb, tv().T(e.name).F(e.name).N(name_of(hm))));
                                 }
                                 else
                                 {
@@ -2471,9 +2514,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                                 sc.play_move(sp.hit >= 0 ? sp.hit : mimas::fx_sparkle, sp.burst, sp.element, false);
                                 int heal = bn::max(1, spread(power) / 10);
                                 sc.drain_hero(hm.hp + heal);
-                                t = name_of(hm);
-                                t += " recovered health!";
-                                bsay_auto(t);
+                                bsay_auto(txt(mimas::T_battle_heal, tv().N(name_of(hm)).M(sp.name)));
                             }
 
                             sc.draw_hero();
@@ -2517,9 +2558,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                         if(u == 0)
                         {
-                            t = e.name;
-                            t += " attacks!";
-                            bsay_hold(t);
+                            bsay_hold(txt(mimas::T_battle_foe_attack, tv().F(e.name).N(e.name).T(name_of(hm))));
                             sc.play_move(mimas::fx_hit_plain, -1, e.element, false);
                             int mult = type_mult(e.element, hel, 0, 0);
                             int32_t dmg = spread(sc.f.attack);
@@ -2530,7 +2569,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                             dmg = bn::max(1, int(dmg / 100));
                             sc.blink(sc.back);
                             sc.drain_hero(hm.hp - dmg);
-                            if(crit) { sfx(mimas::snd_crit); bsay_auto("A critical hit!"); }
+                            if(crit) { sfx(mimas::snd_crit); bsay_auto(txt(mimas::T_battle_crit)); }
                             say_type(mult, name_of(hm));
                             if(hm.hp > 0 && ! guard) { give_ailment(hs, e.inflict, e.chance, 0, name_of(hm)); sc.draw_hero(); }
                         }
@@ -2541,18 +2580,12 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                             if(mv >= 0)
                             {
                                 const mimas::addition_def& a = mimas::additions[mv];
-                                t = e.name;
-                                t += " used ";
-                                t += a.name;
-                                t += "!";
-                                bsay_hold(t);
+                                bsay_hold(txt(mimas::T_battle_foe_addition, tv().F(e.name).N(e.name).M(a.name).T(name_of(hm))));
 
                                 if(sc.f.st.ailment == mimas::BLIND && rng.get_int(2) == 0)
                                 {
                                     sfx(mimas::snd_dodge);
-                                    t = e.name;
-                                    t += "'s attack missed!";
-                                    bsay(t);
+                                    bsay(txt(mimas::T_battle_miss, tv().N(e.name).F(e.name).T(name_of(hm))));
                                     continue;
                                 }
 
@@ -2566,8 +2599,8 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                                 dmg = bn::max(1, int(dmg / 100));
                                 sc.blink(sc.back);
                                 sc.drain_hero(hm.hp - dmg);
-                                if(a.hits > 1) { t = "Hit "; t += bn::to_string<4>(a.hits); t += " times!"; bsay_auto(t); }
-                                if(crit) { sfx(mimas::snd_crit); bsay_auto("A critical hit!"); }
+                                if(a.hits > 1) { bsay_auto(txt(mimas::T_battle_hits, tv().num(a.hits))); }
+                                if(crit) { sfx(mimas::snd_crit); bsay_auto(txt(mimas::T_battle_crit)); }
                                 say_type(mult, name_of(hm));
                                 if(hm.hp > 0 && ! guard) { give_ailment(hs, a.inflict, a.chance, 0, name_of(hm)); sc.draw_hero(); }
                             }
@@ -2575,11 +2608,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                             {
                                 const mimas::spell_def& sp = mimas::spells[-mv - 1];
                                 sc.f.mp -= sp.ranks[0].mp;
-                                t = e.name;
-                                t += " cast ";
-                                t += sp.name;
-                                t += "!";
-                                bsay_hold(t);
+                                bsay_hold(txt(mimas::T_battle_foe_spell, tv().F(e.name).N(e.name).M(sp.name).T(name_of(hm))));
 
                                 if(sp.kind == 0)
                                 {
@@ -2597,9 +2626,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                                 {
                                     sc.play_move(sp.hit >= 0 ? sp.hit : mimas::fx_sparkle, sp.burst, sp.element, true);
                                     sc.drain_foe(sc.f.hp + bn::max(1, sc.f.max * 35 / 100));
-                                    t = e.name;
-                                    t += " recovered health!";
-                                    bsay_auto(t);
+                                    bsay_auto(txt(mimas::T_battle_foe_heal, tv().F(e.name).N(e.name).M(sp.name)));
                                 }
                             }
                         }
@@ -2633,10 +2660,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                 {
                     sfx(mimas::snd_defeat);
                     sc.foe->set_visible(false);
-                    t = wild ? "The wild " : "";
-                    t += e.name;
-                    t += " fainted!";
-                    bsay(t);
+                    bsay(txt(mimas::T_battle_defeated, tv().F(e.name).N(e.name).T(e.name)));
 
                     for(int i = 0; i < party_count; ++i)
                     {
@@ -2645,21 +2669,13 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                             continue;
                         }
 
-                        t = name_of(party[i]);
-                        t += " gained ";
-                        t += bn::to_string<6>(sc.f.xp);
-                        t += " EXP!";
-                        bsay(t);
+                        bsay(txt(mimas::T_battle_exp, tv().N(name_of(party[i])).num(sc.f.xp)));
                         int ups = gain_xp(party[i], sc.f.xp);
 
                         if(ups)
                         {
                             sfx(mimas::snd_levelUp);
-                            t = name_of(party[i]);
-                            t += " grew to Lv. ";
-                            t += bn::to_string<4>(party[i].level);
-                            t += "!";
-                            bsay(t);
+                            bsay(txt(mimas::T_battle_level, tv().N(name_of(party[i])).lv(party[i].level)));
                         }
 
                         if(i == sc.who) { sc.draw_hero(); }
@@ -2677,13 +2693,11 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                 {
                     sc.back->set_visible(false);
                     sc.hero_st[sc.who] = ailing();
-                    t = name_of(party[sc.who]);
-                    t += " fainted!";
-                    bsay(t);
+                    bsay(txt(mimas::T_battle_down, tv().N(name_of(party[sc.who])).T(name_of(party[sc.who]))));
 
                     if(first_standing() < 0)
                     {
-                        bsay("There's no one left to fight!");
+                        bsay(txt(mimas::T_battle_all_down));
                         result = LOST;
                         break;
                     }
@@ -2692,15 +2706,13 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                     while(k < 0 || party[k].hp <= 0)
                     {
-                        k = pick_member("Send in whom?");
+                        k = pick_member(txt(mimas::T_battle_send_who).c_str());
                         sc.draw_foe();
                     }
 
                     sc.set_hero(k);
                     fought[k] = true;
-                    t = name_of(party[k]);
-                    t += " steps in!";
-                    bsay(t);
+                    bsay(txt(mimas::T_battle_step_in, tv().N(name_of(party[k]))));
                 }
             }
         }
@@ -2713,10 +2725,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
             {
                 gold += got;
                 sfx(mimas::snd_coin);
-                bn::string<64> t = "Got $";
-                t += bn::to_string<8>(got);
-                t += " for winning!";
-                bsay(t);
+                bsay(txt(mimas::T_battle_gold, tv().num(got)));
             }
         }
 
@@ -2876,11 +2885,11 @@ void start_menu(world& w, int map)
 
     while(true)
     {
-        set_row(ROWS_C[0], "PARTY");
-        set_row(ROWS_C[1], "BAG");
+        set_row(ROWS_C[0], txt(mimas::T_menu_party).c_str());
+        set_row(ROWS_C[1], txt(mimas::T_menu_bag).c_str());
         set_row(ROWS_C[2], name_of(party[0]));
-        set_row(ROWS_C[3], "SAVE");
-        set_row(ROWS_C[4], "EXIT");
+        set_row(ROWS_C[3], txt(mimas::T_menu_save).c_str());
+        set_row(ROWS_C[4], txt(mimas::T_menu_exit).c_str());
         list_spec s;
         s.x = 20; s.y = 0; s.w = 10; s.visible = 5; s.detail = start_detail;
         int k = pick(ROWS_C, 5, s, at);

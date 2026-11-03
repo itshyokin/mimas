@@ -5823,8 +5823,7 @@
       ]
     },
     "barFill": "flat",
-    "barShape": "rect",
-    "orbStyle": "flat"
+    "barShape": "rect"
   },
   "troops": [
     {

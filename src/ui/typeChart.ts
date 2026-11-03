@@ -19,7 +19,7 @@ export function typeChartHtml(r: EssenceRules): string {
   }).join('');
   const tiers = (['fragment', 'shard', 'heart'] as const).map((t) => `<div><dt>${TIER_NAMES[t]}</dt><dd>+${r[t].damage}% damage · weaknesses ×${r[t].weak}</dd></div>`).join('');
   return `<section class="rec-section tc-full"><h3>Matchups</h3><div class="tc-wrap"><table class="type-chart">${head}${rows}</table></div>
-    <p class="rec-empty">Green ×2: super effective. Red ½: not very effective. Two elements multiply (a hit can be ×4 or ¼, kept between ×3 and ¼).</p></section>
+    <p class="rec-empty">Green ×2: a weakness. Red ½: resisted. Two elements multiply (a hit can be ×4 or ¼, kept between ×3 and ¼).</p></section>
     <section class="rec-section tc-full"><h3>Each element</h3>${lines}</section>
     <section class="rec-section tc-full"><h3>Element stones</h3><dl class="rec-rows">${tiers}
       <div><dt>Two Shards of one element</dt><dd>weaknesses ×${r.doubleWeak}</dd></div>

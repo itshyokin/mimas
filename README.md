@@ -141,6 +141,28 @@ foe's front), `public/gba/heroes/` (backs and faces) and `public/gba/items/`
 The full guide to Saturn's tools (events, Database, props) is in
 [docs/saturn/README.md](docs/saturn/README.md).
 
+### The Database
+
+One data file, two views (the switch at the top left of the Database):
+**Database** shows only what the GBA game uses; **Saturn extras** shows the
+rest (Saturn's settings the GBA game doesn't use yet; they keep their values,
+nothing is erased).
+
+- **Game → Text & dialog**: every line the GBA game says (battles, ailments,
+  learning, items, the party, saving, shops) and its command words (ATTACK,
+  ITEMS, SWAP, FLEE; the START menu's PARTY, BAG, SAVE, EXIT). Each shows its
+  built-in line greyed: type over it to change it, **Reset** puts it back.
+  **+ Version** adds another wording, and one is picked at random each time,
+  in the playtest and the ROM. Fill-ins: `{name}` the hero, `{foe}` the
+  enemy, `{target}` who it happens to, `{move}`, `{item}`, `{n}` a number,
+  `{level}`. "A {foe}" turns into "An" before a vowel (*An Owlbear leaps
+  out!*). A preview under each line shows it filled in.
+- **Heroes → Battle picture (GBA)**: the default is the hero's own character
+  standing side-on, facing the foe, twice its size on the map. GBA Studio's
+  mannequin (from behind), a standing pose, a frame of their sheet or a
+  picture of your own are still there to choose.
+- **Title & menus → Party markers**: diamonds by default.
+
 ### GBA Studio
 
 The **GBA Studio** button opens the art department: Tiles, Sprites and
@@ -214,17 +236,19 @@ The mannequins are also in `public/gba/bases/`, with red-bordered versions
 Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 `public/gba/tiles/` and `public/gba/sprites/`.
 
-## What the ROM does (v0.8)
+## What the ROM does (v0.9)
 
-- **Battles**, Gold / Silver style on a white screen: the foe across from your
-  hero, panels like Saturn's (name, level, gender symbol, element icons, HP,
-  MP and the EXP bar), *What will Jordan do?* with FIGHT, BAG, PARTY and RUN.
-  FIGHT is the hero's four moves: Additions (every strike landing), spells
-  and guards, each showing its MP cost (any Addition can have one). A guard
-  (an Addition with *Guard* ticked) halves damage, keeps ailments off for the
-  round and gives back some health (10% unless you set it). A move's line
-  stays up while its animation plays, and lines like *It's super effective!*
-  move on by themselves (A skips). The faster side goes first.
+- **Battles** on a white screen (or the map's battle background): your hero
+  side-on at the left facing the foe, panels like Saturn's (name, level,
+  gender symbol, element icons, HP, MP and the EXP bar), *Jordan stands
+  ready.* with ATTACK, ITEMS, SWAP and FLEE. ATTACK is the hero's four moves:
+  Additions (every strike landing), spells and guards, each showing its MP
+  cost (any Addition can have one). A guard (an Addition with *Guard* ticked)
+  halves damage, keeps ailments off for the round and gives back some health
+  (10% unless you set it). A move's line stays up while its animation plays,
+  and lines like *Struck a weakness!* move on by themselves (A skips). The
+  faster side goes first. Every line and command word comes from Database →
+  Text & dialog.
 - **Battle backgrounds**: six built in (meadow, forest, cave, town street,
   beach, snowfield), chosen per map (Map settings → Battles → Battle
   background). GBA Studio → Battle backgrounds lists them; swap any for your
@@ -243,7 +267,7 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   and **Change HP / MP** work too. Saves go to the cartridge.
 - **Enemy moves, types and ailments**: foes use their four moves (or their
   level's moveset, or a fight's own), spells cost their MP; type matchups
-  (super effective / not very effective / doesn't affect / absorbs) and
+  (weakness / resisted / immune / absorbs) and
   poison, burn, paralysis, sleep, freeze, confusion, blindness and silence.
   The panels show PSN, BRN… Support spells work as small heals for now.
 - **Trainers** spot you, show a (!), walk up, say their line and battle (one

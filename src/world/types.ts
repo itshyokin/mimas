@@ -1126,11 +1126,11 @@ export interface HeroDef {
   name: string;
   /** Update 127: their gender (a coloured symbol on stat blocks), and which version of worn clothes they wear. */
   /**
-   * Mimas: the picture they fight as, seen from behind. 'default' GBA Studio's back sprite (the mannequin);
-   * 'overworld' their character standing (facing `dir`, default up); 'frame' one frame of their sheet (`col`, `row`);
-   * 'image' a picture of your own (`image`, a project file).
+   * Mimas: the picture they fight as. 'default' (unset) their character standing side-on facing the foe, twice its
+   * size on the map; 'mannequin' GBA Studio's back sprite (from behind); 'overworld' their character standing (facing
+   * `dir`, default up); 'frame' one frame of their sheet (`col`, `row`); 'image' a picture of your own (`image`).
    */
-  battleLook?: { mode: 'default' | 'overworld' | 'frame' | 'image'; dir?: Dir; col?: number; row?: number; image?: string };
+  battleLook?: { mode: 'default' | 'mannequin' | 'overworld' | 'frame' | 'image'; dir?: Dir; col?: number; row?: number; image?: string };
   gender?: Gender;
   outfit?: 'masc' | 'femme';
   /** Update 127: their answers to the roleplay titles (Database → Party → Roleplay), by title id. */
@@ -1235,6 +1235,8 @@ export interface Database {
   /** 3D maps (Update 154): the camera orbits the hero (default) or settles behind them as they walk. */
   camera3d?: 'orbit' | 'follow';
   title: string;
+  /** Mimas: the GBA game's lines and command words that differ from the built-in ones (src/gba/text.ts), by key. */
+  gbaText?: Record<string, string[]>;
   /** The World layout (Map editor → World): where each map sits, place names, and the world map's fog. */
   world?: import('./worldLayout').WorldData;
   /** Kinds of world-map marker for events (Database → Map markers; default: Quest location, Landmark, Town, Danger). */
@@ -1633,6 +1635,7 @@ export interface MenuConfig {
   /** Update 126: how meters are filled and shaped, and how the party's orbs look (unset: gradient, pill, sphere). */
   barFill?: 'gradient' | 'flat' | 'glossy' | 'striped' | 'segmented';
   barShape?: 'pill' | 'rect' | 'bevel' | 'thin' | 'blocks';
+  /** The party's markers in battle (Mimas: unset is 'diamond'). */
   orbStyle?: 'sphere' | 'flat' | 'square' | 'diamond';
   /** The Party page's member panels: where they sit, how big, what they show (see ui/partyLayout.ts). */
   partyLayout?: import('../ui/partyLayout').PartyLayout;

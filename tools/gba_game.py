@@ -10,6 +10,7 @@ scripts use (tools/gba_events.py).
 """
 import json
 import os
+import re
 
 from PIL import Image
 
@@ -25,8 +26,13 @@ UI_PAL = [(255, 0, 255), (248, 248, 248), (48, 80, 144), (112, 144, 200),
           (64, 64, 72), (88, 208, 128), (248, 192, 64), (240, 80, 72), (160, 160, 168), (48, 48, 56), (72, 152, 240)] + [(0, 0, 0)] * 5
 
 
+# The ROM's font is plain ASCII: curly quotes, dashes and the ellipsis become their plain versions.
+ASCII = {'\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"', '\u2026': '...', '\u2013': '-', '\u2014': '-', '\u00a0': ' ', '\u00d7': 'x'}
+
+
 def c_str(text):
-    text = ''.join(ch for ch in (text or '') if 32 <= ord(ch) < 127)
+    text = ''.join(ASCII.get(ch, ch) for ch in (text or ''))
+    text = ''.join(ch for ch in text if 32 <= ord(ch) < 127)
     return '"' + text.replace('\\', '\\\\').replace('"', '\\"') + '"'
 
 
@@ -352,6 +358,34 @@ def sounds_out(public, root, sounds):
     return ids
 
 
+def text_keys():
+    """Every line's key, from src/gba/text.ts (the one list; the ROM's T_<key> numbers come from it)."""
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'gba', 'text.ts')) as f:
+        return re.findall(r"^\s*[LW]\('[^']*', '([a-z_.]+)'", f.read(), re.M)
+
+
+def text_table(w, text):
+    """The game's lines and command words (Database > Text & dialog): every version of each, and a T_<key> number for
+    each (game_systems.hpp's line() picks one at random and fills in {name}, {foe}...)."""
+    TEXT_KEYS = text_keys()
+    text = {k: text[k] for k in TEXT_KEYS if k in text}
+    if not text:
+        print('  no lines in gba_game.json yet (open the editor and save a GBA map): the ROM shows each line\'s name')
+        text = {k: [k] for k in TEXT_KEYS}
+    for k in TEXT_KEYS:
+        if k not in text:
+            print(f'  line {k} missing from gba_game.json (save a GBA map in the editor): using its name')
+            text[k] = [k]
+    keys = TEXT_KEYS
+    w('\n// The game\'s lines (Database > Text & dialog): each line\'s versions (one is picked at random).\n')
+    w('struct text_line { const char* const* versions; uint8_t count; };\n')
+    for i, k in enumerate(keys):
+        vs = [v for v in text[k] if (v or '').strip()] or ['']
+        w(f'constexpr const char* text_{i}[] = {{ ' + ', '.join(c_str(v) for v in vs[:8]) + ' };\n')
+    w('constexpr text_line text_lines[] = { ' + ', '.join(f'{{ text_{i}, {min(8, max(1, len([v for v in text[k] if (v or "").strip()])))} }}' for i, k in enumerate(keys)) + ' };\n')
+    w('enum text_id { ' + ', '.join('T_' + re.sub(r'[^A-Za-z0-9]', '_', k) for k in keys) + ' };\n')
+
+
 def export(root, public, data, gfx, inc, db, gba, maps, comp):
     """Writes the game's sprites and game/include/mimas_game.h. `maps`: the exported maps (with their Saturn data)."""
     clean(gfx)
@@ -387,16 +421,19 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
         if img is None:
             missing.append(e['name'])
         sprite_from(img or stand_in(64, (120, 200, 120, 255)), 64, gfx, f'enemy_{k}')
-    # Each hero's battle picture (Database → Heroes → Battle picture): 'default' is GBA Studio's back sprite (the
-    # mannequin); the others the editor bakes into public/gba/heroes/<id>_back.png.
+    # Each hero's battle picture (Database → Heroes → Battle picture): the editor bakes it into
+    # public/gba/heroes/<id>_back.png ('default': their character side-on, x2). 'mannequin' is GBA Studio's back
+    # sprite, which is also the stand-in for a hero with no picture baked (no character yet).
     gba_back = next((s for s in gba.get('sprites', []) if s.get('kind') == 'backsprite'), None)
+
+    def mannequin():
+        img = load_png(public, gba_back['image']) if gba_back else None
+        return img.crop((0, 0, min(64, img.width), min(64, img.height))) if img is not None else None
+
     for k, h in enumerate(heroes):
-        back = None
-        if h.get('battleLook', 'default') == 'default' and gba_back:
-            back = load_png(public, gba_back['image'])
-            if back is not None:
-                back = back.crop((0, 0, min(64, back.width), min(64, back.height)))
-        back = back or load_png(public, f'gba/heroes/{h["id"]}_back.png')
+        mode = h.get('battleLook', 'default')
+        back = mannequin() if mode == 'mannequin' else load_png(public, f'gba/heroes/{h["id"]}_back.png')
+        back = back or mannequin()
         face = load_png(public, f'gba/heroes/{h["id"]}_face.png')
         if back is None or face is None:
             missing.append(h['name'])
@@ -661,6 +698,7 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w(f'constexpr int flee_chance = {int(game.get("flee", 50))};\n')
     w(f'// Additions past four: forget one (Pokemon), or keep them all and equip four (Party > Moves).\n')
     w(f'constexpr bool equip_moves = {"true" if game.get("moveSlots") == "equip" else "false"};\n')
+    text_table(w, game.get('text') or {})
     w('}\n\n#endif\n')
     with open(os.path.join(inc, 'mimas_game.h'), 'w') as f:
         f.write(''.join(out))

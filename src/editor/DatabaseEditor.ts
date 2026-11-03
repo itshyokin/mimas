@@ -1,4 +1,6 @@
-import { markMimas, MIMAS_OFF_TABS } from './mimasSupport';
+import { type DbView, markMimas, MIMAS_OFF_TABS, tabInView } from './mimasSupport';
+import { gbaTextTab } from './TextEditor';
+import { cleanText } from '../gba/text';
 import { partyLayoutSection } from './PartyLayoutEditor';
 import { FIELD_USE_NAMES, POWER_NAMES } from '../world/items';
 import { FIELD_POWERS, FIELD_USES } from '../world/types';
@@ -81,7 +83,7 @@ const COSTS: [keyof PlayerConfig['cost'], string, string][] = [
   ['run', 'Run', 'per second'], ['jump', 'Jump', 'per jump'], ['climb', 'Climb', 'per second'], ['swim', 'Swim', 'per second'],
 ];
 
-export type DbTab = 'player' | 'heroes' | 'characters' | 'items' | 'materials' | 'weapons' | 'gear' | 'shards' | 'keyItems' | 'inventory' | 'quests' | 'combat' | 'enemies' | 'troops' | 'skills' | 'spells' | 'additions' | 'classes' | 'audio' | 'time' | 'saving' | 'menus' | 'credits' | 'achievements' | 'markers' | 'textColors' | 'messageStyles' | 'climate' | 'mapThemes' | 'horses' | 'camera' | 'stats' | 'tutorials' | 'relations' | 'roleplay' | 'globals' | 'genders';
+export type DbTab = 'player' | 'heroes' | 'characters' | 'items' | 'materials' | 'weapons' | 'gear' | 'shards' | 'keyItems' | 'inventory' | 'quests' | 'combat' | 'enemies' | 'troops' | 'skills' | 'spells' | 'additions' | 'classes' | 'audio' | 'time' | 'saving' | 'menus' | 'credits' | 'achievements' | 'markers' | 'textColors' | 'messageStyles' | 'climate' | 'mapThemes' | 'horses' | 'camera' | 'stats' | 'tutorials' | 'relations' | 'roleplay' | 'globals' | 'genders' | 'gbaText';
 
 /** The tabs, in groups, each with an icon (its name shows as a tooltip and beside the icons). */
 const DB_GROUPS: [string, [DbTab, string, string][]][] = [
@@ -91,7 +93,7 @@ const DB_GROUPS: [string, [DbTab, string, string][]][] = [
   ['Items', [['items', 'Items', 'potion'], ['materials', 'Materials', 'ore'], ['weapons', 'Weapons', 'sword'], ['gear', 'Gear: armor, shields, accessories', 'armor'], ['shards', 'Shards: spells and element stones', 'gem'], ['keyItems', 'Key items', 'key'], ['inventory', 'Starting inventory', 'bag']]],
   ['Story', [['quests', 'Quests', 'scroll'], ['achievements', 'Achievements', 'trophy'], ['tutorials', 'Tutorials', 'bubble'], ['globals', 'Global events', 'globe']]],
   ['World', [['camera', 'View & camera', 'eye'], ['time', 'Time & seasons', 'clock'], ['climate', 'Weather & temperature', 'cloud'], ['mapThemes', 'Map themes', 'mountain'], ['markers', 'Map markers', 'pin'], ['horses', 'Travel: horses and griffins', 'horse']]],
-  ['Game', [['stats', 'Stat order', 'bars'], ['menus', 'Title & menus', 'menu'], ['messageStyles', 'Text boxes', 'bubble'], ['textColors', 'Text colours', 'palette'], ['audio', 'Audio', 'note'], ['saving', 'Saving', 'disk'], ['credits', 'Credits', 'heart']]],
+  ['Game', [['gbaText', 'Text & dialog', 'quote'], ['stats', 'Stat order', 'bars'], ['menus', 'Title & menus', 'menu'], ['messageStyles', 'Text boxes', 'bubble'], ['textColors', 'Text colours', 'palette'], ['audio', 'Audio', 'note'], ['saving', 'Saving', 'disk'], ['credits', 'Credits', 'heart']]],
 ];
 const ICON_PATHS: Record<string, string> = {
   person: '<circle cx="12" cy="7" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
@@ -121,6 +123,7 @@ const ICON_PATHS: Record<string, string> = {
   disk: '<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
   bars: '<path d="M5 6h14M5 12h10M5 18h6"/><path d="M19 15v6M16.5 18.5L19 21l2.5-2.5"/>',
   menu: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/>',
+  quote: '<path d="M4 4h16v12H9l-5 4z"/><path d="M8 8.5h1.5v2L8 12M13 8.5h1.5v2L13 12"/>',
   bubble: '<path d="M4 5h16v11H10l-4 4v-4H4z"/><path d="M8 9h8M8 12h5"/>',
   mountain: '<path d="M2 20l7-12 4 6 3-4 6 10z"/><path d="M7.5 10.5l1.5 1.5 1.5-1.5"/>',
   cloud: '<path d="M7 18a4 4 0 0 1-.5-8 5.5 5.5 0 0 1 10.6 1.4A3.4 3.4 0 0 1 17 18z"/><path d="M12 2v2M5 5l1.4 1.4M19 5l-1.4 1.4"/>',
@@ -130,6 +133,9 @@ const ICON_PATHS: Record<string, string> = {
   heart: '<path d="M12 20s-8-4.7-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6.3-8 11-8 11z"/>',
 };
 const dbIcon = (k: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[k] ?? ''}</svg>`;
+
+/** The Database's view last time it was open (Database or Saturn extras). */
+let lastView: DbView = 'gba';
 
 export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): void {
   const cfg: PlayerConfig = playerConfig(store.db.stats);
@@ -189,6 +195,7 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
   const bodyWork: BodySettings = structuredClone(bodySettings(store.db.body));
   const msgStyles: MessageStyle[] = structuredClone(messageStyles(store.db.messageStyles)), msgState = { sel: 0 };
   let devConsole = store.db.devConsole ?? 'playtest';
+  const gbaText: Record<string, string[]> = structuredClone(store.db.gbaText ?? {}), textState = { q: '' };
 
   const num = (value: number, set: (v: number) => void, min = 0, step = 1, label = '') =>
     numberInput(value, (v) => set(Math.max(min, v)), { min: String(min), step: String(step), 'aria-label': label, class: 'db-num' });
@@ -197,13 +204,20 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
   const tabName = h('div', { class: 'db-tab-name' });
   const content = h('div', { class: 'db-editor' });
   body.className = 'db-wrap';
-  body.append(h('div', { class: 'db-tabbar' }, tabs, tabName), content);
+  const viewBar = h('div', { class: 'seg db-view-seg', role: 'group', 'aria-label': 'Database view' });
+  body.append(h('div', { class: 'db-tabbar' }, viewBar, tabs, tabName), content);
   let shownTab: DbTab | null = null;
+  // Mimas: one data file, two views: the Database (what the GBA game uses) and the Saturn extras (the rest).
+  let view: DbView = tabInView(tab, 'gba') ? lastView : 'saturn';
   const render = () => {
-    tabs.replaceChildren(...DB_GROUPS.map(([group, list]) => h('div', { class: 'db-tab-group', role: 'group', 'aria-label': group },
+    if (!tabInView(tab, view)) tab = DB_GROUPS.flatMap(([, l]) => l).find(([id]) => tabInView(id, view))![0];
+    lastView = view;
+    viewBar.replaceChildren(...(([['gba', 'Database', 'What the GBA game uses'], ['saturn', 'Saturn extras', 'Settings the GBA game doesn’t use yet (kept, not erased)']] as const).map(([v, label, title]) =>
+      h('button', { type: 'button', title, 'aria-pressed': String(view === v), onclick: () => { if (view !== v) { view = v; render(); } } }, label))));
+    tabs.replaceChildren(...DB_GROUPS.map(([group, all]) => [group, all.filter(([id]) => tabInView(id, view))] as const).filter(([, list]) => list.length).map(([group, list]) => h('div', { class: 'db-tab-group', role: 'group', 'aria-label': group },
       h('span', { class: 'db-group-label' }, group),
       h('div', { class: 'db-group-icons' }, ...list.map(([id, label, icon]) => {
-        const b = h('button', { type: 'button', role: 'tab', class: `db-tab${MIMAS_OFF_TABS.has(id) ? ' mimas-off-tab' : ''}`, title: MIMAS_OFF_TABS.has(id) ? `${label} (not in the GBA game yet)` : label, 'aria-label': label, 'aria-selected': String(tab === id), onclick: () => { (document.activeElement as HTMLElement | null)?.blur?.(); tab = id; render(); } });
+        const b = h('button', { type: 'button', role: 'tab', class: 'db-tab', title: MIMAS_OFF_TABS.has(id) ? `${label} (not in the GBA game yet)` : label, 'aria-label': label, 'aria-selected': String(tab === id), onclick: () => { (document.activeElement as HTMLElement | null)?.blur?.(); tab = id; render(); } });
         b.innerHTML = dbIcon(icon);
         return b;
       })))));
@@ -219,7 +233,7 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
     if (COMPACT_TABS.has(tab)) { const f = content.querySelector<HTMLElement>('.items-layout .item-form'); if (f) compactForm(f); else compactForm(content).classList.add('db-page'); }
     else content.classList.remove('db-compact', 'db-page');
     // Mimas: what the GBA game doesn't use yet, greyed (kept, not erased).
-    markMimas(content, tab);
+    markMimas(content, tab, view);
     content.scrollTop = top;
     addTopDelete();
   };
@@ -371,6 +385,7 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
   };
   const renderTab = () => {
     if (tab === 'stats') { content.replaceChildren(statOrderSection()); return; }
+    if (tab === 'gbaText') { content.replaceChildren(...gbaTextTab(gbaText, textState, render)); return; }
     if (tab === 'heroes') { content.replaceChildren(...heroesTab(heroes, people, combat, heroState, render, work.items, { spells, additions, classes }, { pick: (x, done) => pickFace(store, x, done), url: (p) => { const b = store.files.get(p); return b ? URL.createObjectURL(b) : p; } }, { pick: (x, done) => pickBattlePicture(store, x, done), load: (p) => loadPicture(store, p) })); return; }
     if (tab === 'characters') {
       // Looks (the sprites and models) or Chatter (what each hero says out of battle).
@@ -593,7 +608,7 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
       h('div', { class: 'field-row' },
         field('Meter fill', select([['gradient', 'Gradient (shaded)'], ['flat', 'Flat colour'], ['glossy', 'Glossy (a shine along the top)'], ['striped', 'Striped'], ['segmented', 'Segmented (blocks of colour)']], menus.barFill ?? (menus.barsSolid ? 'flat' : 'gradient'), (v) => { delete menus.barsSolid; if (v === 'gradient') delete menus.barFill; else menus.barFill = v as NonNullable<typeof menus.barFill>; })),
         field('Meter shape', select([['pill', 'Pill (round ends)'], ['rect', 'Rectangle'], ['bevel', 'Bevelled (cut corners)'], ['thin', 'Thin line'], ['blocks', 'Blocks (gaps between)']], menus.barShape ?? (menus.barsSquare ? 'rect' : 'pill'), (v) => { delete menus.barsSquare; if (v === 'pill') delete menus.barShape; else menus.barShape = v as NonNullable<typeof menus.barShape>; })),
-        field('Party orbs (battle)', select([['sphere', 'Shaded sphere'], ['flat', 'Flat circle'], ['square', 'Pixel square'], ['diamond', 'Diamond']], menus.orbStyle ?? 'sphere', (v) => { if (v === 'sphere') delete menus.orbStyle; else menus.orbStyle = v as NonNullable<typeof menus.orbStyle>; }))),
+        field('Party markers (battle)', select([['diamond', 'Diamond'], ['sphere', 'Shaded sphere'], ['flat', 'Flat circle'], ['square', 'Pixel square']], menus.orbStyle ?? 'diamond', (v) => { if (v === 'diamond') delete menus.orbStyle; else menus.orbStyle = v as NonNullable<typeof menus.orbStyle>; }))),
       h('p', { class: 'note' }, 'The same colours everywhere: the HUD, the menus and battles. Health still turns yellow at half and red when low where its bar shows that.'));
   };
   const menusTab = () => [
@@ -762,10 +777,11 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
       const climateOut = cleanClimate(climate) ?? null;
       const bodyOut = cleanBody(bodyWork) ?? null;
       const camOut = Object.keys(cam).length ? cam : null;
+      const textOut = cleanText(gbaText) ?? null;
       const statOut = statOrder.join() === DEFAULT_ATTR_ORDER.join() ? null : [...statOrder];
       const armorOut = JSON.stringify(work.armorTypes) === JSON.stringify(DEFAULT_ARMOR_TYPES) && !db.armorTypes ? null : work.armorTypes ?? null;
       const weaponOut = JSON.stringify(work.weaponTypes) === JSON.stringify(DEFAULT_WEAPON_TYPES) && !db.weaponTypes ? null : work.weaponTypes ?? null;
-      if (JSON.stringify(statOut) === JSON.stringify(db.statOrder ?? null) && JSON.stringify(armorOut) === JSON.stringify(db.armorTypes ?? null) && JSON.stringify(weaponOut) === JSON.stringify(db.weaponTypes ?? null) &&
+      if (JSON.stringify(textOut) === JSON.stringify(db.gbaText ?? null) && JSON.stringify(statOut) === JSON.stringify(db.statOrder ?? null) && JSON.stringify(armorOut) === JSON.stringify(db.armorTypes ?? null) && JSON.stringify(weaponOut) === JSON.stringify(db.weaponTypes ?? null) &&
         JSON.stringify(stats ?? null) === JSON.stringify(db.stats ?? null) && JSON.stringify(svOut) === JSON.stringify(db.saving ?? null) &&
         JSON.stringify(mOut ?? null) === JSON.stringify(db.menus ?? null) && gameTitle === db.title && JSON.stringify(tFinal) === JSON.stringify(db.time ?? null) &&
         JSON.stringify(Object.keys(ab).length ? ab : null) === JSON.stringify(db.abilities && Object.keys(db.abilities).length ? db.abilities : null) &&
@@ -797,6 +813,7 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
       if (!gridMove) db.freeMove2D = true; else delete db.freeMove2D;
       if (cam3d === 'follow') db.camera3d = 'follow'; else delete db.camera3d;
       if (statOut) db.statOrder = statOut; else delete db.statOrder;
+      if (textOut) db.gbaText = C(textOut); else delete db.gbaText;
       if (activeParty === 4) db.activeParty = 4; else delete db.activeParty;
       if (aButton !== 'jump') db.aButton = aButton; else delete db.aButton;
       if (armorOut) db.armorTypes = C(armorOut); else delete db.armorTypes;

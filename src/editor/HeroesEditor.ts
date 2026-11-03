@@ -245,8 +245,8 @@ function rpDateField(x: HeroDef, f: RoleplayField): HTMLElement {
 }
 
 /**
- * Mimas: the picture a hero fights as (seen from behind): GBA Studio's back sprite (the default mannequin), their
- * character standing, one frame of their sheet, or a picture of their own.
+ * Mimas: the picture a hero fights as: their character side-on facing the foe (the default), GBA Studio's back sprite
+ * (the mannequin), their character standing, one frame of their sheet, or a picture of their own.
  */
 function battlePictureSection(x: HeroDef, look: string | undefined, people: CharactersWork, rerender: () => void,
   hooks?: { pick: (hero: HeroDef, done: () => void) => void; load: (path: string) => Promise<HTMLCanvasElement | null> }): HTMLElement {
@@ -261,12 +261,12 @@ function battlePictureSection(x: HeroDef, look: string | undefined, people: Char
     g.clearRect(0, 0, 128, 128);
     g.imageSmoothingEnabled = false;
     if (c) g.drawImage(c, 0, 0, 128, 128);
-    else { g.fillStyle = '#8890a0'; g.font = '12px sans-serif'; g.textAlign = 'center'; g.fillText(bl.mode === 'default' ? 'GBA Studio’s' : 'No picture yet', 64, 60); g.fillText(bl.mode === 'default' ? 'back sprite' : '', 64, 76); }
+    else { const mq = bl.mode === 'mannequin' || (bl.mode === 'default' && !ch); g.fillStyle = '#8890a0'; g.font = '12px sans-serif'; g.textAlign = 'center'; g.fillText(mq ? 'GBA Studio’s' : 'No picture yet', 64, 60); g.fillText(mq ? 'back sprite' : '', 64, 76); }
   };
   if (bl.mode === 'image' && bl.image && hooks) void hooks.load(bl.image).then((c) => draw(heroBattleImage(people.chars, x, look, c)));
   else draw(heroBattleImage(people.chars, x, look));
   const parts: HTMLElement[] = [
-    field('Picture', select([['default', 'Default: GBA Studio’s back sprite (the mannequin)'], ['overworld', 'Their character, standing'], ['frame', 'A frame from their character sheet'], ['image', 'A picture of my own']],
+    field('Picture', select([['default', 'Default: their character, side-on, facing the foe'], ['mannequin', 'GBA Studio’s back sprite (the mannequin, from behind)'], ['overworld', 'Their character, standing'], ['frame', 'A frame from their character sheet'], ['image', 'A picture of my own']],
       bl.mode, (v) => set({ mode: v as NonNullable<HeroDef['battleLook']>['mode'] }))),
   ];
   if (bl.mode === 'overworld') parts.push(field('Facing', select([['up', 'Away (from behind)'], ['left', 'Left'], ['right', 'Right'], ['down', 'Toward you']], bl.dir ?? 'up', (v) => set({ dir: v as Dir }))));
@@ -293,8 +293,10 @@ function battlePictureSection(x: HeroDef, look: string | undefined, people: Char
     parts.push(h('div', { class: 'field' }, h('label', {}, 'Frame (click one)'), h('div', { class: 'hero-sheet-scroll' }, c)));
   }
   if ((bl.mode === 'overworld' || bl.mode === 'frame') && !ch) parts.push(h('p', { class: 'note' }, 'They need a look (a character) first.'));
+  if (bl.mode === 'default' && !ch) parts.push(h('p', { class: 'note' }, 'They have no look (a character) yet, so they fight as GBA Studio’s back sprite for now.'));
+  if (bl.mode === 'mannequin') parts.push(h('p', { class: 'note' }, 'The mannequin is drawn from behind: for the side view’s look, paint it a side pose in GBA Studio → Sprites.'));
   if (bl.mode === 'image') parts.push(h('div', { class: 'field-row' }, h('button', { type: 'button', class: 'btn small', onclick: () => hooks?.pick(x, rerender) }, bl.image ? 'Change picture…' : 'Choose a picture…')));
   return h('section', { class: 'db-section' }, h('h3', {}, 'Battle picture (GBA)'),
     h('div', { class: 'hero-battle-pic' }, h('div', {}, ...parts), preview),
-    h('p', { class: 'note' }, 'How they look in GBA battles, seen from behind (fitted into 64 × 64; small art is scaled up in whole steps). Saving a GBA map bakes it for the ROM.'));
+    h('p', { class: 'note' }, 'How they look in GBA battles (fitted into 64 × 64, feet at the bottom; small art is scaled up in whole steps, the side view twice its size on the map). Saving a GBA map bakes it for the ROM.'));
 }

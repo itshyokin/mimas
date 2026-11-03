@@ -24,6 +24,7 @@ import {
 import { DRAIN } from '../../ui/BattleScreen';
 import { AILMENT_WORD, BLIND_MISS_CHANCE, BUFF_TURNS, type BattleAilment, ailmentName, rollInflicts } from './status';
 import { hitChance } from '../attributes';
+import type { TextVars } from '../../gba/text';
 
 /** One fighter as the game hands it over. */
 export interface BattleEntry { battler: Battler; view: FighterView; /** Party: 0 the hero, 1… members. */ who?: number; /** Enemies: the map's enemy (handed back when it's beaten). */ ref?: unknown }
@@ -90,6 +91,8 @@ export interface BattleHost {
   /** Party member `who` landed an Addition strike on `foe` (or `complete`d one): bonus EXP for it. */
   strikeExp?(who: number, foe: string, result: 'perfect' | 'good' | 'complete'): number;
   log(text: string): void;
+  /** Mimas: the game's own wording for a line (Database → Text & dialog), or nothing to keep the built-in one. */
+  line?(key: string, vars: TextVars): string | undefined;
   /**
    * Mimas: play a move's animation over `target` (its hit in the element's colours, then its burst, with their
    * sounds). Returns how long it takes (s), so the damage lands as it ends.
@@ -180,12 +183,16 @@ export class TurnBattle {
     const foes = this.foes;
     const names = foes.length === 1 ? foes[0].name : `${foes.length} enemies`;
     const intro = opening === 'preemptive' ? `You caught ${names} off guard!` : opening === 'ambush' ? `Ambushed by ${names}!` : `${names} ${foes.length === 1 ? 'appears' : 'appear'}!`;
-    if (this.screen.pocket) this.tell(intro); else this.screen.message(intro, true);
+    const shown = opening === 'normal' && foes.length === 1 ? this.T('battle.appear', { foe: names, name: names, target: names }, intro) : intro;
+    if (this.screen.pocket) this.tell(shown); else this.screen.message(shown, true);
     this.say(opening === 'ambush' ? `Ambushed by ${names}` : `Battle: ${names}`);
     this.phase = 'intro';
     this.showOrder();
     this.later(1.1, () => { this.screen.message(''); this.phase = 'next'; });
   }
+
+  /** A line in the game's own words (Mimas's Text & dialog), else `fallback`. */
+  private T(key: string, vars: TextVars, fallback: string): string { return this.host.line?.(key, vars) ?? fallback; }
 
   /** A line for the adventure log and the battle log beside the battle. */
   private say(text: string): void { this.screen.logLine(text); this.host.log(text); }
@@ -210,9 +217,9 @@ export class TurnBattle {
   /** Pocket Handheld's lines after a hit: a critical, and how effective it was (the numbers show on the fighters). */
   private tellHit(crit: boolean, weak: boolean, resist: boolean): void {
     if (!this.screen.pocket) return;
-    if (crit) this.tell('A critical hit!');
-    if (weak) this.tell('It’s super effective!');
-    else if (resist) this.tell('It’s not very effective…');
+    if (crit) this.tell(this.T('battle.crit', {}, 'A critical hit!'));
+    if (weak) this.tell(this.T('battle.weak', {}, 'It’s super effective!'));
+    else if (resist) this.tell(this.T('battle.resist', {}, 'It’s not very effective…'));
   }
 
   private flushCombo(): void {
@@ -309,7 +316,7 @@ export class TurnBattle {
       this.screen.popup(who.key, String(d.amount), 'dmg', d.ailment === 'burn' ? '#ff9a5a' : '#8ee05a');
       this.screen.animate(who.key, 'hit');
       this.say(`${who.name} takes ${d.amount} from ${d.ailment === 'burn' ? 'the burn' : 'poison'}`);
-      this.tell(`${who.name} is hurt by ${d.ailment === 'burn' ? 'its burn' : 'poison'}!`);
+      this.tell(this.T(d.ailment === 'burn' ? 'ail.burn_hurt' : 'ail.poison_hurt', { name: who.name, target: who.name }, `${who.name} is hurt by ${d.ailment === 'burn' ? 'its burn' : 'poison'}!`));
       pause = 0.6;
     }
     if (start.damage.length) {
@@ -320,7 +327,8 @@ export class TurnBattle {
       if (start.skip) {
         const words: Partial<Record<BattleAilment, string>> = { frozen: 'is frozen solid', paralyze: 'is paralyzed', sleep: 'is asleep' };
         this.screen.message(`${who!.name} ${words[start.skip] ?? 'can’t move'}…`);
-        this.tell(({ frozen: `${who!.name} is frozen solid!`, paralyze: `${who!.name} is paralyzed! It can’t move!`, sleep: `${who!.name} is fast asleep!` } as Partial<Record<BattleAilment, string>>)[start.skip] ?? `${who!.name} can’t move!`);
+        const skipKey = ({ frozen: 'ail.still_frozen', paralyze: 'ail.cant_move', sleep: 'ail.still_asleep' } as Partial<Record<BattleAilment, string>>)[start.skip] ?? 'ail.cant_move';
+        this.tell(this.T(skipKey, { name: who!.name, target: who!.name }, ({ frozen: `${who!.name} is frozen solid!`, paralyze: `${who!.name} is paralyzed! It can’t move!`, sleep: `${who!.name} is fast asleep!` } as Partial<Record<BattleAilment, string>>)[start.skip] ?? `${who!.name} can’t move!`));
         this.screen.popup(who!.key, ailmentName(start.skip), 'info');
         this.endTurn(who!, RANK.attack, 0.9);
         return;
@@ -387,7 +395,7 @@ export class TurnBattle {
     this.updateSpheres();
     this.queue = [];
     this.phase = 'busy';
-    this.screen.message(`${e.battler.name} steps in!`, true);
+    this.screen.message(this.T('battle.step_in', { name: e.battler.name, foe: e.battler.name }, `${e.battler.name} steps in!`), true);
     this.say(`${e.battler.name} steps in`);
     this.host.sound('menuOk');
     this.later(1.2, () => { this.screen.message(''); this.phase = 'next'; });
@@ -400,7 +408,7 @@ export class TurnBattle {
     if (!res.length || !b) return false;
     this.phase = 'command';
     this.planning = null; this.planned = null;
-    this.screen.message(`${b.name} is down! Who’s next?`, true);
+    this.screen.message(this.T('battle.send_who', { name: b.name }, `${b.name} is down! Who’s next?`), true);
     this.screen.choose('Send in', res.map((r) => ({ label: r.name, iconUrl: r.icon, inlineIcon: true, bars: { hp: r.hp, maxHp: r.maxHp, mp: r.mp, maxMp: r.maxMp, xp: this.host.xpPreview?.(r.who)?.frac }, buffs: r.buffs })),
       (i) => this.doSwap(b, res[i].who, true));
     return true;
@@ -443,8 +451,8 @@ export class TurnBattle {
       cmds = cmds.map((c) => (c.label === 'Items' ? { ...c, disabled: false } : c)).map((c) => (c.label === 'Items' && !items.length ? { ...c, disabled: true } : c));
     }
     // Mimas: the handheld's words (FIGHT, BAG, PARTY, RUN).
-    if (this.screen.pocket) { const say: Record<string, string> = { Attack: 'Fight', Items: 'Bag', Swap: 'Party', Escape: 'Run' }; cmds = cmds.map((c) => ({ ...c, label: say[c.label] ?? c.label })); }
-    this.screen.message(this.screen.pocket ? `What will ${b.name} do?` : `${b.name}’s turn`, true);
+    if (this.screen.pocket) { const say: Record<string, string> = { Attack: this.T('cmd.attack', {}, 'Fight'), Items: this.T('cmd.items', {}, 'Bag'), Swap: this.T('cmd.swap', {}, 'Party'), Escape: this.T('cmd.flee', {}, 'Run') }; cmds = cmds.map((c) => ({ ...c, label: say[c.label] ?? c.label })); }
+    this.screen.message(this.screen.pocket ? this.T('battle.ask', { name: b.name }, `What will ${b.name} do?`) : `${b.name}’s turn`, true);
     this.screen.choose(b.name, cmds, (i) => { this.lastCommand = i; this.screen.message(''); cmds[i].run(); }, undefined, (i) => this.showOrder(cmds[i].rank), this.lastCommand, true);
   }
 
@@ -474,7 +482,7 @@ export class TurnBattle {
     this.host.sound('menuOk');
     this.say(`${b.name} swaps out for ${n.name}`);
     this.updateSpheres();
-    this.screen.message(`${n.name} steps in!`);
+    this.screen.message(this.T('battle.step_in', { name: n.name }, `${n.name} steps in!`));
     this.actor = n;
     this.showOrder();
     this.phase = 'busy';
@@ -659,7 +667,7 @@ export class TurnBattle {
 
   private doAttack(b: Battler, t: Battler): void {
     if (this.defer(b, () => this.doAttack(b, this.retarget(b, t)))) return;
-    if (this.screen.pocket && !this.announced) { this.announced = true; this.announce(`${b.name} attacks!`, () => this.doAttack(b, t)); return; }
+    if (this.screen.pocket && !this.announced) { this.announced = true; this.announce(this.T('battle.attack', { name: b.name, target: t.name }, `${b.name} attacks!`), () => this.doAttack(b, t)); return; }
     this.announced = false;
     // A ranged plain attack fires from where they stand; otherwise run in and swing.
     this.screen.animate(b.key, b.shoots ? 'shot' : 'lunge', undefined, t.key);
@@ -743,7 +751,7 @@ export class TurnBattle {
   }
 
   private release(b: Battler, s: BattleSpell, r: SpellRank, targets: Battler[]): void {
-    if (this.screen.pocket && !this.announced) { this.announced = true; this.announce(`${b.name} casts ${r.name}!`, () => this.release(b, s, r, targets)); return; }
+    if (this.screen.pocket && !this.announced) { this.announced = true; this.announce(this.T('battle.spell', { name: b.name, move: r.name }, `${b.name} casts ${r.name}!`), () => this.release(b, s, r, targets)); return; }
     this.announced = false;
     const color = s.color ?? ELEMENT_COLORS[s.element];
     if (!this.screen.pocket) this.screen.message(r.name);
@@ -817,7 +825,7 @@ export class TurnBattle {
    */
   private doAddition(b: Battler, a: BattleAddition, t: Battler): void {
     if (this.defer(b, () => this.doAddition(b, a, this.retarget(b, t)))) return;
-    if (this.screen.pocket && !this.announced) { this.announced = true; this.announce(`${b.name} attacks with ${a.name}!`, () => this.doAddition(b, a, t)); return; }
+    if (this.screen.pocket && !this.announced) { this.announced = true; this.announce(this.T('battle.addition', { name: b.name, move: a.name, target: t.name }, `${b.name} attacks with ${a.name}!`), () => this.doAddition(b, a, t)); return; }
     this.announced = false;
     if (this.screen.pocket) this.combo = { total: 0, element: b.attackElement, crit: false, weak: false, resist: false, t };
     if (!this.screen.pocket) this.screen.message(a.name);
@@ -960,7 +968,7 @@ export class TurnBattle {
   private doGuard(b: Battler, heal?: number, move?: BattleAddition): void {
     if (this.defer(b, () => this.doGuard(b, heal, move), true)) return;
     // Mimas (a guard move): "Jordan used Guard!", its animation, then the guard.
-    if (move && this.screen.pocket && !this.announced) { this.announced = true; this.announce(`${b.name} used ${move.name}!`, () => this.doGuard(b, heal, move)); return; }
+    if (move && this.screen.pocket && !this.announced) { this.announced = true; this.announce(this.T('battle.guard_move', { name: b.name, move: move.name }, `${b.name} used ${move.name}!`), () => this.doGuard(b, heal, move)); return; }
     this.announced = false;
     if (move?.mp) { b.mp = Math.max(0, b.mp - move.mp); }
     const fx = move ? this.host.effect?.(move.look ?? { effect: 'fx_sparkle', burst: 'none' }, 'heal', b.key, 'neutral') ?? 0 : 0;
@@ -978,7 +986,7 @@ export class TurnBattle {
       this.host.sound('guard');
       this.screen.animate(b.key, 'heal', '#8cc8ff');
       this.screen.message(`${b.name} guards`);
-      if (this.screen.pocket) this.tell(got > 0 && !b.status.zombie ? `${b.name} is guarding and recovered ${got} HP!` : `${b.name} is guarding!`);
+      if (this.screen.pocket) this.tell(got > 0 && !b.status.zombie ? this.T('battle.guard_heal', { name: b.name, n: got }, `${b.name} is guarding and recovered ${got} HP!`) : this.T('battle.guarding', { name: b.name }, `${b.name} is guarding!`));
       this.endTurn(b, RANK.guard, 0.6);
     });
   }
@@ -988,14 +996,14 @@ export class TurnBattle {
     const chance = fleeChance(this.party, this.foes, this.cfg.flee);
     if (Math.random() < chance) {
       this.host.sound('dodge');
-      this.screen.message('Got away safely!', true);
+      this.screen.message(this.T('battle.fled', { name: b.name }, 'Got away safely!'), true);
       this.say('You got away');
       this.phase = 'over';
       this.later(1, () => (this.host.outro ? this.host.outro(() => this.close('fled')) : this.close('fled')));
       return;
     }
     this.host.sound('menuBack');
-    this.screen.message('Couldn’t get away!');
+    this.screen.message(this.T('battle.no_escape', { name: b.name }, 'Couldn’t get away!'));
     this.endTurn(b, RANK.flee, 0.8);
   }
 
@@ -1003,7 +1011,7 @@ export class TurnBattle {
   private confusedTurn(b: Battler): void {
     const all = this.battlers.filter((x) => isUp(x) && x !== b);
     const t = all[Math.floor(Math.random() * all.length)];
-    this.screen.message(`${b.name} is confused!`);
+    this.screen.message(this.T('ail.still_confused', { name: b.name, target: b.name }, `${b.name} is confused!`));
     if (!t) { this.endTurn(b, RANK.attack, 0.8); return; }
     this.later(0.5, () => {
       this.screen.animate(b.key, 'lunge', undefined, t.key);
@@ -1025,7 +1033,7 @@ export class TurnBattle {
       this.say(`${e.name} unleashes its overdrive!`);
     }
     const a = move.action;
-    if (this.screen.pocket && !this.announced) { this.announced = true; this.announce(a ? `${e.name} used ${a.name || this.actionWord(a)}!` : `${e.name} attacks!`, () => this.foeMove(e, move)); return; }
+    if (this.screen.pocket && !this.announced) { this.announced = true; this.announce(a ? this.T(a.kind === 'attack' ? 'battle.foe_addition' : 'battle.foe_spell', { foe: e.name, name: e.name, move: a.name || this.actionWord(a) }, `${e.name} used ${a.name || this.actionWord(a)}!`) : this.T('battle.foe_attack', { foe: e.name, name: e.name }, `${e.name} attacks!`), () => this.foeMove(e, move)); return; }
     this.foeMove(e, move);
   }
 
@@ -1145,7 +1153,7 @@ export class TurnBattle {
       this.screen.popup(t.key, 'Miss', 'info');
       this.host.sound('dodge');
       this.say(`${by.name} misses`);
-      this.tell(`${by.name}’s attack missed!`);
+      this.tell(this.T('battle.miss', { name: by.name, target: t.name }, `${by.name}’s attack missed!`));
       return;
     }
     const scale = (by.side === 'party' ? this.cfg.partyDamage : this.cfg.enemyDamage) * (by.surging ? 1.5 : 1);
@@ -1156,18 +1164,18 @@ export class TurnBattle {
       this.screen.animate(t.key, 'dodge');
       this.host.sound('dodge');
       this.say(`${t.name} dodges ${by.name}’s ${magic ? 'spell' : 'attack'}`);
-      this.tell(`${t.name} dodged the ${magic ? 'spell' : 'attack'}!`);
+      this.tell(this.T('battle.dodge', { target: t.name, name: by.name }, `${t.name} dodged the ${magic ? 'spell' : 'attack'}!`));
       return;
     }
     const tint = color ?? (element !== 'neutral' ? ELEMENT_COLORS[element] : undefined);
-    if (r.kind === 'immune') { this.screen.popup(t.key, 'IMMUNE', 'big'); this.host.sound('thump'); this.say(`${t.name} is immune`); this.tell(`It doesn’t affect ${t.name}…`); return; }
+    if (r.kind === 'immune') { this.screen.popup(t.key, 'IMMUNE', 'big'); this.host.sound('thump'); this.say(`${t.name} is immune`); this.tell(this.T('battle.immune', { target: t.name, name: by.name }, `It doesn’t affect ${t.name}…`)); return; }
     if (r.kind === 'absorb') {
       t.hp = Math.min(t.maxHp, t.hp + r.amount);
       this.screen.popup(t.key, `+${r.amount}`, 'heal');
       this.screen.popup(t.key, 'Absorbed', 'info');
       this.host.sound('ringOn');
       this.refresh(t);
-      this.tell(`${t.name} absorbed it and healed ${r.amount}!`);
+      this.tell(this.T('battle.absorb', { target: t.name, name: by.name, n: r.amount }, `${t.name} absorbed it and healed ${r.amount}!`));
       return;
     }
     // A CRITICAL: a flash, the screen shakes, a big word with a crack and a rumble.
@@ -1213,7 +1221,7 @@ export class TurnBattle {
       this.screen.popup(t.key, AILMENT_WORD[a], 'info');
       this.say(`${t.name}: ${ailmentName(a)}`);
       // Pocket Handheld: a line of its own, waiting for OK ("Jordan was poisoned!").
-      if (res === 'given' || res === 'frozen') { const w = GOT_AILMENT[a]; if (w) this.tell(`${t.name} ${w}`); }
+      if (res === 'given' || res === 'frozen') { const w = GOT_AILMENT[a]; if (w) this.tell(this.T(`ail.${a}`, { target: t.name, name: t.name }, `${t.name} ${w}`)); }
       refreshAgility(t);
     }
     // Pocket Handheld (one hit): its pill shows as the bar drains, once the attacker is back.
@@ -1326,8 +1334,8 @@ export class TurnBattle {
     if (this.screen.pocket) this.screen.after(STEP_BACK + DRAIN, () => this.screen.animate(t.key, 'faint'));
     else setTimeout(() => this.screen.animate(t.key, 'faint'), 260);
     this.flushCombo();
-    if (t.side === 'enemy') { this.host.sound('defeat'); this.say(`${t.name} defeated`); this.tell(`${t.name} was defeated!`); this.foeEarned(t); }
-    else { this.partyFell = true; this.say(`${t.name} is knocked out`); this.tell(`${t.name} was knocked out!`); }
+    if (t.side === 'enemy') { this.host.sound('defeat'); this.say(`${t.name} defeated`); this.tell(this.T('battle.defeated', { foe: t.name, name: t.name, target: t.name }, `${t.name} was defeated!`)); this.foeEarned(t); }
+    else { this.partyFell = true; this.say(`${t.name} is knocked out`); this.tell(this.T('battle.down', { name: t.name, target: t.name }, `${t.name} was knocked out!`)); }
     this.updateSpheres();
   }
 
@@ -1345,7 +1353,7 @@ export class TurnBattle {
         const color = d.ailment === 'burn' ? '#ff9a5a' : '#8ee05a';
         const show = () => { this.screen.popup(b.key, String(d.amount), 'dmg', color); this.screen.animate(b.key, 'hit'); this.refresh(b); };
         this.say(`${b.name} takes ${d.amount} from ${d.ailment === 'burn' ? 'the burn' : 'poison'}`);
-        if (this.screen.pocket) { this.screen.narrate(`${b.name} is hurt by ${d.ailment === 'burn' ? 'its burn' : 'poison'}!`, true, { bars: show }); this.screen.pauseText(DRAIN); }
+        if (this.screen.pocket) { this.screen.narrate(this.T(d.ailment === 'burn' ? 'ail.burn_hurt' : 'ail.poison_hurt', { name: b.name, target: b.name }, `${b.name} is hurt by ${d.ailment === 'burn' ? 'its burn' : 'poison'}!`), true, { bars: show }); this.screen.pauseText(DRAIN); }
         else show();
         if (!isUp(b)) this.fall(b);
       }
@@ -1371,7 +1379,8 @@ export class TurnBattle {
       refreshAgility(b);
       this.screen.popup(b.key, gone.length === 1 ? `${ailmentName(gone[0])} wore off` : 'Recovered', 'info');
       const WORE: Partial<Record<BattleAilment, string>> = { sleep: 'woke up!', frozen: 'thawed out!', paralyze: 'can move again!', burn: 'is no longer burned!', poison: 'is no longer poisoned!', confusion: 'snapped out of its confusion!', chill: 'warmed up!', blind: 'can see again!', silence: 'can cast again!' };
-      for (const a of gone) if (WORE[a]) this.tell(`${b.name} ${WORE[a]}`);
+      const WORE_KEY: Partial<Record<BattleAilment, string>> = { sleep: 'ail.woke', frozen: 'ail.thawed', confusion: 'ail.snapped', blind: 'ail.sight', silence: 'ail.voice' };
+      for (const a of gone) if (WORE[a]) this.tell(WORE_KEY[a] ? this.T(WORE_KEY[a]!, { name: b.name, target: b.name }, `${b.name} ${WORE[a]}`) : `${b.name} ${WORE[a]}`);
     }
     // Regeneration gives health back (the undead are hurt by it); then buffs tick down too.
     const regen = isUp(b) ? regenAmount(b) : 0;
@@ -1433,12 +1442,12 @@ export class TurnBattle {
       if (h.via && h.gained > 0) exp.push({ text: `${h.name} gained ${h.gained} EXP from sharing experience!`, sound: 'expFill', bars });
       else if (h.gained > 0) {
         const bonus = h.bonus?.gained ?? 0;
-        exp.push({ text: `${h.name} gained ${h.gained} EXP!${bonus > 0 ? `\nIncludes bonus EXP +${bonus}${h.bonus!.bits.length ? ` (${h.bonus!.bits.map((x) => x.replace(/ \+\d+$/, '')).join(', ')})` : ''}` : ''}`, sound: 'expFill', bars });
+        exp.push({ text: `${this.T('battle.exp', { name: h.name, n: h.gained }, `${h.name} gained ${h.gained} EXP!`)}${bonus > 0 ? `\nIncludes bonus EXP +${bonus}${h.bonus!.bits.length ? ` (${h.bonus!.bits.map((x) => x.replace(/ \+\d+$/, '')).join(', ')})` : ''}` : ''}`, sound: 'expFill', bars });
       }
       // A level up: a ding, the new level and (in a box beside it) what it brought.
-      if (h.after.level > h.level) exp.push({ text: `${h.name} reached Level ${h.after.level}!`, sound: 'levelUp', stats: h.changes.flatMap((c) => c.split(' · ')) });
+      if (h.after.level > h.level) exp.push({ text: this.T('battle.level', { name: h.name, level: h.after.level }, `${h.name} reached Level ${h.after.level}!`), sound: 'levelUp', stats: h.changes.flatMap((c) => c.split(' · ')) });
     }
-    const loot = report.loot.map((l) => ({ icon: l.icon, text: l.kind === 'gold' ? `+${l.name}!` : `Got ${l.count > 1 ? `${l.count} × ` : ''}${l.name}!${l.note ? ` (${l.note})` : ''}`, sound: ({ gold: 'lootGold', potion: 'lootPotion', key: 'lootKey', material: 'lootMaterial', gear: 'lootGear', item: 'lootItem' } as const)[l.kind] as string }));
+    const loot = report.loot.map((l) => ({ icon: l.icon, text: l.kind === 'gold' ? this.T('battle.gold', { n: l.count }, `+${l.name}!`) : `Got ${l.count > 1 ? `${l.count} × ` : ''}${l.name}!${l.note ? ` (${l.note})` : ''}`, sound: ({ gold: 'lootGold', potion: 'lootPotion', key: 'lootKey', material: 'lootMaterial', gear: 'lootGear', item: 'lootItem' } as const)[l.kind] as string }));
     this.screen.pocketVictory([...exp, ...loot], () => {
       if (this.host.outro) this.host.outro(() => this.close('victory'));
       else this.close('victory');

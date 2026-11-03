@@ -373,7 +373,7 @@ export const SPRITE_KINDS: Record<SpriteKind, SpriteKindInfo> = {
   },
   backsprite: {
     label: 'Battle back-sprite (64×64)',
-    help: 'Your heroes in battle, seen from behind like Pokémon. One pose per fighting style.',
+    help: 'Your heroes in battle, seen from behind (the mannequin look). One pose per fighting style.',
     frameW: 64, frameH: 64, cols: BACK_POSES.length, rows: 1,
     colLabels: BACK_POSES, rowLabels: [''],
     base: 'gba/bases/backsprite_base.png',

@@ -88,7 +88,7 @@ export function enemyMovesSection(db: Database, d: EnemyDef, rerender: () => voi
       field('From level', numberInput(ms.level, (v) => { ms.level = Math.max(1, Math.min(99, Math.round(v))); }, { min: 1, max: 99, step: 1, 'aria-label': `Moveset ${k + 1} level` })),
       h('button', { type: 'button', class: 'mini-btn', 'aria-label': `Remove moveset ${k + 1}`, onclick: () => { sets.splice(k, 1); if (!sets.length) delete d.movesets; rerender(); } }, '✕')),
     movesField(db, () => ms.moves, (v) => { ms.moves = v ?? []; }, rerender, `Moves from level ${ms.level}`)));
-  return h('section', { class: 'db-section' }, h('h3', {}, 'Moves (GBA, Pokémon-style)'),
+  return h('section', { class: 'db-section' }, h('h3', {}, 'Moves (GBA)'),
     movesField(db, () => d.moves, (v) => { if (v) d.moves = v; else delete d.moves; }, rerender, 'Its moves'),
     h('div', { class: 'field-row' },
       field('Magic (MP)', numberInput(d.mp ?? 0, (v) => { const x = Math.max(0, Math.round(v)); if (x) d.mp = x; else delete d.mp; }, { min: 0, step: 1, 'aria-label': 'Enemy MP' }), 'Its spells cost this. Additions cost nothing.')),

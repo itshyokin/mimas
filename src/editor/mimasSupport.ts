@@ -54,6 +54,16 @@ const OFF: Record<string, Off> = {
 
 const NOTE = 'Not in the GBA game yet (Saturn only). It keeps its value, so it can be switched on later.';
 
+/**
+ * The Database's two views of the same data: 'gba' (what the GBA game uses: Saturn-only tabs and fields hidden) and
+ * 'saturn' ("Saturn extras": only the tabs, sections and fields the GBA game doesn't use yet).
+ */
+export type DbView = 'gba' | 'saturn';
+/** Does the tab have anything for this view? */
+export function tabInView(tab: string, view: DbView): boolean {
+  return view === 'gba' ? !MIMAS_OFF_TABS.has(tab) : MIMAS_OFF_TABS.has(tab) || !!OFF[tab];
+}
+
 /** A label's own words (not its ⓘ button's). */
 const words = (el: Element | null): string => [...(el?.childNodes ?? [])].filter((n) => n.nodeType === Node.TEXT_NODE || (n instanceof HTMLElement && n.tagName === 'SPAN')).map((n) => n.textContent).join('').trim();
 
@@ -62,8 +72,14 @@ function dim(el: Element): void {
   (el as HTMLElement).title = NOTE;
 }
 
-/** Grey out what the GBA game doesn't use on this tab (after it has been drawn and organized). */
-export function markMimas(content: HTMLElement, tab: string): void {
+/**
+ * Mark what the GBA game doesn't use on this tab (after it has been drawn and organized): greyed and, in the view
+ * (CSS: .db-view-gba hides it; .db-view-saturn shows only it), sorted out.
+ */
+export function markMimas(content: HTMLElement, tab: string, view: DbView = 'gba'): void {
+  content.classList.remove('db-view-gba', 'db-view-saturn', 'db-partial');
+  content.classList.add(`db-view-${view}`);
+  if (!MIMAS_OFF_TABS.has(tab) && OFF[tab]) content.classList.add('db-partial');
   if (MIMAS_OFF_TABS.has(tab)) {
     content.prepend(Object.assign(document.createElement('p'), { className: 'note mimas-off-note', textContent: `This whole tab is ${NOTE[0].toLowerCase()}${NOTE.slice(1)}` }));
     for (const el of content.querySelectorAll('.db-section, .items-layout')) dim(el);
@@ -89,4 +105,8 @@ export function markMimas(content: HTMLElement, tab: string): void {
     const l = words(c);
     if (labels.has(l)) dim(c);
   }
+  // The jump bar: only the sections this view shows.
+  const shown = (sec: Element) => (view === 'gba' ? !sec.matches('.mimas-off') : sec.matches('.mimas-off') || !!sec.querySelector('.mimas-off'));
+  const byTitle = new Map([...content.querySelectorAll('.db-section')].map((sec) => [words(sec.querySelector(':scope > h3')), sec] as const));
+  for (const b of content.querySelectorAll<HTMLElement>('.db-jump-btn')) { const sec = byTitle.get(b.textContent?.trim() ?? ''); if (sec) b.hidden = !shown(sec); }
 }

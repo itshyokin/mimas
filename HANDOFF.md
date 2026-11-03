@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 3, 2026, after Update 12; Updates 13-16 planned below)
+# Handoff: where Mimas stands (Nov 3, 2026, after Update 13; Updates 14-16 planned below)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -48,10 +48,10 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Next up: the owner's plan (agreed Nov 3, 2026). Build in this order, one numbered update and build each.
-Last build: build-25 (Update 12 + fixes). Nothing below is built yet. Owner wants the game NOT too close to Pokémon
+Update 13 is built (below, kept for reference); 14-16 are not. Owner wants the game NOT too close to Pokémon
 (copyright worry); mechanics are fine, copied wording and look are what we're removing.
 
-### Update 13: text, words, Database split, side view
+### Update 13 (BUILT): text, words, Database split, side view
 - **Text & dialog tab** (Database, GBA side): every built-in line (battle, menus, saving, learning) with its default
   shown greyed; typing replaces it; Reset restores. Fill-ins like `{name} attacks with {move}!`. Several variants per
   line allowed (picked at random; the ROM too). Command words live here as well. Store as e.g. db.gbaText
@@ -125,6 +125,27 @@ Last build: build-25 (Update 12 + fixes). Nothing below is built yet. Owner want
 - **Credits:** reuse Saturn's Credits tab (un-grey it) for a credits roll.
 
 ## Things to know
+- Update 13, text / views / side view:
+  - Lines: src/gba/text.ts is the one list (TEXT_LINES: key, group, label, default versions, `word` for command words);
+    db.gbaText holds only overrides (cleanText). gbaLine(db, key, vars) picks a version at random and fills {name}
+    {foe} {target} {move} {item} {n} {level} ("A {foe}" → "An" before a vowel). Editor: src/editor/TextEditor.ts
+    (Database → Game → Text & dialog). Add a line: add it to TEXT_LINES, then use it in the playtest (host.line /
+    GbaGame.t / MenuHost.t) and the ROM (txt(mimas::T_<key with _>, tv().N(..).F(..).M(..).num(..))).
+  - Playtest: BattleHost.line?(key, vars) → TurnBattle's private T(key, vars, fallback) (Saturn keeps its own words when
+    the host has no line()). GbaGame.line swaps battle.appear for battle.appear_event when the battle isn't random
+    (wildBattle). Menus get MenuHost.t.
+  - ROM: gbaGame.ts exports `text` (every version by key) into gba_game.json; tools/gba_game.py text_table() reads the
+    keys from text.ts (regex on the L(/W( lines) and writes text_lines + enum text_id { T_... }; non-ASCII punctuation is
+    turned plain (c_str's ASCII map). game_systems.hpp: struct tv (fill-ins, chained setters) and txt(id, tv) →
+    bn::string<160>. Battle `t` strings are 160 long.
+  - Database views: mimasSupport.ts tabInView(tab, view) / markMimas(content, tab, view) (classes db-view-gba /
+    db-view-saturn / db-partial; CSS in editor.css hides by view; jump buttons follow). lastView is remembered.
+  - Battle picture: HeroDef.battleLook mode 'default' (unset) = heroSideImage (battleArt.ts: the GBA overworld sheet's
+    left standing frame mirrored, ×2 at most via fitInto's `most`); 'mannequin' = GBA Studio's back sprite (null from
+    heroBattleImage; also the stand-in when a hero has no character). The editor's save bakes gba/heroes/<id>_back.png
+    for every non-mannequin hero; gba_game.py uses the mannequin only for 'mannequin' or a missing picture.
+  - Party markers: menus.orbStyle unset = 'diamond' (GbaGame, Game, the Database's select); the project's 'flat' was
+    removed so it shows diamonds. FNT is KO now (playtest party list and the ROM).
 - Nov 3 fixes: greyed commands can be landed on (OK on one buzzes); the hero's lunge / flinch keep their 1.8×
   (pocket-lunge / pocket-hit in styles.css); battle text 2.5u. HeroDef.battleLook { mode default | overworld | frame
   | image, dir, col, row, image } (Heroes → Battle picture (GBA); src/editor/battleArt.ts heroBattleImage); the

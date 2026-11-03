@@ -71,6 +71,13 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       with type and MP, the move's details in a note, taller boxes, bigger panel text, soft fade in, no Perfect
       popups, foes face the right way, meters follow the Database); Database settings the GBA game doesn't use are
       greyed; battle backgrounds (six built in, replaceable, per map) in the playtest and the ROM.
+- [x] Update 13 (Nov 3): Database → Text & dialog (every line the game says and its command words, greyed defaults,
+      versions picked at random, fill-ins; playtest and ROM); new wording of our own instead of the handheld games'
+      (*A Green Slime leaps out!*, *Jordan stands ready.*, *Struck a weakness!*…); ATTACK / ITEMS / SWAP / FLEE;
+      diamond party markers; no "Pokémon" in the editor's labels; the Database split into Database and Saturn extras
+      views; heroes fight side-on (their character facing the foe, ×2) by default, the mannequin still a choice.
+- [ ] Update 14: classes, growth, skill trees, the move list (see HANDOFF.md).
+- [ ] Update 15: timed Additions with MP. Update 16: save slots, title screen, achievements, credits.
 - [ ] Battles with more than one hero and foe out at once (2 v 2 or 3 v 3): owner is thinking about it.
 - [ ] Music in the ROM (tracker files); support spells' buffs in the ROM; learning moves on level up (a learnset).
 - [ ] Surf on water (needs a key item / ability), one-way passability arrows.

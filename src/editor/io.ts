@@ -83,7 +83,7 @@ async function bakeGameArt(store: EditorStore): Promise<void> {
   const first = mainHero(db).id;
   for (const hero of db.heroes ?? []) {
     const look = hero.look ?? (hero.id === first ? db.player : undefined);
-    // The battle picture (Database → Heroes → Battle picture; the default is GBA Studio's back sprite).
+    // The battle picture (Database → Heroes → Battle picture; the default is their character side-on, ×2).
     const custom = hero.battleLook?.mode === 'image' && hero.battleLook.image ? await readCanvas(store, hero.battleLook.image) : null;
     const bp = heroBattleImage(db.characters, hero, look, custom);
     if (bp) out.push([`gba/heroes/${hero.id}_back.png`, bp]);
