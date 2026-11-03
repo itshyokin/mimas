@@ -14,7 +14,7 @@ import { ATTR_INFO, ATTRS } from '../game/attributes';
 import { xpToNext, type CombatConfig } from '../game/combat/config';
 import type { Inventory } from '../game/inventory';
 import type { Database, EquipSlot, ItemDef } from '../world/types';
-import { battleNumbers, knownMoves, MAX_MOVES, maxOf, type Member } from './party';
+import { battleNumbers, knownMoves, MAX_MOVES, maxOf, moveInfo, moveSpell, type Member } from './party';
 import type { GbaUi, Row } from './ui';
 
 export interface MenuHost {
@@ -154,21 +154,16 @@ export class Menus {
   }
 
   moveRows(m: Member, ids: string[]): Row[] {
-    return ids.map((id) => {
-      const d = findAddition(this.h.db, id);
-      return { label: d?.name ?? id, right: d ? `${d.strikes.length} HIT${d.strikes.length === 1 ? '' : 'S'}` : '', detail: d?.description };
-    });
+    return ids.map((id) => { const i = moveInfo(this.h.db, m, id); return { label: i.name, right: i.right.toUpperCase(), detail: i.detail }; });
   }
 
   async movesMenu(m: Member): Promise<void> {
     const equip = this.h.cfg.turnBased.moveSlots === 'equip';
-    const spells = spellList(this.h.db).filter((s) => (m.abil.spells?.[s.id] ?? 0) > 0);
     const rows = (): Row[] => [
       ...this.moveRows(m, m.moves),
       ...(equip && m.moves.length < MAX_MOVES && knownMoves(this.h.db, m).length > m.moves.length ? [{ label: '-', detail: 'An empty slot: choose a move for it.' }] : []),
     ];
     const win = this.ui.open({ x: 24, y: 6, w: 192, rows: rows(), title: `${m.def.name.toUpperCase()}’S MOVES`, detail: true, cls: 'moves' });
-    if (spells.length) win.opts.title += `  (+${spells.length} spell${spells.length > 1 ? 's' : ''})`;
     this.ui.setRows(win, rows());
     for (;;) {
       const i = await this.ui.pick(win);
@@ -189,13 +184,16 @@ export class Menus {
    * Learning a move (the Learn command, a level): learned at once with a free slot; otherwise, Pokémon's questions.
    * Forget: the one chosen is gone. Equip: it only leaves the four (still known, chosen again in Party → Moves).
    */
-  async learn(m: Member, id: string): Promise<void> {
-    const d = findAddition(this.h.db, id), name = d?.name ?? id, who = m.def.name;
+  async learn(m: Member, id: string, wasKnown = false): Promise<void> {
+    const sid = moveSpell(id);
+    const d = sid ? null : findAddition(this.h.db, id), name = moveInfo(this.h.db, m, id).name, who = m.def.name;
     const equip = this.h.cfg.turnBased.moveSlots === 'equip';
-    if (!d || m.def.noAdditions) return;
-    const known = !!m.abil.additions && id in m.abil.additions;
-    if (m.moves.includes(id) || (known && !equip)) { await this.ui.say(`${who} already knows ${name}.`); return; }
-    (m.abil.additions ??= {})[id] ??= 0;
+    if (sid ? !spellList(this.h.db).some((x) => x.id === sid) : !d || m.def.noAdditions) return;
+    const known = sid ? wasKnown : !!m.abil.additions && id in m.abil.additions;
+    if (m.moves.includes(id) || (known && !equip)) { if (!sid) await this.ui.say(`${who} already knows ${name}.`); return; }
+    // Known from now on (a spell: learnSpell already did it).
+    const forget = (k: string) => { const s2 = moveSpell(k); if (s2) delete m.abil.spells?.[s2]; else delete m.abil.additions?.[k]; };
+    if (!sid) (m.abil.additions ??= {})[id] ??= 0;
     if (m.moves.length < MAX_MOVES) {
       m.moves.push(id);
       this.h.sound('levelUp');
@@ -209,8 +207,8 @@ export class Menus {
       if ((await this.ui.ask(q)) === 0) {
         const i = await this.ui.choose({ x: 24, y: 6, w: 192, rows: [...this.moveRows(m, m.moves), ...this.moveRows(m, [id])], title: equip ? 'Replace which move?' : 'Forget which move?', detail: true });
         if (i >= 0 && i < m.moves.length) {
-          const old = findAddition(this.h.db, m.moves[i])?.name ?? m.moves[i];
-          if (!equip) delete m.abil.additions![m.moves[i]];
+          const old = moveInfo(this.h.db, m, m.moves[i]).name;
+          if (!equip) forget(m.moves[i]);
           m.moves[i] = id;
           await this.ui.say(equip ? `${who} put away ${old}.` : `1, 2, and… Poof! ${who} forgot ${old}.`);
           this.h.sound('levelUp');
@@ -221,7 +219,7 @@ export class Menus {
       }
       // The new one picked, or no: give up on it?
       if ((await this.ui.ask(`Stop learning ${name}?`)) === 0) {
-        if (!equip) delete m.abil.additions![id];
+        if (!equip) forget(id);
         await this.ui.say(equip ? `${who} learned ${name}, but kept their four moves.` : `${who} did not learn ${name}.`);
         return;
       }

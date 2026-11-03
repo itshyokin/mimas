@@ -6,7 +6,7 @@ import { formatDatabase, formatMap } from '../shared/dataFiles';
 import { h, openModal, toast } from './dom';
 import type { EditorStore } from './store';
 import { blockedTiles } from '../world/props';
-import { characterImage, enemyBattleImage, propSprite } from './editorArt';
+import { characterImage, characterOverworldSheet, enemyBattleImage, propSprite } from './editorArt';
 import { tintCanvas } from '../render/tint';
 import { builtinIcon, builtinIconName } from '../art/itemIcons';
 import { mainHero } from '../world/heroes';
@@ -109,6 +109,10 @@ async function bakeGameArt(store: EditorStore): Promise<void> {
       out.push([`gba/heroes/${hero.id}_face.png`, fitInto(head, 16, 16, false)]);
     }
   }
+  // Saturn characters as GBA overworld sheets (the player when GBA Studio has no player sprite, and people events show).
+  const looks = new Set<string>([db.player]);
+  for (const ev of store.map.events) for (const pg of ev.pages) if (pg.character && !pg.gbaSprite) looks.add(pg.character);
+  for (const k of looks) if (db.characters[k]) out.push([`gba/chars/${k.replace(/[^A-Za-z0-9_.-]/g, '_')}.png`, characterOverworldSheet(k, db.characters[k])]);
   for (const it of db.items ?? []) {
     const b = builtinIconName(it.icon);
     let c: HTMLCanvasElement | null = null;

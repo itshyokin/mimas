@@ -316,3 +316,45 @@ export function enemyImage(db: { characters: Record<string, CharacterDef> }, loo
   }
   return c;
 }
+
+/**
+ * Mimas: a Saturn character as a GBA overworld sheet, laid out like a GBA Studio overworld sprite: 6 columns (walk:
+ * stand, step, step; run: stand, step, step) × 3 rows (down, up, left; right is left mirrored), 32 × 32 frames. LPC
+ * characters (64-pixel frames, 32 pixels a tile) are halved, so they stand a tile and a half tall like on the map.
+ */
+export function characterOverworldSheet(key: string, def: CharacterDef | undefined): HTMLCanvasElement {
+  const id = `${key}:${def?.sheet ?? ''}:gbasheet`;
+  const have = charCache.get(id);
+  if (have) return have;
+  const sheet = sheetOf(key, def);
+  const out = document.createElement('canvas');
+  out.width = 6 * 32; out.height = 3 * 32;
+  const g = out.getContext('2d')!;
+  g.imageSmoothingEnabled = false;
+  const L = def?.sheet && charSheets.has(def.sheet) ? def.anim : undefined;
+  const rows: Dir[] = ['down', 'up', 'left'];
+  rows.forEach((dir, r) => {
+    for (let c = 0; c < 6; c++) {
+      const run = c >= 3, step = c % 3;
+      let sx: number, sy: number, fw: number, fh: number;
+      if (L) {
+        const a = (run ? L.anims.run : undefined) ?? L.anims.walk ?? Object.values(L.anims)[0];
+        const idle = L.anims.idle ?? a;
+        const use = step === 0 ? idle : a;
+        const n = use.cycle.length || use.frames || 1;
+        const col = step === 0 ? use.cycle[0] ?? 0 : use.cycle[Math.floor(n * (step === 1 ? 0.25 : 0.75)) % n] ?? step;
+        const row = use.row + (use.dirs === 4 ? Math.max(0, L.dirs.indexOf(dir)) : 0);
+        fw = fh = L.frame; sx = col * L.frame; sy = row * L.frame;
+      } else {
+        fw = sheet.width / 3; fh = sheet.height / 4;
+        sx = (step === 0 ? 1 : step === 1 ? 0 : 2) * fw; sy = DIR_ROW[dir] * fh;
+      }
+      // LPC: half size (32 px a tile → 16); other sheets: fitted into the frame, feet at the bottom.
+      const k = L ? 0.5 : Math.min(32 / fw, 32 / fh);
+      const dw = Math.round(fw * k), dh = Math.round(fh * k);
+      g.drawImage(sheet, sx, sy, fw, fh, c * 32 + Math.floor((32 - dw) / 2), r * 32 + 32 - dh, dw, dh);
+    }
+  });
+  charCache.set(id, out);
+  return out;
+}

@@ -20,7 +20,8 @@ import { GameState } from '../game/GameState';
 import { Input } from '../game/Input';
 import { Inventory } from '../game/inventory';
 import { gbaView } from '../gba/layers';
-import { collision, drawMap, LEDGE_E, LEDGE_S, LEDGE_W, SOLID, type TileLookup } from '../gba/mapRender';
+import { collision, drawMap, GRASS, LEDGE_E, LEDGE_S, LEDGE_W, SOLID, type TileLookup } from '../gba/mapRender';
+import { tileSize } from '../gba/types';
 import type { GbaData } from '../gba/types';
 import { waitForPlaytest, type PlaytestData } from '../shared/playtest';
 import { BattleScreen, type FighterView, type VictoryReport } from '../ui/BattleScreen';
@@ -30,7 +31,7 @@ import { blockedTiles, PropCatalog } from '../world/props';
 import { pickTroop } from '../world/zones';
 import type { Command, Database, Dir, Element, EnemyDef, EventData, EventPage, ItemDef, MapData, MoveRef } from '../world/types';
 import { Menus } from './menus';
-import { battleMoves, battleNumbers, battleSpells, gainXp, loadMember, MAX_PARTY, maxOf, newMember, saveMember, type Member, type MemberSave } from './party';
+import { battleMoves, battleNumbers, battleSpells, gainXp, loadMember, MAX_PARTY, maxOf, moveSpell, newMember, saveMember, spellMove, type Member, type MemberSave } from './party';
 import { GbaUi } from './ui';
 import { foeActions } from './foes';
 import { atLevel } from '../game/enemyLevels';
@@ -55,6 +56,8 @@ interface Loaded {
   name: string;
   data: MapData;
   under: HTMLCanvasElement;
+  /** The layer under the player for each water frame (animated water), drawn as needed. */
+  frames: (HTMLCanvasElement | null)[];
   over: HTMLCanvasElement;
   coll: Uint8Array;
   /** Cells props block. */
@@ -143,7 +146,7 @@ class GbaGame {
     this.cfg = combatConfig(this.db.combat);
     // Pokémon-style battles: the Pocket Handheld layout on the flat screen, one hero out at a time (the rest of the
     // party can be sent in), the Additions as the FIGHT moves with no button prompts.
-    this.cfg.turnBased = { ...this.cfg.turnBased, layout: 'pocket', mode: 'single', singleParty: MAX_PARTY, additions: 'choose', additionTiming: 'auto', heroLocked: false };
+    this.cfg.turnBased = { ...this.cfg.turnBased, layout: 'pocket', mode: 'single', singleParty: MAX_PARTY, additions: 'choose', additionTiming: 'auto', heroLocked: false, gba: true };
     // The hero, and everyone set to start in the party.
     const heroes = this.db.heroes?.length ? this.db.heroes : [mainHero(this.db)];
     this.party = heroes.filter((h, i) => i === 0 || h.startsInParty).slice(0, MAX_PARTY).map((h) => newMember(this.db, h, Math.max(1, h.joinLevel ?? 1)));
@@ -270,6 +273,9 @@ class GbaGame {
     under.width = over.width = data.width * CELL;
     under.height = over.height = data.height * CELL;
     drawMap(under.getContext('2d')!, view, this.look, 1, 0, 'under');
+    // Animated tiles (water): as many frames as the longest one on this map.
+    const used = new Set([...(data.gba?.tiles ?? [])]);
+    const nFrames = Math.max(1, ...this.gba.tiles.filter((t) => used.has(t.id)).map((t) => tileSize(t).frames));
     drawMap(over.getContext('2d')!, view, this.look, 1, 0, 'over');
     const coll = collision(view, this.look);
     const propBlock = new Set<number>();
@@ -283,7 +289,9 @@ class GbaGame {
       }
     }
     const events = data.events.map((e): RtEvent => ({ data: e, page: null, selfId: `${name}:${e.id}`, dir: 'down' }));
-    return { name, data, under, over, coll, propBlock, events };
+    const frames: (HTMLCanvasElement | null)[] = Array.from({ length: nFrames }, (_, k) => (k === 0 ? under : null));
+    this.mapView = view;
+    return { name, data, under, over, coll, propBlock, events, frames };
   }
 
   enter(name: string, x: number, z: number, dir: Dir): void {
@@ -365,9 +373,11 @@ class GbaGame {
     const who = !c.who || c.who === '@party' ? this.party : this.party.filter((m) => m.id === c.who);
     const sp = findSpell(this.db, c.spell);
     for (const m of who) {
-      if (sp && learnSpell(m.abil, sp, c.rank ?? 1)) {
-        this.audio.play('skill');
-        if (!c.silent) await this.ui.say(`${m.def.name} learned ${rankName(sp.name, m.abil.spells![sp.id])}!`);
+      if (sp) {
+        // A spell is a move: it takes one of the four (Pokémon's questions when they're full).
+        const had = (m.abil.spells?.[sp.id] ?? 0) > 0;
+        if (learnSpell(m.abil, sp, c.rank ?? 1) && had && m.moves.includes(spellMove(sp.id)) && !c.silent) await this.ui.say(`${m.def.name}'s ${rankName(sp.name, m.abil.spells![sp.id])} grew stronger!`);
+        else await this.menus.learn(m, spellMove(sp.id), had);
       }
       if (c.addition && findAddition(this.db, c.addition)) await this.menus.learn(m, c.addition);
     }
@@ -553,6 +563,7 @@ class GbaGame {
       status: new BattleStatus([...(m.def.resists ?? []), ...Object.values(m.equip).flatMap((id) => (id ? this.items.get(id)?.protects ?? [] : []))] as never),
       inflicts: w?.inflicts,
       additions: m.def.noAdditions ? [] : battleMoves(this.db, m),
+      moveOrder: m.moves.map((k) => (moveSpell(k) ? `s:${moveSpell(k)}` : `a:${k}`)),
     };
     const frame = (img: HTMLCanvasElement | undefined, sx: number, sy: number, fw: number, fh: number, scale: number) => {
       if (!img) return undefined;
@@ -632,6 +643,20 @@ class GbaGame {
     }, 500);
   }
   flash = 0;
+  mapView: ReturnType<typeof gbaView> | null = null;
+  /** Tall grass rustling where the player just stepped (its cell, frames left). */
+  rustle: { x: number; z: number; t: number; img: HTMLCanvasElement } | null = null;
+
+  /** Stepped onto tall grass: its rustling frame for a moment, and the rustle sound. */
+  grassStep(): void {
+    if (!(this.cur.coll[this.cz * this.cur.data.width + this.cx] & GRASS)) return;
+    const g = this.cur.data.gba;
+    const o = g?.objects.find((p) => p.x === this.cx && p.y === this.cz && this.look(g.tiles[p.t - 1])?.def.type === 'tallgrass');
+    const t = o ? this.look(g!.tiles[o.t - 1]) : null;
+    if (!t) return;
+    this.rustle = { x: this.cx, z: this.cz, t: 18, img: t.img };
+    this.audio.play('rustle');
+  }
   /** A trainer showing its (!). */
   exclaim: RtEvent | null = null;
   lastOutcome: 'victory' | 'defeat' | 'fled' | null = null;
@@ -959,6 +984,7 @@ class GbaGame {
       this.pz += DZ[this.dir] * speed;
       if (this.moving === 0) {
         this.hop = 0;
+        this.grassStep();
         const e = this.eventAt(this.cx, this.cz, (x) => x.page?.trigger === 'touch');
         if (e) this.runEvent(e);
         else this.encounterStep();
@@ -980,7 +1006,15 @@ class GbaGame {
     const m = this.cur.data, { camX, camZ } = this.camera();
     g.fillStyle = '#101810';
     g.fillRect(0, 0, W, H);
-    g.drawImage(this.cur.under, -camX, -camZ);
+    // Water and other animated tiles: a new frame about four times a second.
+    const fr = this.cur.frames, k = fr.length > 1 ? Math.floor(this.tick / 15) % fr.length : 0;
+    if (!fr[k]) {
+      const c = document.createElement('canvas');
+      c.width = this.cur.under.width; c.height = this.cur.under.height;
+      drawMap(c.getContext('2d')!, this.mapView!, this.look, 1, k, 'under');
+      fr[k] = c;
+    }
+    g.drawImage(fr[k]!, -camX, -camZ);
 
     // Props, people and the player, back to front (by the row their feet are on).
     const items: { z: number; draw: () => void }[] = [];

@@ -26,6 +26,8 @@ export interface TurnBasedConfig {
   guardHeal: number;
   additions: 'set' | 'choose';
   additionTiming: 'press' | 'auto';
+  /** Mimas (GBA battles, set by the GBA playtest): FIGHT holds the moves and spells (no Magic or Guard commands). */
+  gba?: boolean;
   /** Mimas (GBA): four move slots; a fifth Addition makes one be forgotten, or (equip) just moved off the four. */
   moveSlots: 'forget' | 'equip';
   /** The battle screen: Dragon Legend (faces and numbers in a row, lists in the middle) or Forbidden Fantasy (bars in a box, lists at the side). */

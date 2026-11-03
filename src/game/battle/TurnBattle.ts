@@ -434,6 +434,8 @@ export class TurnBattle {
     ];
     // Pocket Handheld: a 3 × 2 grid, the actions on top (Attack, Magic, Items), the rest under them.
     if (this.screen.pocket) { const order = ['Attack', 'Magic', 'Items', 'Guard', 'Swap', 'Escape']; cmds = [...cmds].sort((x, y) => order.indexOf(x.label) - order.indexOf(y.label)); }
+    // Mimas (GBA): no Magic or Guard: spells and guards are moves under FIGHT.
+    if (this.cfg.gba) cmds = cmds.filter((c) => c.label !== 'Magic' && c.label !== 'Guard');
     // Mimas: the handheld's words (FIGHT, BAG, PARTY, RUN).
     if (this.screen.pocket) { const say: Record<string, string> = { Attack: 'Fight', Items: 'Bag', Swap: 'Party', Escape: 'Run' }; cmds = cmds.map((c) => ({ ...c, label: say[c.label] ?? c.label })); }
     this.screen.message(this.screen.pocket ? `What will ${b.name} do?` : `${b.name}’s turn`, true);
@@ -490,7 +492,34 @@ export class TurnBattle {
     return b.additions?.find((a) => a.id === b.addition)?.name ?? '';
   }
 
+  /** Mimas (GBA): FIGHT is the hero's four moves in order: Additions (and guards) and spells, each with its MP. */
+  private gbaFightMenu(b: Battler): void {
+    const foes = this.anyone(this.otherSide(b), b);
+    const order = b.moveOrder ?? (b.additions ?? []).map((a) => `a:${a.id}`);
+    const moves = order.flatMap((k): { a: BattleAddition | null; s: BattleSpell | null }[] => {
+      if (k.startsWith('a:')) { const a = b.additions?.find((x) => x.id === k.slice(2)); return a ? [{ a, s: null as BattleSpell | null }] : []; }
+      const sp = b.spells.find((x) => x.id === k.slice(2));
+      return sp ? [{ a: null as BattleAddition | null, s: sp }] : [];
+    });
+    if (!moves.length) { this.pickTarget(foes, (t) => this.doAttack(b, t), () => this.commandMenu(b)); return; }
+    const list: ChoiceItem[] = moves.map(({ a, s }) => {
+      if (a) return { label: a.name, icon: 'attack', iconColor: a.guard !== undefined ? '#8cc8ff' : ELEMENT_COLORS[a.element ?? 'neutral'],
+        right: a.guard !== undefined ? 'Guard' : a.mp ? `${a.mp} MP` : `${a.strikes.length} hit${a.strikes.length === 1 ? '' : 's'}`, disabled: (a.mp ?? 0) > b.mp, rank: RANK.attack,
+        detail: a.guard !== undefined ? `Half damage and no ailments until your next turn; ${a.guard}% health back` : `${(a.element ?? 'neutral') === 'neutral' ? 'Normal' : a.element![0].toUpperCase() + a.element!.slice(1)} · ${a.strikes.length} hit${a.strikes.length === 1 ? '' : 's'}` };
+      const r = s!.ranks[s!.ranks.length - 1];
+      return { label: r.name, icon: 'magic', iconColor: s!.color ?? ELEMENT_COLORS[s!.element], right: `${r.mp} MP`, disabled: r.mp > b.mp || b.status.silenced, rank: RANK.magic, detail: s!.description ?? 'A spell' };
+    });
+    this.screen.choose('Fight', list, (i) => {
+      const { a, s } = moves[i];
+      if (a && a.guard !== undefined) { this.doGuard(b, a.guard, a); return; }
+      if (a) { this.pickTarget(foes, (t) => this.doAddition(b, a, t), () => this.gbaFightMenu(b)); return; }
+      // The highest rank they know.
+      this.rankMenu(b, { ...s!, ranks: [s!.ranks[s!.ranks.length - 1]] });
+    }, () => this.commandMenu(b), () => this.showOrder(RANK.attack));
+  }
+
   private attackMenu(b: Battler): void {
+    if (this.cfg.gba) { this.gbaFightMenu(b); return; }
     // Anyone can be targeted (foes first): a confused friend, a zombie ally…
     const foes = this.anyone(this.otherSide(b), b);
     const adds = b.additions ?? [];
@@ -522,7 +551,7 @@ export class TurnBattle {
   /** Spells known at more than one rank: choose the rank (higher hits harder, costs more and charges longer). */
   private rankMenu(b: Battler, s: BattleSpell): void {
     const go = (r: SpellRank) => {
-      const back = () => (s.ranks.length > 1 ? this.rankMenu(b, s) : this.magicMenu(b));
+      const back = () => (this.cfg.gba ? this.attackMenu(b) : s.ranks.length > 1 ? this.rankMenu(b, s) : this.magicMenu(b));
       const friendly = s.kind === 'heal' || (s.kind === 'support' && s.supportTarget !== 'foes');
       const mine = friendly ? this.sideOf(b) : this.otherSide(b), theirs = friendly ? this.otherSide(b) : this.sideOf(b);
       // A weather spell with nothing else to give: it covers the whole battle, no target to choose.
@@ -799,6 +828,7 @@ export class TurnBattle {
         return;
       }
       let landed = 0, power = 0;
+      if (a.mp) { b.mp = Math.max(0, b.mp - a.mp); this.refresh(b); }
       const element = a.element ?? b.attackElement, inflicts = a.inflicts ?? b.inflicts;
       const fxEnd = performance.now() + (this.host.effect?.(a.look ?? {}, 'addition', t.key, element) ?? 0) * 1000;
       this.screen.startQte(t.key, a.strikes.map((x) => ({ button: x.button, time: x.time, window: x.window })), this.cfg.additionTiming === 'auto',
@@ -913,21 +943,30 @@ export class TurnBattle {
   }
 
   /** Guard: half damage, some health back and no new ailments until their next turn (Legend of Dragoon). */
-  private doGuard(b: Battler): void {
-    if (this.defer(b, () => this.doGuard(b), true)) return;
-    b.guarding = true;
-    b.status.ward = true;
-    const n = Math.round(b.maxHp * (this.cfg.guardHeal + (b.guardBonus ?? 0)) / 100);
-    if (n > 0 && b.hp < b.maxHp) {
-      const got = Math.min(n, b.maxHp - b.hp);
-      if (b.status.zombie) this.damage(b, got, false);
-      else { b.hp += got; this.screen.popup(b.key, `+${got}`, 'heal'); }
-    }
-    this.refresh(b);
-    this.host.sound('guard');
-    this.screen.animate(b.key, 'heal', '#8cc8ff');
-    this.screen.message(`${b.name} guards`);
-    this.endTurn(b, RANK.guard, 0.6);
+  private doGuard(b: Battler, heal?: number, move?: BattleAddition): void {
+    if (this.defer(b, () => this.doGuard(b, heal, move), true)) return;
+    // Mimas (a guard move): "Jordan used Guard!", its animation, then the guard.
+    if (move && this.screen.pocket && !this.announced) { this.announced = true; this.announce(`${b.name} used ${move.name}!`, () => this.doGuard(b, heal, move)); return; }
+    this.announced = false;
+    if (move?.mp) { b.mp = Math.max(0, b.mp - move.mp); }
+    const fx = move ? this.host.effect?.(move.look ?? { effect: 'fx_sparkle', burst: 'none' }, 'heal', b.key, 'neutral') ?? 0 : 0;
+    this.later(fx, () => {
+      b.guarding = true;
+      b.status.ward = true;
+      const n = Math.round(b.maxHp * ((heal ?? this.cfg.guardHeal) + (b.guardBonus ?? 0)) / 100);
+      let got = 0;
+      if (n > 0 && b.hp < b.maxHp) {
+        got = Math.min(n, b.maxHp - b.hp);
+        if (b.status.zombie) this.damage(b, got, false);
+        else { b.hp += got; this.screen.popup(b.key, `+${got}`, 'heal'); }
+      }
+      this.refresh(b);
+      this.host.sound('guard');
+      this.screen.animate(b.key, 'heal', '#8cc8ff');
+      this.screen.message(`${b.name} guards`);
+      if (this.screen.pocket) this.tell(got > 0 && !b.status.zombie ? `${b.name} is guarding and recovered ${got} HP!` : `${b.name} is guarding!`);
+      this.endTurn(b, RANK.guard, 0.6);
+    });
   }
 
   private doFlee(b: Battler): void {

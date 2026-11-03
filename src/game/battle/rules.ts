@@ -73,6 +73,9 @@ export interface BattleAddition {
   element?: Element;
   inflicts?: Inflict[];
   look?: import('../../gba/effects').MoveLook;
+  /** Mimas: magic it costs, and (a guard move) the health it gives back (%). */
+  mp?: number;
+  guard?: number;
 }
 
 /** A spell being charged: what it is, at which rank, on whom, and the caster's turns until it goes off. */
@@ -140,6 +143,8 @@ export interface Battler {
   counterspell?: boolean;
   /** Heroes: their Additions and the one Attack uses (when set per hero). */
   additions?: BattleAddition[];
+  /** Mimas (GBA): the FIGHT list in order: `a:<id>` Additions and `s:<id>` spells (spells then aren't under Magic). */
+  moveOrder?: string[];
   addition?: string;
   /** A plain attack fired from where they stand (a bow), not run in for. */
   shoots?: boolean;

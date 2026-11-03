@@ -16,7 +16,7 @@ import { openWorldLayout } from './WorldEditor';
 import type { Dir, MapData } from '../world/types';
 import { backspaceAsEscape, confirmModal, field, h, numberInput, openModal, select, textInput, toast } from './dom';
 import { installErrorBar } from '../shared/errorBar';
-import { characterImage, enemyBattleImage, propSprite, tileName } from './editorArt';
+import { characterImage, characterOverworldSheet, enemyBattleImage, propSprite, tileName } from './editorArt';
 import { tintCanvas } from '../render/tint';
 import { Inspector } from './Inspector';
 import { save } from './io';
@@ -442,11 +442,12 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
     if (!m.gba) continue;
     for (const p of m.props) want.add(`prop:${p.type}`);
     for (const ev of m.events) for (const pg of ev.pages) {
-      if (pg.character) for (const d of ['down', 'up', 'left', 'right']) want.add(`char:${pg.character}:${d}`);
+      if (pg.character) { for (const d of ['down', 'up', 'left', 'right']) want.add(`char:${pg.character}:${d}`); want.add(`charsheet:${pg.character}:`); }
       if (pg.sprite) want.add(`prop:${pg.sprite}`);
     }
   }
   for (const d of ['down', 'up', 'left', 'right']) want.add(`char:${store.db.player}:${d}`);
+  want.add(`charsheet:${store.db.player}:`);
   // The party's looks (party lists, battle backs).
   for (const hero of store.db.heroes ?? []) if (hero.look) for (const d of ['down', 'up', 'left']) want.add(`char:${hero.look}:${d}`);
   for (const k of want) {
@@ -454,6 +455,7 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
     let c: HTMLCanvasElement | null = null, w = 0, hh = 0;
     if (kind === 'prop') { const sp = propSprite(id); c = sp.img as HTMLCanvasElement; w = sp.w; hh = sp.h; }
     else if (kind === 'char' && store.db.characters[id]) { c = characterImage(id, store.db.characters[id], dir as Dir); w = c.width; hh = c.height; }
+    else if (kind === 'charsheet' && store.db.characters[id]) { c = characterOverworldSheet(id, store.db.characters[id]); w = c.width; hh = c.height; }
     if (c && c.width && c.height) pics[k] = { blob: await blob(c), w, h: hh };
   }
   for (const e of store.db.enemies ?? []) {

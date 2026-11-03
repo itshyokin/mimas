@@ -27,7 +27,7 @@ export interface Member {
   stats: Attrs;
   abil: AbilityData;
   equip: Partial<Record<EquipSlot, string>>;
-  /** The FIGHT list: up to four Addition ids, in order. */
+  /** The FIGHT list: up to four moves in order: Addition ids, or `spell:<id>` for spells. */
   moves: string[];
 }
 
@@ -52,6 +52,8 @@ export function newMember(db: Database, def: HeroDef, level: number): Member {
       if (m.moves.length < MAX_MOVES) m.moves.push(id);
     }
   }
+  // Spells they start with take the free slots too.
+  for (const sid of Object.keys(def.spells ?? {})) if (m.moves.length < MAX_MOVES && spellList(db).some((x) => x.id === sid)) m.moves.push(spellMove(sid));
   const max = maxOf(db, m, () => undefined);
   m.hp = max.hp; m.mp = max.mp;
   return m;
@@ -82,6 +84,22 @@ export function battleNumbers(cfg: CombatConfig, m: Member, items: Items) {
   return { attack: attackOf(cfg, m, items), armour: t.armour, magicArmour: t.magicArmour, agility: t.attrs.agi, crit: t.crit, evasion: evasionOf(t.attrs.agi), spellEvasion: evasionOf(t.attrs.mdf), resist: ailmentResist(t.attrs.end), totals: t };
 }
 
+/** A spell as a move (`spell:<id>`), and back. */
+export const spellMove = (id: string): string => `spell:${id}`;
+export const moveSpell = (move: string): string | null => (move.startsWith('spell:') ? move.slice(6) : null);
+
+/** A move's name, what the FIGHT list shows on the right (hits or MP) and its description. */
+export function moveInfo(db: Database, m: Member, move: string): { name: string; right: string; detail?: string } {
+  const sid = moveSpell(move);
+  if (sid) {
+    const s = spellList(db).find((x) => x.id === sid);
+    const r = s ? spellAtRank(s, Math.max(1, m.abil.spells?.[sid] ?? 1)) : null;
+    return { name: s ? rankName(s.name, Math.max(1, m.abil.spells?.[sid] ?? 1)) : sid, right: r ? `${r.mp} MP` : '', detail: s?.description };
+  }
+  const d = findAddition(db, move);
+  return { name: d?.name ?? move, right: d ? (d.guard ? 'GUARD' : d.mp ? `${d.mp} MP` : `${d.strikes.length} HIT${d.strikes.length === 1 ? '' : 'S'}`) : '', detail: d?.description };
+}
+
 /** Their FIGHT list for a battle (no button prompts: every strike lands). */
 export function battleMoves(db: Database, m: Member): BattleAddition[] {
   return m.moves.flatMap((id) => {
@@ -89,14 +107,15 @@ export function battleMoves(db: Database, m: Member): BattleAddition[] {
     if (!d) return [];
     const uses = m.abil.additions?.[id] ?? 0, rank = additionRank(d, uses), bonus = additionBonus(d, rank);
     return [{ id: d.id, name: d.name, sound: d.sound, rank, maxRank: d.maxRank ?? 5, toNext: additionToNext(d, uses), damage: bonus.damage,
-      element: d.element, inflicts: d.inflicts, look: { effect: d.effect, burst: d.burst, element: d.element, inflicts: d.inflicts },
+      element: d.element, inflicts: d.inflicts, look: { effect: d.effect, burst: d.burst, element: d.element, inflicts: d.inflicts }, mp: d.mp, guard: d.guard ? (d.guardHeal ?? 10) : undefined,
       strikes: d.strikes.map((x) => ({ power: x.power, button: x.button ?? 'A', time: Math.max(0.25, Math.min(0.45, x.time ?? 0.45)), window: Math.max(0.06, (x.window ?? 0.24) * bonus.window) })) }];
   });
 }
 
 export function battleSpells(db: Database, m: Member, items: Items): BattleSpell[] {
   const power = powerMultiplier(totalsOf(m, items).attrs.mag);
-  return spellList(db).flatMap((s) => {
+  // Only the spells among their four moves (the FIGHT list).
+  return spellList(db).filter((s) => m.moves.includes(spellMove(s.id))).flatMap((s) => {
     const known = Math.min(m.abil.spells?.[s.id] ?? 0, spellMaxRank(s));
     if (known < 1) return [];
     const ranks = Array.from({ length: known }, (_, i) => { const at = spellAtRank(s, i + 1); return { rank: i + 1, name: rankName(s.name, i + 1), power: at.power * power, mp: at.mp, charge: at.charge }; });
@@ -132,9 +151,10 @@ export function master(db: Database, m: Member, id: string): number | null {
   return d ? masterAddition(m.abil, d) : null;
 }
 
-/** Everything they know (Additions), for the equip list. */
+/** Everything they know (Additions and spells), for the equip list. */
 export function knownMoves(db: Database, m: Member): string[] {
-  return additionList(db).filter((d) => m.abil.additions && d.id in m.abil.additions).map((d) => d.id);
+  return [...additionList(db).filter((d) => m.abil.additions && d.id in m.abil.additions).map((d) => d.id),
+    ...spellList(db).filter((s) => (m.abil.spells?.[s.id] ?? 0) > 0).map((s) => spellMove(s.id))];
 }
 
 export function saveMember(m: Member): MemberSave {

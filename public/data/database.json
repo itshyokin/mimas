@@ -5413,7 +5413,8 @@
       },
       "cls": "class_titan",
       "additions": [
-        "quick_strike"
+        "quick_strike",
+        "guard"
       ],
       "chatter": {
         "lines": {
@@ -5520,7 +5521,11 @@
             "Always new places to see. Titamas is a big place."
           ]
         }
-      }
+      },
+      "additions": [
+        "quick_strike",
+        "guard"
+      ]
     },
     {
       "id": "hero_3",
@@ -5587,7 +5592,11 @@
             "NOW where the hell are we!?"
           ]
         }
-      }
+      },
+      "additions": [
+        "quick_strike",
+        "guard"
+      ]
     },
     {
       "id": "hero_4",
@@ -5657,7 +5666,11 @@
             "This place seems... familiar."
           ]
         }
-      }
+      },
+      "additions": [
+        "quick_strike",
+        "guard"
+      ]
     },
     {
       "id": "hero_5",
@@ -5672,7 +5685,11 @@
         "mag": 12,
         "def": 8,
         "mdf": 8
-      }
+      },
+      "additions": [
+        "quick_strike",
+        "guard"
+      ]
     },
     {
       "id": "hero_6",
@@ -5702,6 +5719,10 @@
       ],
       "resists": [
         "zombie"
+      ],
+      "additions": [
+        "quick_strike",
+        "guard"
       ]
     }
   ],
@@ -6717,6 +6738,19 @@
         }
       ],
       "maxRank": 5
+    },
+    {
+      "id": "guard",
+      "name": "Guard",
+      "description": "Braces for the next blow: half damage, no ailments, and a little health back.",
+      "strikes": [
+        {
+          "power": 0
+        }
+      ],
+      "guard": true,
+      "effect": "fx_sparkle",
+      "burst": "none"
     }
   ],
   "world": {

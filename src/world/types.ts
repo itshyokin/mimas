@@ -2113,6 +2113,11 @@ export interface AdditionDef {
   effect?: string;
   /** 'auto' (default): its element's burst; 'none'; or an effect id. */
   burst?: string;
+  /** Mimas: magic it costs (unset: none). */
+  mp?: number;
+  /** Mimas: a guard, not an attack: half damage and no ailments until the next turn, and some health back (`guardHeal` %, default 10). */
+  guard?: boolean;
+  guardHeal?: number;
 }
 
 /** A class: the skill trees its members learn from. Changing class keeps everything already learned. */
