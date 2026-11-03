@@ -48,6 +48,14 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Next up
+Waiting on the owner (Nov 3): the battle menu layout preview (mock-up only, nothing built): taller bottom boxes that
+cover the hero sprite's base; the hero panel up ~38 px; the Y log hint just above it, in line with the MP orb; commands
+FIGHT / BAG / PARTY / RUN as 4 centred, bigger buttons (Party / Run always shown, greyed when unusable), no caption
+line; FIGHT as 4 buttons (name, element, MP; 0 for Additions) moved with the arrows; the move's details (hits, type,
+description) in a small note box under "What will Jordan do?". The mock-up script: scratchpad mock.js (not kept).
+Done the same day: soft fade into battles, no Perfect popups (gba), foes mirrored by "The picture faces", meter
+shape / colours from Database → Menus (playtest root classes; ROM ui_tiles round ends + colours), bigger panel
+text, src/editor/mimasSupport.ts greys Database settings the GBA game doesn't use (lists per tab).
 Update 11 is done (below). The owner's open wishes from NOTES.md: music in the ROM (tracker files), support spells'
 buffs in the ROM, learnsets (moves on level up), NPCs walking, Surf, more event commands. Ask the owner which first.
 
