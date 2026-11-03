@@ -14,6 +14,8 @@ import { ELEMENT_LIST, elementResult } from '../game/elements';
 import { effectSprites, moveEffects } from '../gba/effects';
 import type { GbaData } from '../gba/types';
 import { TEXT_LINES, lineVersions } from '../gba/text';
+import { gbaAchievements } from '../gba/achievements';
+import { gbaCredits } from '../gba/credits';
 import { ATTRS } from '../game/attributes';
 import { armorTypes, gearKindOf, gearKinds } from '../game/classes';
 import { isSharedTree, skillsData } from '../game/skills';
@@ -109,6 +111,9 @@ export function romGameData(db: Database, gba: GbaData): unknown {
       moves: refs(e.moves), movesets: (e.movesets ?? []).map((m) => ({ level: m.level, moves: refs(m.moves) })).sort((a, b) => a.level - b.level),
     })),
     troops: (db.troops ?? []).map((t) => ({ id: t.id, members: t.members.map((m) => ({ enemy: m.enemy, min: m.min ?? 1, max: m.max ?? m.min ?? 1 })), pick: t.pick ?? 'all', noRun: !!t.noRun })),
+    // Update 16: the achievements the GBA game can unlock (the rest are Saturn's), and the credits roll's lines.
+    achievements: gbaAchievements(db.achievements).map((a) => ({ id: a.id, name: a.name, description: a.description, points: a.points, hidden: !!a.hidden, rule: a.rule })),
+    credits: gbaCredits(db),
     // The game's lines and command words (Database → Text & dialog): every version, by key.
     text: Object.fromEntries(TEXT_LINES.map((l) => [l.key, lineVersions(db, l.key)])),
   };

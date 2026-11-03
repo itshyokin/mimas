@@ -7,7 +7,7 @@ import { h, openModal } from './dom';
 
 /** Commands the ROM runs (the rest are left out). */
 const SUPPORTED = new Set(['text', 'choice', 'if', 'setSwitch', 'setVar', 'selfSwitch', 'giveItem', 'takeItem', 'gold', 'transfer', 'wait', 'fadeOut', 'fadeIn', 'battle',
-  'party', 'learn', 'shop', 'save', 'gauge', 'fullRest', 'rest', 'heroClass']);
+  'party', 'learn', 'shop', 'save', 'gauge', 'fullRest', 'rest', 'heroClass', 'achievement']);
 /** Commands that only change sound or the HD-2D look: skipped quietly. */
 const QUIET = new Set(['sound', 'music', 'ambience', 'weather', 'console', 'tutorial', 'journalTab', 'heroWeather', 'temperature']);
 

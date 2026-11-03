@@ -1,5 +1,5 @@
 /** Map editor entry point: lays out the panels and wires the toolbar and shortcuts. */
-import { battlebackList } from '../gba/types';
+import { TITLE_LAYERS, battlebackList, titleImage } from '../gba/types';
 import { heroBattleImage } from './battleArt';
 import { mainHero } from '../world/heroes';
 import { View3D } from './View3D';
@@ -493,6 +493,11 @@ async function gbaHandoff(): Promise<PlaytestData['gba']> {
   for (const id of usedBacks) {
     const b = backs.find((x) => x.id === id);
     if (b && !images[b.image]) { try { images[b.image] = await store.project.readFile(b.image); } catch { /* none */ } }
+  }
+  // The title screen's layers (Update 16): yours, or the built-in pictures.
+  for (const l of TITLE_LAYERS) {
+    const path = titleImage(gba.data, l.id);
+    if (!images[path]) { try { images[path] = await store.project.readFile(path); } catch { /* none */ } }
   }
   return { data: gba.data, images, pics };
 }

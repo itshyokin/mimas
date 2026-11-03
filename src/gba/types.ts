@@ -69,7 +69,20 @@ export interface GbaData {
   startMap?: string;
   /** Battle backgrounds: the built-ins swapped for your own pictures, and new ones (see battlebackList). */
   battlebacks?: GbaBattleback[];
+  /** The title screen (Update 16): its three layers (unset: the built-in pictures) and how fast the clouds drift. */
+  title?: GbaTitle;
 }
+
+/** The title screen's layers, back to front, each 240 × 160 (the clouds 256 wide: they wrap as they scroll). */
+export interface GbaTitle { sky?: string; clouds?: string; trees?: string; /** Pixels a second (unset 6; 0 still). */ cloudSpeed?: number }
+export type TitleLayer = 'sky' | 'clouds' | 'trees';
+export const TITLE_LAYERS: { id: TitleLayer; name: string; w: number; note: string }[] = [
+  { id: 'sky', name: 'Sky', w: 240, note: 'At the back: Saturn, the moon and the stars (Saturn Engine’s own night sky).' },
+  { id: 'clouds', name: 'Clouds', w: 256, note: 'In the middle, drifting sideways and wrapping round (256 wide; see-through where there’s no cloud).' },
+  { id: 'trees', name: 'Trees', w: 240, note: 'In front: the forest you’re looking up from (see-through where there’s sky).' },
+];
+export const DEFAULT_CLOUD_SPEED = 6;
+export const titleImage = (g: Pick<GbaData, 'title'>, layer: TitleLayer): string => g.title?.[layer] ?? `gba/title/builtin/${layer}.png`;
 
 /** A battle background (240 × 160, the GBA screen). `image` unset: the built-in picture. */
 export interface GbaBattleback {

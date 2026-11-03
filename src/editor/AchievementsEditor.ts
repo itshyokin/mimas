@@ -6,6 +6,7 @@ import type { EditorStore } from './store';
 import type { Database } from '../world/types';
 import { checkbox, field, h, numberInput, select, textInput, toast } from './dom';
 import { ITEM_ICONS, builtinIcon, builtinIconName } from '../art/itemIcons';
+import { GBA_RECORDS, GBA_RULES, gbaRuleOk } from '../gba/achievements';
 import { RECORD_NAMES, RULE_NAMES, steamCsv, toId, validId, type AchievementDef, type AchievementKind, type AchievementRule } from '../game/achievements';
 import { additionList, spellList } from '../game/abilities';
 
@@ -62,7 +63,7 @@ export function achievementsTab(store: EditorStore, db: Database, list: Achievem
     if (r.kind === 'gold') ruleFields.push(count(r.amount, (n) => (r.amount = n), 'Gold held at once'));
     if (r.kind === 'item') ruleFields.push(field('Item', select(items.length ? items : [['', '(add items first)']], r.item, (v) => (r.item = v))), count(r.count ?? 1, (n) => (r.count = n), 'How many in the bag'));
     if (r.kind === 'party') ruleFields.push(count(r.size, (n) => (r.size = Math.min(8, n)), 'Party members (the hero counts)'));
-    if (r.kind === 'record') ruleFields.push(field('Record', select(RECORD_NAMES, r.record, (v) => (r.record = v)), 'The Journal’s Records (Pause → Journal → Records), plus battles won and won without a scratch.'), count(r.count, (n) => (r.count = n), 'Reaches'));
+    if (r.kind === 'record') ruleFields.push(field('Record', select(RECORD_NAMES.map(([k, n]) => [k, (GBA_RECORDS as readonly string[]).includes(k) ? n : `${n} (Saturn only)`] as [string, string]), r.record, (v) => { r.record = v; rerender(); }), 'The Journal’s Records (Pause → Journal → Records), plus battles won and won without a scratch.'), count(r.count, (n) => (r.count = n), 'Reaches'));
     if (r.kind === 'event') ruleFields.push(h('p', { class: 'note' }, 'Only the “Unlock achievement” event command unlocks it (finishing a story chapter, a secret, a boss).'));
     const idInput = textInput(a.id, (v) => {
       const id = v.trim().toUpperCase().replace(/[^A-Z0-9_]+/g, '_');
@@ -81,7 +82,8 @@ export function achievementsTab(store: EditorStore, db: Database, list: Achievem
       field('Icon', h('div', {}, h('img', { class: 'ach-edit-icon', src: iconUrl(a.icon), alt: '' }), icons), 'Built-in pictures; an imported item icon’s path also works.'),
       checkbox('Hidden until unlocked (shown as “???”)', !!a.hidden, (v) => { a.hidden = v || undefined; rerender(); }),
       h('section', { class: 'db-section' }, h('h3', {}, 'Unlocked by'),
-        field('Goal', select(Object.entries(RULE_NAMES) as [string, string][], r.kind, (v) => { a.rule = DEFAULT_RULE[v as AchievementKind](); rerender(); })),
+        field('Goal', select((Object.entries(RULE_NAMES) as [string, string][]).map(([k, n]) => [k, GBA_RULES.includes(k as AchievementKind) ? n : `${n} (Saturn only)`] as [string, string]), r.kind, (v) => { a.rule = DEFAULT_RULE[v as AchievementKind](); rerender(); })),
+        gbaRuleOk(r) ? null : h('p', { class: 'note warn' }, 'The GBA game can’t unlock this one (Saturn only): it isn’t on the cartridge.'),
         ...ruleFields),
       h('button', { type: 'button', class: 'btn danger', onclick: () => { list.splice(state.sel, 1); rerender(); } }, 'Delete achievement'),
     );

@@ -58,6 +58,74 @@ bn::random rng;
 uint32_t play_frames = 0;
 bn::sprite_text_generator* G = nullptr;   // the dark text for the white windows
 
+// ------------------------------------------------------------------------------------------------ the cartridge's records
+
+// Update 16: achievements' records and unlocks are the cartridge's: counted across every save slot, never reset
+// by a new game. Kept at the start of SRAM, before the three save slots.
+struct cart_data
+{
+    char magic[8];
+    int32_t records[mimas::RECORD_COUNT];
+    int32_t kills[mimas::max_kill];           // each enemy defeated
+    int32_t adds[mimas::max_additions];       // each Addition performed
+    int32_t casts[mimas::max_spells];         // each spell cast
+    uint8_t unlocked[mimas::max_ach];
+};
+
+BN_DATA_EWRAM_BSS cart_data CART;
+constexpr char CART_MAGIC[8] = { 'M', 'I', 'M', 'A', 'C', 'A', '1', 0 };
+bool cart_dirty = false;
+
+void cart_load()
+{
+    bn::sram::read(CART);
+
+    for(int k = 0; k < 8; ++k)
+    {
+        if(CART.magic[k] != CART_MAGIC[k])
+        {
+            CART = cart_data{};
+            for(int j = 0; j < 8; ++j) { CART.magic[j] = CART_MAGIC[j]; }
+            return;
+        }
+    }
+}
+
+void cart_store()
+{
+    bn::sram::write(CART);
+    cart_dirty = false;
+}
+
+void tally(int record, int n = 1)
+{
+    CART.records[record] += n;
+    cart_dirty = true;
+}
+
+// How far along achievement k is (need 1 for yes-or-no goals).
+void ach_progress(int k, int& have, int& need)
+{
+    const mimas::ach_def& a = mimas::achievements[k];
+    have = 0;
+    need = bn::max(1, int(a.n));
+
+    switch(a.kind)
+    {
+        case 1: have = a.a >= 0 && switches[a.a] ? 1 : 0; need = 1; break;
+        case 2: have = a.a == -1 ? CART.records[mimas::R_KILLS] : a.a >= 0 && a.a < mimas::max_kill ? CART.kills[a.a] : 0; break;
+        case 3: have = a.a == -1 ? CART.records[mimas::R_ADDITIONS] : a.a >= 0 ? CART.adds[a.a] : 0; break;
+        case 4: have = a.a == -1 ? CART.records[mimas::R_SPELLS] : a.a >= 0 ? CART.casts[a.a] : 0; break;
+        case 5: for(int i = 0; i < party_count; ++i) { have = bn::max(have, int(party[i].level)); } break;
+        case 6: have = gold; break;
+        case 7: have = a.a >= 0 ? bag[a.a] : 0; break;
+        case 8: have = party_count; break;
+        case 9: have = a.a >= 0 ? CART.records[a.a] : 0; break;
+        default: need = 1; break;   // an event: only the Unlock achievement command
+    }
+}
+
+
 // ------------------------------------------------------------------------------------------------ the game's lines
 
 // Fill-ins for a line: tv().N("Jordan").M("Quick Strike") and so on.
@@ -791,6 +859,9 @@ struct list_spec
     bool cancel = true;
 };
 
+// Called every frame while a list is open (the title screen's clouds drift on).
+void (*frame_hook)() = nullptr;
+
 // A list in a window: up / down, A chooses (its index), B -1. The window is cleared when it returns.
 int pick(const row* rows, int n, const list_spec& s, int start = 0)
 {
@@ -864,6 +935,7 @@ int pick(const row* rows, int n, const list_spec& s, int start = 0)
         }
 
         cursor.set_position(s.x * 8 + 8 - HALF_W, s.y * 8 + 4 + title_h + (at - top) * s.row_h + 8 - HALF_H);
+        if(frame_hook) { frame_hook(); }
 
         if(s.detail && shown_detail != at)
         {
@@ -1387,6 +1459,7 @@ bool use_item(int item, int who)
     }
 
     --bag[item];
+    tally(mimas::R_ITEMSUSED);
     bn::string<160> t = name_of(m);
 
     if(before_hp <= 0)
@@ -1657,21 +1730,39 @@ struct save_data
 };
 
 BN_DATA_EWRAM_BSS save_data SAVE;
-constexpr char SAVE_MAGIC[8] = { 'M', 'I', 'M', 'A', 'S', '0', '8', 0 };
+constexpr char SAVE_MAGIC[8] = { 'M', 'I', 'M', 'A', 'S', '0', '9', 0 };
 
-[[nodiscard]] bool save_exists()
+// Update 16: three save slots after the cartridge's records.
+constexpr int SLOTS = 3;
+constexpr int SLOT_SIZE = (int(sizeof(save_data)) + 15) / 16 * 16;
+constexpr int CART_SIZE = (int(sizeof(cart_data)) + 15) / 16 * 16;
+static_assert(CART_SIZE + SLOTS * SLOT_SIZE <= 32 * 1024, "the save slots don't fit the cartridge's 32 KB");
+int save_slot = 0;   // the slot this game was loaded from or last saved in
+
+// Read slot k into SAVE: false if it holds no game.
+[[nodiscard]] bool read_slot(int k)
 {
-    bn::sram::read(SAVE);
+    bn::sram::read_offset(SAVE, CART_SIZE + k * SLOT_SIZE);
 
-    for(int k = 0; k < 8; ++k)
+    for(int j = 0; j < 8; ++j)
     {
-        if(SAVE.magic[k] != SAVE_MAGIC[k])
+        if(SAVE.magic[j] != SAVE_MAGIC[j])
         {
             return false;
         }
     }
 
     return SAVE.map >= 0 && SAVE.map < mimas::map_count && SAVE.party_count > 0;
+}
+
+[[nodiscard]] bool any_save()
+{
+    for(int k = 0; k < SLOTS; ++k)
+    {
+        if(read_slot(k)) { return true; }
+    }
+
+    return false;
 }
 
 void write_save(int map, int x, int y, int dir)
@@ -1689,10 +1780,11 @@ void write_save(int map, int x, int y, int dir)
     for(int i = 0; i < mimas::var_count; ++i) { SAVE.vars[i] = vars[i]; }
     for(int i = 0; i < mimas::self_count; ++i) { SAVE.selfs[i] = selfs[i]; }
 
-    bn::sram::write(SAVE);
+    bn::sram::write_offset(SAVE, CART_SIZE + save_slot * SLOT_SIZE);
+    cart_store();
 }
 
-// Loads what save_exists() read.
+// Loads what read_slot() read.
 void load_save()
 {
     play_frames = SAVE.frames;
@@ -1706,6 +1798,61 @@ void load_save()
     for(int i = 0; i < mimas::self_count; ++i) { selfs[i] = SAVE.selfs[i]; }
 }
 
+bn::string<40> slot_maps[SLOTS];
+
+const char* slot_detail(int k)
+{
+    return slot_maps[k].c_str();
+}
+
+// The slots as rows: "1  Jordan Lv5" and the play time (the map in the box below). `load`: empty ones greyed.
+void slot_rows(bool load)
+{
+    for(int k = 0; k < SLOTS; ++k)
+    {
+        bn::string<24> l = bn::to_string<2>(k + 1);
+        slot_maps[k].clear();
+
+        if(read_slot(k))
+        {
+            l += "  ";
+            l += mimas::heroes[SAVE.party[0].hero].name;
+            l += " Lv";
+            l += bn::to_string<4>(SAVE.party[0].level);
+            int t = int(SAVE.frames / 60 / 60);
+            bn::string<12> r = bn::to_string<4>(t / 60);
+            r += ":";
+            if(t % 60 < 10) { r += "0"; }
+            r += bn::to_string<4>(t % 60);
+            set_row(ROWS_C[k], l.c_str(), r.c_str());
+            slot_maps[k] = mimas::maps[SAVE.map].name;
+        }
+        else
+        {
+            l += "  - - -";
+            set_row(ROWS_C[k], l.c_str(), "", -1, load);
+            slot_maps[k] = "Empty";
+        }
+    }
+}
+
+// Choose a slot to save in (a used one asks first) or to load from: -1 for none.
+int pick_slot(bool load)
+{
+    slot_rows(load);
+    bn::string<160> title = txt(load ? mimas::T_load_which : mimas::T_save_which);
+    list_spec s;
+    s.x = 2; s.y = 1; s.w = 26; s.visible = SLOTS; s.title = title.c_str(); s.detail = slot_detail;
+    int k = pick(ROWS_C, SLOTS, s, save_slot);
+
+    if(k >= 0 && ! load && read_slot(k) && ! ask(txt(mimas::T_save_overwrite)))
+    {
+        k = -1;
+    }
+
+    return k;
+}
+
 bool save_flow(int map, int x, int y, int dir)
 {
     if(! ask(txt(mimas::T_save_ask)))
@@ -1713,6 +1860,14 @@ bool save_flow(int map, int x, int y, int dir)
         return false;
     }
 
+    int k = pick_slot(false);
+
+    if(k < 0)
+    {
+        return false;
+    }
+
+    save_slot = k;
     write_save(map, x, y, dir);
     sfx(mimas::snd_save);
     say(txt(mimas::T_save_done, tv().N(name_of(party[0]))));
@@ -2192,6 +2347,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
     int result = WON;
     int total_gold = 0;
+    bool hurt = false;   // anyone in the party took damage (no: a flawless win)
     bool fought[MAX_PARTY] = {};
 
     {
@@ -2363,6 +2519,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                     if(rng.get_int(100) < chance)
                     {
                         bsay(txt(mimas::T_battle_fled, tv().N(name_of(m))));
+                        tally(mimas::R_FLED);
                         result = RAN;
                         break;
                     }
@@ -2498,7 +2655,8 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                                 bsay_auto(txt(mimas::T_battle_hits, tv().num(hits)));
                             }
 
-                            if(crit && dmg) { sfx(mimas::snd_crit); bsay_auto(txt(mimas::T_battle_crit)); }
+                            if(crit && dmg) { sfx(mimas::snd_crit); tally(mimas::R_CRITS); bsay_auto(txt(mimas::T_battle_crit)); }
+                            if(a) { tally(mimas::R_ADDITIONS); ++CART.adds[arg]; }
                             say_type(mult, e.name);
                             if(a && complete && dmg && sc.f.hp > 0) { give_ailment(sc.f.st, a->inflict, a->chance, e.resists, e.name); sc.draw_foe(); }
                         }
@@ -2521,6 +2679,8 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                             hm.mp = int16_t(hm.mp - r.mp);
                             sc.draw_hero();
+                            tally(mimas::R_SPELLS);
+                            ++CART.casts[arg];
                             bsay_hold(txt(mimas::T_battle_spell, tv().N(name_of(hm)).M(sp.name).T(e.name).F(e.name)));
                             int power = r.power * (40 + th.attrs[mimas::MAG]) / 50;   // x10
 
@@ -2603,6 +2763,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                             dmg = bn::max(1, int(dmg / 100));
                             sc.blink(sc.back);
                             sc.drain_hero(hm.hp - dmg);
+                            hurt = true;
                             if(crit) { sfx(mimas::snd_crit); bsay_auto(txt(mimas::T_battle_crit)); }
                             say_type(mult, name_of(hm));
                             if(hm.hp > 0 && ! guard) { give_ailment(hs, e.inflict, e.chance, 0, name_of(hm)); sc.draw_hero(); }
@@ -2633,6 +2794,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                                 dmg = bn::max(1, int(dmg / 100));
                                 sc.blink(sc.back);
                                 sc.drain_hero(hm.hp - dmg);
+                                hurt = true;
                                 if(a.hits > 1) { bsay_auto(txt(mimas::T_battle_hits, tv().num(a.hits))); }
                                 if(crit) { sfx(mimas::snd_crit); bsay_auto(txt(mimas::T_battle_crit)); }
                                 say_type(mult, name_of(hm));
@@ -2653,6 +2815,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                                     dmg = bn::max(1, dmg);
                                     sc.blink(sc.back);
                                     sc.drain_hero(hm.hp - dmg);
+                                    hurt = true;
                                     say_type(mult, name_of(hm));
                                     if(hm.hp > 0 && ! guard) { give_ailment(hs, sp.inflict, sp.chance, 0, name_of(hm)); sc.draw_hero(); }
                                 }
@@ -2717,6 +2880,8 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                     }
 
                     total_gold += sc.f.gold;
+                    tally(mimas::R_KILLS);
+                    if(sc.f.id < mimas::max_kill) { ++CART.kills[sc.f.id]; }
 
                     for(int i = 0; i < MAX_PARTY; ++i) { fought[i] = i == sc.who; }
 
@@ -2733,6 +2898,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                     if(first_standing() < 0)
                     {
                         bsay(txt(mimas::T_battle_all_down));
+                        tally(mimas::R_DEATHS);
                         result = LOST;
                         break;
                     }
@@ -2754,6 +2920,8 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
         if(result == WON)
         {
+            tally(mimas::R_BATTLESWON);
+            if(! hurt) { tally(mimas::R_FLAWLESS); }
             int got = prize >= 0 ? prize : total_gold;
 
             if(got > 0)
@@ -3224,31 +3392,294 @@ void start_menu(world& w, int map)
     bn::core::update();
 }
 
-// The title: CONTINUE (the save) or NEW GAME. True if the save was loaded.
-bool title_menu()
+// ------------------------------------------------------------------------------------------------ achievements
+
+// "Achievement unlocked!" and its name in a window at the top, for a moment (A sooner).
+void ach_popup(int k)
 {
-    if(! save_exists())
-    {
-        return false;
-    }
-
+    sfx(mimas::snd_levelUp);
     ui::open();
-    bn::bg_palettes::set_transparent_color(bn::color(31, 31, 31));
-    set_row(ROWS_C[0], "CONTINUE");
-    set_row(ROWS_C[1], "NEW GAME");
-    list_spec s;
-    s.x = 8; s.y = 6; s.w = 14; s.visible = 2; s.title = "MIMAS"; s.cancel = false;
-    int k = pick(ROWS_C, 2, s);
-    ui::close();
-    bn::bg_palettes::set_transparent_color(bn::nullopt);
+    ui::box(3, 0, 24, 5);
+    bn::vector<bn::sprite_ptr, 24> t;
+    bn::string<160> head = txt(mimas::T_ach_unlocked);
+    bn::string<48> name = mimas::achievements[k].name;
+    name += "  ";
+    name += bn::to_string<6>(mimas::achievements[k].points);
+    name += "G";
+    ui::text(120 - G->width(head) / 2, 6, head, t);
+    ui::text(120 - G->width(name) / 2, 22, name, t);
 
-    if(k == 0)
+    for(int f = 0; f < 150; ++f)
     {
-        load_save();
-        return true;
+        bn::core::update();
+        if(f > 20 && bn::keypad::a_pressed()) { break; }
     }
 
-    return false;
+    t.clear();
+    ui::clear(3, 0, 24, 5);
+    ui::close();
+    bn::core::update();
+}
+
+void unlock(int k)
+{
+    if(k < 0 || k >= mimas::ach_count || CART.unlocked[k])
+    {
+        return;
+    }
+
+    CART.unlocked[k] = 1;
+    cart_store();
+    ach_popup(k);
+}
+
+// Unlock every achievement whose goal is reached (event ones only by the Unlock achievement command).
+void check_achievements()
+{
+    for(int k = 0; k < mimas::ach_count; ++k)
+    {
+        if(CART.unlocked[k] || mimas::achievements[k].kind == 0)
+        {
+            continue;
+        }
+
+        int have, need;
+        ach_progress(k, have, need);
+        if(have >= need) { unlock(k); }
+    }
+
+    if(cart_dirty) { cart_store(); }
+}
+
+bn::string<200> ach_text;
+
+const char* ach_detail(int k)
+{
+    const mimas::ach_def& a = mimas::achievements[k];
+    bool on = CART.unlocked[k];
+
+    if(a.hidden && ! on)
+    {
+        return "A hidden achievement.";
+    }
+
+    ach_text = a.description;
+    int have, need;
+    ach_progress(k, have, need);
+
+    if(! on && need > 1)
+    {
+        ach_text += "  (";
+        ach_text += bn::to_string<10>(bn::min(have, need));
+        ach_text += "/";
+        ach_text += bn::to_string<10>(need);
+        ach_text += ")";
+    }
+
+    return ach_text.c_str();
+}
+
+// The achievements: unlocked ones with their points, locked ones greyed (hidden ones "???"), what each needs below.
+void achievements_screen()
+{
+    int got = 0, total = 0;
+
+    for(int k = 0; k < mimas::ach_count; ++k)
+    {
+        const mimas::ach_def& a = mimas::achievements[k];
+        bool on = CART.unlocked[k];
+        total += a.points;
+        if(on) { got += a.points; }
+        bn::string<14> r = bn::to_string<6>(a.points);
+        r += "G";
+        set_row(ROWS_A[k], a.hidden && ! on ? "???" : a.name, r.c_str(), -1, ! on);
+    }
+
+    bn::string<40> title = "ACHIEVEMENTS ";
+    title += bn::to_string<6>(got);
+    title += "/";
+    title += bn::to_string<6>(total);
+    list_spec s;
+    s.x = 1; s.y = 0; s.w = 28; s.visible = 5; s.title = title.c_str(); s.detail = ach_detail;
+    int at = 0;
+
+    while(true)
+    {
+        int k = pick(ROWS_A, bn::max(1, int(mimas::ach_count)), s, at);
+        if(k < 0) { return; }
+        at = k;
+    }
+}
+
+// ------------------------------------------------------------------------------------------------ the title screen
+
+// Update 16: the title's layers (GBA Studio → Title screen): the sky at the back, the clouds drifting, the trees in
+// front. The clouds keep moving while a menu is open (pick() calls frame_hook every frame).
+struct title_bgs
+{
+    bn::optional<bn::regular_bg_ptr> sky, clouds, trees;
+    bn::fixed x = 0;
+
+    void show()
+    {
+        sky = bn::regular_bg_items::title_sky.create_bg(8, 48);
+        clouds = bn::regular_bg_items::title_clouds.create_bg(8, 48);
+        trees = bn::regular_bg_items::title_trees.create_bg(8, 48);
+        sky->set_priority(3);
+        clouds->set_priority(2);
+        trees->set_priority(1);
+    }
+
+    void hide()
+    {
+        sky.reset();
+        clouds.reset();
+        trees.reset();
+    }
+
+    void drift()
+    {
+        if(clouds)
+        {
+            x += bn::fixed(mimas::title_cloud_speed) / 60;
+            clouds->set_x(bn::fixed(8) - x);
+        }
+    }
+};
+
+title_bgs* TITLE = nullptr;
+
+void title_frame()
+{
+    if(TITLE) { TITLE->drift(); }
+}
+
+// The credits roll: the lines scroll up over the title (light text); A or B skips.
+void credits_roll(bn::sprite_text_generator& light)
+{
+    struct shown { int line; int y; bn::vector<bn::sprite_ptr, 16> s; };
+    bn::vector<shown, 12> on;
+    int next = 0, y_next = 168, frame = 0;
+    bn::bg_palettes::set_fade(bn::color(0, 0, 0), bn::fixed(0.45));
+
+    while(true)
+    {
+        title_frame();
+
+        // Every other frame everything moves up a pixel.
+        if(++frame % 2 == 0)
+        {
+            for(shown& l : on)
+            {
+                --l.y;
+                for(bn::sprite_ptr& sp : l.s) { sp.set_y(sp.y() - 1); }
+            }
+
+            --y_next;
+        }
+
+        while(! on.empty() && on.front().y < -12)
+        {
+            on.erase(on.begin());
+        }
+
+        if(next < mimas::credit_count && y_next <= 168 && ! on.full())
+        {
+            shown l;
+            l.line = next;
+            l.y = y_next;
+            const mimas::credit_line& c = mimas::credits[next];
+            if(c.text[0]) { light.generate(0, y_next - HALF_H, c.text, l.s); }
+            for(bn::sprite_ptr& sp : l.s) { sp.set_bg_priority(0); }
+            on.push_back(bn::move(l));
+            y_next += c.head ? 20 : 16;
+            ++next;
+        }
+
+        bn::core::update();
+
+        if(frame > 30 && (bn::keypad::a_pressed() || bn::keypad::b_pressed()))
+        {
+            break;
+        }
+
+        if(next >= mimas::credit_count && on.empty())
+        {
+            break;
+        }
+    }
+
+    on.clear();
+    bn::bg_palettes::set_fade(bn::color(0, 0, 0), 0);
+}
+
+// Quit: the GBA can't close a game, so it says the power can go off now (and waits there).
+[[noreturn]] void power_screen(bn::sprite_text_generator& light, title_bgs& t)
+{
+    t.hide();
+    ui::clear_all();
+    bn::bg_palettes::set_transparent_color(bn::color(0, 0, 0));
+    bn::vector<bn::sprite_ptr, 32> s;
+    bn::string<160> line = txt(mimas::T_title_power);
+    light.generate(0, 0, line, s);
+
+    while(true)
+    {
+        bn::core::update();
+    }
+}
+
+// The title: NEW GAME, LOAD GAME (a slot), ACHIEVEMENTS, CREDITS, QUIT. The slot loaded into SAVE, or -1: a new game.
+int title_screen(bn::sprite_text_generator& light)
+{
+    cart_load();
+    title_bgs t;
+    t.show();
+    TITLE = &t;
+    frame_hook = title_frame;
+    ui::open();
+    int at = 0, loaded = -1;
+
+    while(loaded < 0)
+    {
+        bool saves = any_save();
+        set_row(ROWS_C[0], txt(mimas::T_title_new).c_str());
+        set_row(ROWS_C[1], txt(mimas::T_title_load).c_str(), "", -1, ! saves);
+        set_row(ROWS_C[2], txt(mimas::T_title_ach).c_str(), "", -1, mimas::ach_count == 0);
+        set_row(ROWS_C[3], txt(mimas::T_title_credits).c_str());
+        set_row(ROWS_C[4], txt(mimas::T_title_quit).c_str());
+        list_spec s;
+        s.x = 9; s.y = 7; s.w = 12; s.visible = 5; s.cancel = false;
+        int k = pick(ROWS_C, 5, s, at);
+        at = bn::max(0, k);
+
+        if(k == 0) { break; }
+        else if(k == 1)
+        {
+            int slot = pick_slot(true);
+            if(slot >= 0 && read_slot(slot)) { save_slot = slot; loaded = slot; }
+        }
+        else if(k == 2) { achievements_screen(); }
+        else if(k == 3)
+        {
+            ui::close();
+            credits_roll(light);
+            ui::open();
+        }
+        else if(k == 4)
+        {
+            ui::close();
+            power_screen(light, t);
+        }
+    }
+
+    ui::clear_all();
+    ui::close();
+    TITLE = nullptr;
+    frame_hook = nullptr;
+    t.hide();
+    bn::core::update();
+    return loaded;
 }
 
 // ------------------------------------------------------------------------------------------------ trainers

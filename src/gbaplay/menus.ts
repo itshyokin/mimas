@@ -32,8 +32,10 @@ export interface MenuHost {
   /** A hero's little picture (party list). */
   face(m: Member): string | undefined;
   sound(name: string): void;
-  /** Write the save; false if it couldn't. */
-  save(): boolean;
+  /** Choose a slot and write the save there: false if it couldn't, null if no slot was chosen. */
+  save(): Promise<boolean | null>;
+  /** Count an achievement record (items used…). */
+  tally(key: string): void;
   playTime(): number;
   /** A line in the game's own words (Database → Text & dialog), filled in. */
   t(key: string, vars?: TextVars): string;
@@ -102,7 +104,8 @@ export class Menus {
 
   async saveFlow(): Promise<boolean> {
     if ((await this.ui.ask(this.h.t('save.ask'))) !== 0) return false;
-    const ok = this.h.save();
+    const ok = await this.h.save();
+    if (ok === null) return false;
     if (ok) this.h.sound('save');
     await this.ui.say(ok ? this.h.t('save.done', { name: this.h.party[0]?.def.name ?? 'You' }) : 'The game couldn’t be saved.');
     return ok;
@@ -313,6 +316,7 @@ export class Menus {
     else m.hp = Math.min(max.hp, m.hp + hp);
     m.mp = Math.min(max.mp, m.mp + mp);
     if (m.hp === before.hp && m.mp === before.mp) { await this.ui.say(this.h.t('item.no_effect')); return; }
+    h.tally('itemsUsed');
     h.inventory.remove(d.id, 1);
     h.sound('item');
     const parts = [m.hp > before.hp ? `${m.hp - Math.max(0, before.hp)} HP` : '', m.mp > before.mp ? `${m.mp - before.mp} MP` : ''].filter(Boolean).join(' and ');

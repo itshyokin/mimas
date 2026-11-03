@@ -974,6 +974,11 @@ namespace
                     at += 1;
                     break;
 
+                case mimas::OP_ACH:
+                    unlock(code[at + 1]);
+                    at += 2;
+                    break;
+
                 case mimas::OP_CLASS:
                 {
                     // Change class: who -2 the hero you play, -1 everyone, else a hero; op 0 change, 1 unlock, 2 pick.
@@ -1036,13 +1041,14 @@ int main()
     box_text.set_palette_item(bn::sprite_palette_items::text_palette);
     G = &box_text;
 
-    // A saved game: CONTINUE where it was saved, or a NEW GAME.
-    bool continued = title_menu();
+    // Update 16: the title screen (NEW GAME, LOAD GAME from one of three slots, ACHIEVEMENTS, CREDITS, QUIT).
+    int slot = title_screen(text);
 
     world w;
 
-    if(continued)
+    if(slot >= 0)
     {
+        load_save();
         w.load(SAVE.map, SAVE.x, SAVE.y, SAVE.dir);
     }
     else
@@ -1113,6 +1119,7 @@ int main()
                     w.cell_y = ty + DY[want];
                     w.moving = w.hop = CELL * 2;
                     ++w.steps;
+                    tally(mimas::R_STEPS);
                     w.running = false;
                 }
                 else if(can_step(w.cell_x, w.cell_y, tx, ty))
@@ -1121,6 +1128,7 @@ int main()
                     w.cell_y = ty;
                     w.moving = CELL;
                     ++w.steps;
+                    tally(mimas::R_STEPS);
                     w.running = bn::keypad::b_held();
                 }
                 else if(w.bump == 0)
@@ -1184,6 +1192,13 @@ int main()
         banner.update();
         w.animate();
         ++play_frames;
+
+        // Achievements: goals reached on the field (the records are kept on the cartridge).
+        if(play_frames % 60 == 0 && w.moving == 0)
+        {
+            check_achievements();
+        }
+
         bn::core::update();
     }
 }

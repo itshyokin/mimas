@@ -6,8 +6,8 @@
 
 /** Whole tabs the GBA game leaves out. */
 export const MIMAS_OFF_TABS: ReadonlySet<string> = new Set([
-  'relations', 'roleplay', 'materials', 'shards', 'quests', 'achievements', 'tutorials', 'globals',
-  'camera', 'time', 'climate', 'mapThemes', 'markers', 'horses', 'messageStyles', 'textColors', 'credits',
+  'relations', 'roleplay', 'materials', 'shards', 'quests', 'tutorials', 'globals',
+  'camera', 'time', 'climate', 'mapThemes', 'markers', 'horses', 'messageStyles', 'textColors',
 ]);
 
 interface Off { sections?: string[]; labels?: string[] }

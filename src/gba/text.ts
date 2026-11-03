@@ -27,7 +27,7 @@ export interface TextLine {
 const L = (group: string, key: string, label: string, ...def: string[]): TextLine => ({ key, group, label, def });
 const W = (group: string, key: string, label: string, word: string): TextLine => ({ key, group, label, def: [word], word: true });
 
-export const TEXT_GROUPS = ['Command words', 'Battle: start', 'Battle: moves', 'Battle: hits', 'Battle: ailments', 'Battle: end', 'Battle: running and swapping', 'Learning', 'Skills and classes', 'Items', 'Party', 'Saving', 'Shops'] as const;
+export const TEXT_GROUPS = ['Command words', 'Title screen', 'Battle: start', 'Battle: moves', 'Battle: hits', 'Battle: ailments', 'Battle: end', 'Battle: running and swapping', 'Learning', 'Skills and classes', 'Items', 'Party', 'Saving', 'Shops'] as const;
 
 /** Every line, by group. */
 export const TEXT_LINES: TextLine[] = [
@@ -40,6 +40,14 @@ export const TEXT_LINES: TextLine[] = [
   W('Command words', 'menu.skills', 'START menu: skills', 'SKILLS'),
   W('Command words', 'menu.save', 'START menu: save', 'SAVE'),
   W('Command words', 'menu.exit', 'START menu: close', 'EXIT'),
+
+  W('Title screen', 'title.new', 'Start a new game', 'NEW GAME'),
+  W('Title screen', 'title.load', 'Load a saved game', 'LOAD GAME'),
+  W('Title screen', 'title.ach', 'Achievements', 'ACHIEVEMENTS'),
+  W('Title screen', 'title.credits', 'Credits', 'CREDITS'),
+  W('Title screen', 'title.quit', 'Quit', 'QUIT'),
+  L('Title screen', 'title.power', 'After Quit (the GBA has no way to close a game)', 'You can turn off the power now.'),
+  L('Title screen', 'ach.unlocked', 'An achievement unlocked (its name shows under it)', 'Achievement unlocked!'),
 
   L('Battle: start', 'battle.appear', 'A random battle starts', 'A {foe} leaps out!'),
   L('Battle: start', 'battle.appear_event', 'A battle from an event or a trainer starts', '{foe} appears!'),
@@ -127,6 +135,9 @@ export const TEXT_LINES: TextLine[] = [
 
   L('Saving', 'save.ask', 'Asking to save', 'Would you like to save the game?'),
   L('Saving', 'save.done', 'Saved', '{name} saved the game!'),
+  L('Saving', 'save.which', 'Choosing a slot to save in', 'Save in which slot?'),
+  L('Saving', 'save.overwrite', 'A slot already used', 'Save over this game?'),
+  L('Saving', 'load.which', 'Choosing a game to load', 'Load which game?'),
 
   L('Shops', 'shop.hello', 'Walking in', 'Welcome! What can I get you?'),
   L('Shops', 'shop.again', 'After buying or selling', 'Anything else?'),

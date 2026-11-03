@@ -863,7 +863,7 @@ def clean_outputs():
     os.makedirs(GFX, exist_ok=True)
     os.makedirs(INC, exist_ok=True)
     for f in os.listdir(GFX):
-        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'obj_', 'textbox', 'text_palette', 'bubble', 'box_palette', 'choice_', 'bback_')):
+        if f.split('.')[0].startswith(('world_', 'hero', 'npc_', 'obj_', 'textbox', 'text_palette', 'bubble', 'box_palette', 'choice_', 'bback_', 'title_')):
             os.remove(os.path.join(GFX, f))
 
 
@@ -1040,6 +1040,37 @@ def main():
             print(f'  battle background {bid}: {len(bpal) // 16} palettes')
             back_ids.append(bid)
         m['back'] = back_ids.index(bid)
+    # The title screen (Update 16; GBA Studio → Title screen): sky, clouds (256 wide, they scroll) and trees, each a
+    # 256 x 256 background sharing title_palette (12 banks at most: the menus need theirs).
+    title = gba_all.get('title') or {}
+    tlayers = []
+    for layer in ('sky', 'clouds', 'trees'):
+        img = project_image(title.get(layer) or f'gba/title/builtin/{layer}.png')
+        full = Image.new('RGBA', (256, 256), (0, 0, 0, 255 if layer == 'sky' else 0))
+        if img is not None:
+            img = img.convert('RGBA')
+            full.paste(img.crop((0, 0, min(256, img.width), min(160, img.height))), (0, 0))
+            if layer == 'sky':   # the spare edges: the last column and row again (never seen)
+                for x in range(min(256, img.width), 256):
+                    for y in range(160):
+                        full.putpixel((x, y), full.getpixel((min(256, img.width) - 1, y)))
+        else:
+            print(f'  title screen {layer}: no picture')
+        if layer != 'sky':
+            full.putdata([(r, g, b, 255 if a >= 128 else 0) for (r, g, b, a) in full.getdata()])
+        tlayers.append(full)
+    timgs, tpal = to_banked(tlayers, max_banks=12)
+    for layer, im in zip(('sky', 'clouds', 'trees'), timgs):
+        put_palette(im, tpal)
+        im.save(os.path.join(GFX, f'title_{layer}.bmp'))
+        write_json(os.path.join(GFX, f'title_{layer}.json'), {'type': 'regular_bg', 'bpp_mode': 'bpp_4_manual', 'palette_item': 'title_palette'})
+    tp = Image.new('P', (16, 16))
+    put_palette(tp, tpal)
+    tp.save(os.path.join(GFX, 'title_palette.bmp'))
+    write_json(os.path.join(GFX, 'title_palette.json'), {'type': 'bg_palette', 'bpp_mode': 'bpp_4', 'colors_count': len(tpal)})
+    print(f'  title screen: {len(tpal) // 16} palettes')
+    for m in maps:
+        m['title_speed'] = int(title.get('cloudSpeed', 6))
     pal_img = Image.new('P', (16, 16))
     put_palette(pal_img, palette)
     pal_img.save(os.path.join(GFX, 'world_palette.bmp'))
@@ -1160,6 +1191,7 @@ def main():
             w(f'#include "bn_regular_bg_items_world_ground_{i}_f{f}.h"\n')
     for k in range(len(back_ids)):
         w(f'#include "bn_regular_bg_items_bback_{k}.h"\n')
+    w('#include "bn_regular_bg_items_title_sky.h"\n#include "bn_regular_bg_items_title_clouds.h"\n#include "bn_regular_bg_items_title_trees.h"\n')
     for k in range(len(npc_ids)):
         w(f'#include "bn_sprite_items_npc_{k}.h"\n')
     for k in range(len(obj_ids)):
@@ -1171,7 +1203,7 @@ def main():
     w(f'constexpr int hero_frames = {HERO_COLS};\n\n')
     w('// Event scripts (tools/gba_events.py has the ops). Text is pre-wrapped: lines split by \\n, pages by \\f.\n')
     w('enum op : int16_t { OP_END, OP_TEXT, OP_CHOICE, OP_JUMP, OP_IF, OP_SWITCH, OP_VAR, OP_SELF, OP_GIVE, OP_TAKE, OP_GOLD, '
-      'OP_TRANSFER, OP_WAIT, OP_FADEOUT, OP_FADEIN, OP_BATTLE, OP_PARTY, OP_LEARN, OP_SHOP, OP_SAVE, OP_GAUGE, OP_HEAL, OP_CLASS };\n')
+      'OP_TRANSFER, OP_WAIT, OP_FADEOUT, OP_FADEIN, OP_BATTLE, OP_PARTY, OP_LEARN, OP_SHOP, OP_SAVE, OP_GAUGE, OP_HEAL, OP_CLASS, OP_ACH };\n')
     w('struct condition { uint8_t type; uint8_t op; int16_t a; int16_t b; };\n')
     w('// sprite: -1 none, -2 the player\'s sprite (a stand-in), k = npc_sprites[k]. trigger: 0 action, 1 touch, 2 autorun, 3 none.\n')
     w('// trainer: an index into trainers[] (mimas_game.h), or -1.\n')
@@ -1230,6 +1262,7 @@ def main():
     m0 = maps[0]
     sx, sz = find_start({'start': m0['start'] or [m0['W'] // 2, m0['H'] // 2]}, m0['coll'], m0['W'], m0['H'])
     w(f'constexpr int start_map = 0;\nconstexpr int start_x = {sx};\nconstexpr int start_y = {sz};\n')
+    w(f'// The title screen\'s clouds: pixels a second (GBA Studio → Title screen).\nconstexpr int title_cloud_speed = {max(0, min(60, int(m0.get("title_speed", 6))))};\n')
     w(f'constexpr int start_dir = {DIRS.get(m0["dir"], 0)};\n')
     w('}\n\n#endif\n')
     with open(os.path.join(INC, 'mimas_map.h'), 'w') as f:

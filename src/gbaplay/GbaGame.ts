@@ -12,6 +12,10 @@ import { Interpreter, type EventContext } from '../events/Interpreter';
 import { BattleStatus } from '../game/battle/status';
 import { TurnBattle, type BattleEntry, type BattleHost } from '../game/battle/TurnBattle';
 import { TEXT_BY_KEY, gbaLine, type TextVars } from '../gba/text';
+import { gbaAchievements } from '../gba/achievements';
+import { gbaCredits } from '../gba/credits';
+import { progress, type AchievementDef } from '../game/achievements';
+import { DEFAULT_CLOUD_SPEED, TITLE_LAYERS, titleImage } from '../gba/types';
 import type { Battler } from '../game/battle/rules';
 import { impactOf } from '../game/battle/impact';
 import { enemyAgility } from '../game/battle/rules';
@@ -223,7 +227,8 @@ class GbaGame {
       url: (p) => this.files.get(p) ?? p,
       face: (m) => this.faceOf(m),
       sound: (n) => this.audio.play(n as Sfx),
-      save: () => this.save(),
+      save: async () => { const k = await this.pickSlot('save'); return k < 0 ? null : this.save(k); },
+      tally: (key) => this.tally(key),
       playTime: () => this.playBefore + (performance.now() - this.playStart) / 1000,
       t: (k, v) => this.t(k, v),
     });
@@ -243,18 +248,157 @@ class GbaGame {
     }
     this.enter(startMap, sx, sz, (st?.dir as Dir) ?? 'down');
     this.healAll();
-    // A saved game: CONTINUE (where it was saved) or a NEW GAME (here).
-    const saved = this.readSave();
-    if (saved && this.maps.get(saved.map)?.gba) {
-      void this.ui.run(async () => {
-        const t = Math.floor((saved.time ?? 0) / 60);
-        const pick = await this.ui.choose({ x: 48, y: 30, w: 144, rows: [
-          { label: 'CONTINUE', sub: `${saved.party[0] ? this.db.heroes?.find((h) => h.id === saved.party[0].id)?.name ?? '' : ''}  ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}` },
-          { label: 'NEW GAME', sub: 'Start here, as the editor has it' },
-        ], title: 'MIMAS', cls: 'title' }, false);
-        if (pick === 0) this.loadSave();
-      });
+    this.loadCart();
+    // Update 16: on the game's start map, the title screen first (NEW GAME starts here, as the editor has it).
+    if (startMap === this.db.startMap) void this.titleScreen();
+  }
+
+  /* ------------------------------------------------------------------ the title screen (Update 16) */
+
+  /** What's on screen instead of the field: the title, the credits roll, or "turn off the power" after Quit. */
+  screen: 'title' | 'credits' | 'power' | null = null;
+  private cloudX = 0;
+  private creditY = 0;
+  private creditLines: { text: string; head: boolean }[] = [];
+
+  async titleScreen(): Promise<void> {
+    this.screen = 'title';
+    await this.ui.run(async () => {
+      for (;;) {
+        const any = this.saveSlots().some(Boolean);
+        const i = await this.ui.choose({ x: 64, y: 46, w: 112, rows: [
+          { label: this.t('title.new') }, { label: this.t('title.load'), disabled: !any },
+          { label: this.t('title.ach'), disabled: !gbaAchievements(this.db.achievements).length }, { label: this.t('title.credits') }, { label: this.t('title.quit') },
+        ], title: (this.db.title || 'Mimas').toUpperCase(), cls: 'title' }, false);
+        if (i === 0) break;
+        if (i === 1) { const k = await this.pickSlot('load'); if (k >= 0 && this.loadSave(k)) break; }
+        else if (i === 2) await this.achievementsScreen();
+        else if (i === 3) await this.creditsRoll();
+        else if (i === 4) { this.screen = 'power'; return; }
+      }
+      this.screen = null;
+    });
+  }
+
+  /** The achievements: unlocked ones with their points, locked ones greyed (hidden ones "???"), what each needs below. */
+  async achievementsScreen(): Promise<void> {
+    const list = gbaAchievements(this.db.achievements);
+    const total = list.reduce((n, a) => n + a.points, 0), got = list.filter((a) => this.cart.unlocked[a.id]).reduce((n, a) => n + a.points, 0);
+    await this.ui.choose({ x: 16, y: 6, w: 208, max: 6, title: `ACHIEVEMENTS  ${got}/${total}`, detail: true, cls: 'achievements', rows: list.map((a) => {
+      const on = !!this.cart.unlocked[a.id], secret = a.hidden && !on;
+      const p = progress(a.rule, this.achWorld());
+      return { label: secret ? '???' : a.name, right: on ? `${a.points}G ✓` : `${a.points}G`, disabled: !on,
+        detail: secret ? 'A hidden achievement.' : `${a.description}${!on && p.need > 1 ? `  (${Math.min(p.have, p.need)}/${p.need})` : ''}` };
+    }) });
+  }
+
+  /** The credits roll: every line scrolls up over the night sky; A or B skips. */
+  async creditsRoll(): Promise<void> {
+    this.creditLines = gbaCredits(this.db).flatMap((s) => [...(s.title ? [{ text: s.title, head: true }] : []), ...s.lines.flatMap((l) => this.wrapCredit(l)).map((text) => ({ text, head: false })), { text: '', head: false }]);
+    this.creditY = H;
+    this.screen = 'credits';
+    // A or B skips (a fresh press, a moment after it starts).
+    const from = this.tick;
+    await this.ui.until(() => this.screen !== 'credits' || this.creditY < -this.creditLines.length * 10 - 20 || (this.tick - from > 30 && (this.input.consume('ok') || this.input.consume('cancel'))));
+    this.screen = 'title';
+  }
+
+  private wrapCredit(line: string): string[] {
+    const g = this.g; g.font = '8px "Game Pixel", monospace';
+    const out: string[] = [];
+    let cur = '';
+    for (const w of line.split(' ')) { const t = cur ? `${cur} ${w}` : w; if (g.measureText(t).width > 220 && cur) { out.push(cur); cur = w; } else cur = t; }
+    return [...out, cur];
+  }
+
+  private renderScreen(): void {
+    const g = this.g;
+    g.imageSmoothingEnabled = false;
+    g.fillStyle = '#000';
+    g.fillRect(0, 0, W, H);
+    if (this.screen === 'power') {
+      g.fillStyle = '#e8e8f0'; g.font = '8px "Game Pixel", monospace'; g.textAlign = 'center';
+      g.fillText(this.t('title.power'), W / 2, H / 2);
+      g.textAlign = 'left';
+      return;
     }
+    const pic = (i: number) => this.images.get(titleImage(this.gba, TITLE_LAYERS[i].id));
+    const sky = pic(0), clouds = pic(1), trees = pic(2);
+    if (sky) g.drawImage(sky, 0, 0, W, H);
+    if (clouds) { const x = Math.floor(this.cloudX) % clouds.width; g.drawImage(clouds, -x, 0); g.drawImage(clouds, clouds.width - x, 0); }
+    if (trees) g.drawImage(trees, 0, 0, W, H);
+    if (this.screen === 'credits') {
+      g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(0, 0, W, H);
+      g.textAlign = 'center';
+      this.creditLines.forEach((l, k) => {
+        const y = this.creditY + k * 10;
+        if (y < -10 || y > H + 10) return;
+        g.font = '8px "Game Pixel", monospace';
+        g.fillStyle = l.head ? '#f0d890' : '#e8e8f0';
+        g.fillText(l.text, W / 2, y);
+      });
+      g.textAlign = 'left';
+    }
+  }
+
+  /* ------------------------------------------------------------------ achievements (Update 16) */
+
+  /** The cartridge's records and unlocks (this browser's, across every save slot). */
+  get cartKey(): string { return `mimas-gba-cart:${(this.db as { title?: string }).title ?? 'game'}`; }
+  cart: { records: Record<string, number>; unlocked: Record<string, number> } = { records: {}, unlocked: {} };
+  private loadCart(): void { try { const raw = localStorage.getItem(this.cartKey); if (raw) { const c = JSON.parse(raw); this.cart = { records: c.records ?? {}, unlocked: c.unlocked ?? {} }; } } catch { /* none */ } }
+  private storeCart(): void { try { localStorage.setItem(this.cartKey, JSON.stringify(this.cart)); } catch { /* no storage */ } }
+
+  /** Count a record (a "best" one keeps the biggest). */
+  tally(key: string, n = 1, best = false): void {
+    const r = this.cart.records;
+    r[key] = best ? Math.max(r[key] ?? 0, n) : (r[key] ?? 0) + n;
+    this.cartDirty = true;
+  }
+  private cartDirty = false;
+  /** Damage the party took this battle (none: a flawless win). */
+  private hurt = 0;
+  private achShown: HTMLElement | null = null;
+
+  private achWorld() {
+    return {
+      record: (k: string) => this.cart.records[k] ?? 0,
+      level: () => Math.max(0, ...this.party.map((m) => m.level)),
+      questDone: () => false,
+      switchOn: (id: string) => this.state.getSwitch(id),
+      gold: () => this.inventory.gold,
+      count: (id: string) => this.inventory.count(id),
+      partySize: () => this.party.length,
+    };
+  }
+
+  /** Unlock any achievement whose goal is reached (event ones only by the Unlock achievement command). */
+  checkAchievements(): void {
+    if (this.cartDirty) { this.cartDirty = false; this.storeCart(); }
+    const w = this.achWorld();
+    for (const a of gbaAchievements(this.db.achievements)) {
+      if (this.cart.unlocked[a.id] || a.rule.kind === 'event') continue;
+      const p = progress(a.rule, w);
+      if (p.have >= p.need) this.unlock(a);
+    }
+  }
+
+  unlock(a: AchievementDef | string): void {
+    const def = typeof a === 'string' ? gbaAchievements(this.db.achievements).find((x) => x.id === a) : a;
+    if (!def || this.cart.unlocked[def.id]) return;
+    this.cart.unlocked[def.id] = Date.now();
+    this.storeCart();
+    this.audio.play('questDone');
+    // "Achievement unlocked!" and its name, at the top for a few seconds.
+    this.achShown?.remove();
+    const el = document.createElement('div');
+    el.className = 'gba-ach';
+    el.innerHTML = '<b></b><span></span>';
+    el.querySelector('b')!.textContent = this.t('ach.unlocked');
+    el.querySelector('span')!.textContent = `${def.name}  ${def.points}G`;
+    this.ui.root.append(el);
+    this.achShown = el;
+    setTimeout(() => el.remove(), 3500);
   }
 
   run(): void {
@@ -463,27 +607,57 @@ class GbaGame {
 
   /* ------------------------------------------------------------------ saving */
 
+  /** Update 16: three save slots (`k` 0-2); a save from before slots is slot 1. */
   get saveKey(): string { return `mimas-gba-save:${(this.db as { title?: string }).title ?? 'game'}`; }
+  slotKey(k: number): string { return `${this.saveKey}:${k + 1}`; }
 
-  save(): boolean {
+  save(k: number): boolean {
     try {
       const data = {
-        v: 1, map: this.cur.name, x: this.cx, z: this.cz, dir: this.dir,
+        v: 2, map: this.cur.name, x: this.cx, z: this.cz, dir: this.dir,
         party: this.party.map(saveMember), inventory: this.inventory.toJSON(), state: this.state.toJSON(),
         time: this.playBefore + (performance.now() - this.playStart) / 1000, at: Date.now(),
       };
-      localStorage.setItem(this.saveKey, JSON.stringify(data));
+      localStorage.setItem(this.slotKey(k), JSON.stringify(data));
+      this.storeCart();
       return true;
     } catch { return false; }
   }
 
-  readSave(): { map: string; x: number; z: number; dir: Dir; party: MemberSave[]; inventory: unknown; state: unknown; time: number } | null {
-    try { const raw = localStorage.getItem(this.saveKey); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  readSave(k: number): { map: string; x: number; z: number; dir: Dir; party: MemberSave[]; inventory: unknown; state: unknown; time: number } | null {
+    try {
+      let raw = localStorage.getItem(this.slotKey(k));
+      // The one save from before slots becomes slot 1.
+      if (!raw && k === 0) { raw = localStorage.getItem(this.saveKey); if (raw) { localStorage.setItem(this.slotKey(0), raw); localStorage.removeItem(this.saveKey); } }
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
   }
 
-  /** CONTINUE: the saved game, where it was saved (if that map is still a GBA map). */
-  loadSave(): boolean {
-    const d = this.readSave();
+  /** What's in each slot (null: empty, or a map that isn't a GBA map any more). */
+  saveSlots(): ({ hero: string; level: number; map: string; time: number } | null)[] {
+    return [0, 1, 2].map((k) => {
+      const d = this.readSave(k);
+      if (!d || !this.maps.get(d.map)?.gba) return null;
+      const lead = d.party[0];
+      return { hero: this.db.heroes?.find((h) => h.id === lead?.id)?.name ?? '', level: lead?.level ?? 1, map: this.maps.get(d.map)?.name || d.map, time: d.time ?? 0 };
+    });
+  }
+
+  /** Choose a slot: to save in (empty ones too) or to load (saved ones only). -1: none. */
+  async pickSlot(mode: 'save' | 'load'): Promise<number> {
+    const slots = this.saveSlots();
+    const k = await this.ui.choose({ x: 16, y: 20, w: 208, title: this.t(mode === 'save' ? 'save.which' : 'load.which'), cls: 'slots', rows: slots.map((s, i) => {
+      if (!s) return { label: `${i + 1}   - - -`, disabled: mode === 'load' };
+      const t = Math.floor(s.time / 60);
+      return { label: `${i + 1}   ${s.hero}  Lv${s.level}`, sub: `${s.map}   ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}` };
+    }) });
+    if (k < 0 || (mode === 'save' && slots[k] && (await this.ui.ask(this.t('save.overwrite'))) !== 0)) return -1;
+    return k;
+  }
+
+  /** Load a slot: the saved game, where it was saved (if that map is still a GBA map). */
+  loadSave(k: number): boolean {
+    const d = this.readSave(k);
     if (!d || !this.maps.get(d.map)?.gba) return false;
     const party = d.party.map((x) => loadMember(this.db, x, this.cfg)).filter((m): m is Member => !!m);
     if (!party.length) return false;
@@ -583,6 +757,7 @@ class GbaGame {
       },
       learn: (c) => { void this.ui.run(() => this.learn(c)); return null; },
       heroClass: (c) => { void this.ui.run(() => this.heroClass(c)); return null; },
+      achievement: (id) => this.unlock(id),
       busy: () => this.battle.active || this.battlePending || this.ui.busy,
     } as EventContext;
     return ctx;
@@ -833,6 +1008,7 @@ class GbaGame {
         return [{ slot: i, name: d.name, count: s.n, detail: d.description, restore: { hp: d.restore?.hp, mp: d.restore?.mp }, pct: { hp: d.restorePct?.hp, mp: d.restorePct?.mp }, cures: d.cures as string[] | undefined, buffs: d.buffs }];
       }),
       useItem: (slot, who) => {
+        this.tally('itemsUsed');
         const s = this.inventory.slots[slot], d = s && this.items.get(s.id), m = this.party[who];
         if (!s || !d || !m) return null;
         const mx = this.maxOf(m);
@@ -908,8 +1084,17 @@ class GbaGame {
         return { xp: total, heroes, loot: gold ? [{ name: 'Gold', icon: '', count: gold, kind: 'gold' }] : [] };
       },
       fanfare: () => this.audio.music('builtin:victory', 0.2),
-      finished: (outcome) => {
+      finished: (outcome, beaten) => {
         this.lastOutcome = outcome;
+        // Achievements' records: battles won (without a scratch), foes defeated, fled, fallen.
+        if (outcome === 'victory') {
+          this.tally('battlesWon');
+          if (this.hurt <= 0) this.tally('flawless');
+          for (const d of beaten as EnemyDef[]) { this.tally('kills'); this.tally(`kill:${d.id}`); }
+        } else if (outcome === 'fled') this.tally('fled');
+        else if (outcome === 'defeat') this.tally('deaths');
+        this.hurt = 0;
+        this.checkAchievements();
         this.grace = this.cfg.turnBased.grace || 3;
         this.walked = 0;
         this.battleFoes.clear();
@@ -929,6 +1114,8 @@ class GbaGame {
       },
       log: () => {},
       line: (k, v) => this.line(k, v),
+      // Achievements' records (crits, Additions, spells, damage taken…), on the cartridge.
+      tally: (k, n, best) => { this.tally(k, n ?? 1, best); if (k === 'damageTaken') this.hurt += n ?? 0; },
     };
   }
   /** The foes in this battle by their key (for their EXP). */
@@ -980,6 +1167,16 @@ class GbaGame {
   update(dt: number): void {
     this.tick++;
     this.input.pollGamepad(dt);
+    // The title screen, the credits or "turn off the power": only the menus run (the clouds drift).
+    if (this.screen) {
+      this.cloudX += (this.gba.title?.cloudSpeed ?? DEFAULT_CLOUD_SPEED) * dt;
+      if (this.screen === 'credits') this.creditY -= 14 * dt;
+      this.message.update(dt);
+      this.ui.update();
+      this.input.endFrame();
+      return;
+    }
+    if (this.tick % 30 === 0 && !this.battle.active) this.checkAchievements();
     if (this.banner > 0) this.banner--;
     if (this.flash > 0) this.flash--;
     // fades (transfers, Fade out / in commands)
@@ -1036,6 +1233,7 @@ class GbaGame {
           this.cx = tx; this.cz = tz;
           this.moving = CELL;
           this.steps++;
+          this.tally('steps');
           this.running = this.input.isHeld('run');
         } else if (this.bump === 0) {
           this.bump = 12;
@@ -1069,6 +1267,7 @@ class GbaGame {
   }
 
   render(): void {
+    if (this.screen) { this.renderScreen(); return; }
     const g = this.g;
     g.imageSmoothingEnabled = false;
     const m = this.cur.data, { camX, camZ } = this.camera();

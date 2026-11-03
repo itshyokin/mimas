@@ -34,13 +34,14 @@ The script (game/src/main.cpp runs it; keep the two in step, and the op numbers 
   HEAL                             everyone back to full (Full rest)
   CLASS who op cls silent          who -2: the hero you play, -1: the whole party, else a hero (Database order);
                                    op 0: change to cls now, 1: unlock cls, 2: the player picks one they've unlocked
+  ACH k                            unlock achievement k (the GBA game's achievements, in Database order)
 
 Text: \\v[name] becomes {Vn} (the variable's value) and \\s[name] {Sn} (ON / OFF); Saturn's rich-text tags are dropped.
 """
 import re
 
 OPS = ['END', 'TEXT', 'CHOICE', 'JUMP', 'IF', 'SWITCH', 'VAR', 'SELF', 'GIVE', 'TAKE', 'GOLD', 'TRANSFER', 'WAIT',
-       'FADEOUT', 'FADEIN', 'BATTLE', 'PARTY', 'LEARN', 'SHOP', 'SAVE', 'GAUGE', 'HEAL', 'CLASS']
+       'FADEOUT', 'FADEIN', 'BATTLE', 'PARTY', 'LEARN', 'SHOP', 'SAVE', 'GAUGE', 'HEAL', 'CLASS', 'ACH']
 OP = {n: i for i, n in enumerate(OPS)}
 DIRS = {'down': 0, 'up': 1, 'left': 2, 'right': 3}
 TRIGGERS = {'action': 0, 'touch': 1, 'auto': 2, 'none': 3}
@@ -84,6 +85,12 @@ class Compiler:
         self.addition_index = {a.get('id'): n for n, a in enumerate(additions_of(db))}
         self.spell_index = {sp.get('id'): n for n, sp in enumerate(spells_of(db))}
         self.class_index = {c.get('id'): n for n, c in enumerate(db.get('classes') or [])}
+        # The achievements the GBA game has (src/gba/achievements.ts gbaRuleOk), in Database order.
+        rules = {'event', 'switch', 'defeat', 'addition', 'spell', 'level', 'gold', 'item', 'party', 'record'}
+        records = {'steps', 'kills', 'battlesWon', 'flawless', 'crits', 'additions', 'spells', 'itemsUsed', 'fled', 'deaths'}
+        gba_ach = [a for a in (db.get('achievements') or []) if (a.get('rule') or {}).get('kind') in rules
+                   and ((a.get('rule') or {}).get('kind') != 'record' or (a.get('rule') or {}).get('record') in records)]
+        self.ach_index = {a.get('id'): n for n, a in enumerate(gba_ach)}
         self.switches, self.vars, self.strings = {}, {}, []
         self.string_index = {}
         self.conds = [(0, 0, 0, 0)]           # 0: always
@@ -296,6 +303,11 @@ class Compiler:
                     self.warn(f'Change class: “{who or c.get("cls")}” isn\'t in the Database')
                     return
                 emit(OP['CLASS'], w, op, cls, 1 if c.get('silent') else 0)
+            elif k == 'achievement':
+                if c.get('id') not in self.ach_index:
+                    self.warn(f'Unlock achievement: “{c.get("id")}” isn\'t one the GBA game has')
+                    return
+                emit(OP['ACH'], self.ach_index[c['id']])
             elif k == 'shop':
                 goods = [(self.items[g['item']], int(g['price']) if g.get('price') is not None else -1) for g in c.get('goods', []) if g.get('item') in self.items][:16]
                 if not goods:

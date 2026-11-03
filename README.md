@@ -289,11 +289,27 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   MOVES, EQUIP, SWITCH), BAG (item icons, ×n, USE / EQUIP / TOSS), SKILLS
   (each hero's trees, left / right between them; A learns a skill), your
   hero's card, SAVE and EXIT. Gear a hero's class can't use is greyed.
+- **The title screen**: the night sky with Saturn and the artificial moon,
+  clouds drifting, pine tops in front (GBA Studio → **Title screen** swaps
+  any layer for your own picture and sets the clouds' speed). NEW GAME,
+  LOAD GAME, ACHIEVEMENTS, CREDITS and QUIT (*You can turn off the power
+  now.*). The words are in Text & dialog.
+- **Three save slots**: Save asks which slot (each shows the lead hero, their
+  level, the play time and, below, the map; saving over one asks first);
+  LOAD GAME shows the same list. Saves from before Update 16 can't be read.
+- **Achievements** (Database → Achievements): goals on events, switches,
+  enemies defeated, Additions, spells, levels, gold, items, the party's size
+  and records (steps, battles won, flawless wins, crits, items used, fled,
+  fallen). They're kept on the cartridge, apart from the save slots, and
+  count across every game; *Achievement unlocked!* pops up at the top. The
+  *Unlock achievement* event command works too. Quest rules and Saturn-only
+  records are marked "(Saturn only)".
+- **Credits** roll from the title (Database → Credits, plus everyone whose
+  sprite art is in the game).
 - **Classes**: stats grow by class each level, with health and magic rolls;
   **Change class** (change, unlock, or a class trainer to choose from).
 - **Learn** adds a move or spell to the list. **Shops**, **Save**, **Full
-  rest** and **Change HP / MP** work too. Saves go to the cartridge (saves
-  from before Update 14 can't be read).
+  rest** and **Change HP / MP** work too. Saves go to the cartridge.
 - **Enemy moves, types and ailments**: foes use their four moves (or their
   level's moveset, or a fight's own), spells cost their MP; type matchups
   (weakness / resisted / immune / absorbs) and

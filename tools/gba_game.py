@@ -374,6 +374,69 @@ def sounds_out(public, root, sounds):
     return ids
 
 
+ACH_RULES = ['event', 'switch', 'defeat', 'addition', 'spell', 'level', 'gold', 'item', 'party', 'record']
+ACH_RECORDS = ['steps', 'kills', 'battlesWon', 'flawless', 'crits', 'additions', 'spells', 'itemsUsed', 'fled', 'deaths']
+MAX_ACH = 64
+MAX_KILL = 64
+
+
+def ach_tables(w, game, comp, enemy_index, add_index, spell_index, item_index):
+    """Update 16: the achievements (the GBA game's, in Database order: the ACH op's numbers) and the credits roll."""
+    rows = []
+    for a in (game.get('achievements') or [])[:MAX_ACH]:
+        r = a.get('rule') or {}
+        kind = r.get('kind')
+        if kind not in ACH_RULES:
+            continue
+        k, n = -1, 1
+        if kind == 'switch':
+            k = comp.switches.get(str(r.get('switch')), -1)
+        elif kind == 'defeat':
+            k, n = (enemy_index.get(r['enemy'], -2) if r.get('enemy') else -1), r.get('count', 1)
+        elif kind == 'addition':
+            k, n = (add_index.get(r['addition'], -2) if r.get('addition') else -1), r.get('count', 1)
+        elif kind == 'spell':
+            k, n = (spell_index.get(r['spell'], -2) if r.get('spell') else -1), r.get('count', 1)
+        elif kind == 'level':
+            n = r.get('level', 1)
+        elif kind == 'gold':
+            n = r.get('amount', 1)
+        elif kind == 'item':
+            k, n = item_index.get(r.get('item'), -2), r.get('count', 1) or 1
+        elif kind == 'party':
+            n = r.get('size', 1)
+        elif kind == 'record':
+            k, n = ACH_RECORDS.index(r['record']) if r.get('record') in ACH_RECORDS else -2, r.get('count', 1)
+        rows.append(f'{{ {c_str(a.get("name"))}, {c_str(a.get("description", ""))}, {max(0, min(9999, int(a.get("points", 0))))}, '
+                    f'{"true" if a.get("hidden") else "false"}, {ACH_RULES.index(kind)}, {k}, {max(1, min(2000000000, int(n or 1)))} }}')
+    w('\n// Achievements (Update 16). kind: 0 event, 1 switch, 2 defeat, 3 addition, 4 spell, 5 level, 6 gold, 7 item, 8 party,\n'
+      '// 9 record. a: the switch, enemy, Addition, spell, item or record (-1: any; -2: one the ROM doesn\'t have, never).\n')
+    w('struct ach_def { const char* name; const char* description; int16_t points; bool hidden; uint8_t kind; int16_t a; int32_t n; };\n')
+    w('constexpr ach_def achievements[] = {\n    ' + (',\n    '.join(rows) or '{ "", "", 0, false, 0, -2, 1 }') + '\n};\n')
+    w(f'constexpr int ach_count = {len(rows)};\nconstexpr int max_ach = {MAX_ACH};\nconstexpr int max_kill = {MAX_KILL};\n')
+    w('// records, in this order (kills of each enemy, Additions and spells by id are kept beside them).\n')
+    w('enum record { ' + ', '.join(f'R_{r.upper()}' for r in ACH_RECORDS) + ', RECORD_COUNT };\n')
+    lines = []
+    for sec in game.get('credits') or []:
+        if sec.get('title'):
+            lines.append((sec['title'], True))
+        for l in sec.get('lines') or []:
+            # Wrapped to fit the screen (the ROM draws each line once, as sprites).
+            cur = ''
+            for word in str(l).split():
+                if cur and len(cur) + 1 + len(word) > 34:
+                    lines.append((cur, False))
+                    cur = word
+                else:
+                    cur = f'{cur} {word}' if cur else word
+            lines.append((cur, False))
+        lines.append(('', False))
+    w('// The credits roll: each line (head: a section\'s title).\n')
+    w('struct credit_line { const char* text; bool head; };\n')
+    w('constexpr credit_line credits[] = {\n    ' + (',\n    '.join(f'{{ {c_str(t)}, {"true" if hd else "false"} }}' for t, hd in lines) or '{ "", false }') + '\n};\n')
+    w(f'constexpr int credit_count = {max(1, len(lines))};\n')
+
+
 def text_keys():
     """Every line's key, from src/gba/text.ts (the one list; the ROM's T_<key> numbers come from it)."""
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'gba', 'text.ts')) as f:
@@ -768,6 +831,7 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w(f'constexpr int enemy_damage = {i16(float(game.get("enemyDamage", 1)) * 100)};   // %\n')
     w(f'constexpr int flee_chance = {int(game.get("flee", 50))};\n')
     text_table(w, game.get('text') or {})
+    ach_tables(w, game, comp, enemy_index, add_index, spell_index, item_index)
     w('}\n\n#endif\n')
     with open(os.path.join(inc, 'mimas_game.h'), 'w') as f:
         f.write(''.join(out))

@@ -21,11 +21,11 @@ import { soundField } from './CommandEditor';
 import { ELEMENT_RAMPS, effectFrames } from '../gba/effects';
 import type { Element } from '../world/types';
 import {
-  BATTLEBACK_H, BATTLEBACK_W, BUILTIN_BATTLEBACKS, CELL, SPRITE_KINDS, TILE_TYPES, battlebackList, defaultGbaData, gbaColor, hexToRgb, ledgeCell, tileSize,
+  BATTLEBACK_H, BATTLEBACK_W, BUILTIN_BATTLEBACKS, CELL, DEFAULT_CLOUD_SPEED, SPRITE_KINDS, TILE_TYPES, TITLE_LAYERS, type TitleLayer, battlebackList, defaultGbaData, gbaColor, hexToRgb, ledgeCell, tileSize, titleImage,
   type GbaData, type GbaPalette, type GbaSprite, type GbaTile, type Passage, type SpriteKind, type TileType,
 } from '../gba/types';
 
-type Tab = 'tiles' | 'sprites' | 'palettes' | 'backs';
+type Tab = 'tiles' | 'sprites' | 'palettes' | 'backs' | 'title';
 type Tool = 'pencil' | 'erase' | 'fill' | 'pick' | 'line' | 'rect' | 'cell';
 type Item = { kind: 'tile'; t: GbaTile } | { kind: 'sprite'; s: GbaSprite };
 
@@ -133,7 +133,7 @@ class Studio {
   dirtyImages = new Set<string>();
   dirtyJson = false;
   tab: Tab = 'tiles';
-  sel: { tiles?: string; sprites?: string; palettes?: string; backs?: string } = {};
+  sel: { tiles?: string; sprites?: string; palettes?: string; backs?: string; title?: TitleLayer } = {};
   tool: Tool = 'pencil';
   color = 1;                 // 0 = transparent, 1..15 = palette slot
   zoom = 0;                  // 0 = fit
@@ -289,10 +289,10 @@ class Studio {
     this.sideEl = h('div', { class: 'gs-side' });
     this.statusEl = h('span', { class: 'gs-status', role: 'status' });
     const tabs = h('div', { class: 'gs-tabs', role: 'tablist' },
-      ...(['tiles', 'sprites', 'palettes', 'backs'] as Tab[]).map((t) => h('button', {
+      ...(['tiles', 'sprites', 'palettes', 'backs', 'title'] as Tab[]).map((t) => h('button', {
         type: 'button', role: 'tab', class: 'gs-tab', 'data-tab': t,
         onclick: () => { this.tab = t; this.render(); },
-      }, t === 'tiles' ? 'Tiles' : t === 'sprites' ? 'Sprites' : t === 'palettes' ? 'Palettes' : 'Battle backgrounds')));
+      }, t === 'tiles' ? 'Tiles' : t === 'sprites' ? 'Sprites' : t === 'palettes' ? 'Palettes' : t === 'backs' ? 'Battle backgrounds' : 'Title screen')));
     this.root = h('div', { class: 'gba-studio', role: 'dialog', 'aria-label': 'GBA Studio' },
       h('header', { class: 'gs-head' },
         h('span', { class: 'brand-mark' }, 'GBA Studio'),
@@ -344,6 +344,7 @@ class Studio {
     this.renderList();
     if (this.tab === 'palettes') this.renderPalettes();
     else if (this.tab === 'backs') void this.renderBacks();
+    else if (this.tab === 'title') void this.renderTitle();
     else this.renderPainter();
     this.renderStatus();
   }
@@ -382,6 +383,12 @@ class Studio {
         rows.push(this.listRow(s.id, s.name + tag, s.id === this.sel.sprites, this.images.get(s.image), () => { this.sel.sprites = s.id; this.render(); }));
       }
       rows.unshift(h('button', { type: 'button', class: 'btn primary gs-new', onclick: () => this.newSprite() }, '+ New sprite'));
+    } else if (this.tab === 'title') {
+      for (const l of TITLE_LAYERS) {
+        const path = titleImage(this.data, l.id);
+        rows.push(this.listRow(l.id, l.name + (this.data.title?.[l.id] ? ' (yours)' : ''), l.id === (this.sel.title ?? 'sky'), this.images.get(path), () => { this.sel.title = l.id; this.render(); }));
+        if (!this.images.has(path)) void this.backImage(path).then((c) => { if (c && this.tab === 'title') this.renderList(); });
+      }
     } else if (this.tab === 'backs') {
       const list = battlebackList(this.data);
       rows.push(h('div', { class: 'gs-group' }, 'Built in'));
@@ -1494,6 +1501,75 @@ class Studio {
         b.builtin && b.replaced ? h('button', { type: 'button', class: 'btn ghost small', onclick: restore }, 'Back to the built-in') : null,
         !b.builtin ? h('button', { type: 'button', class: 'btn ghost small danger', onclick: remove }, 'Delete') : null),
       h('p', { class: 'hint' }, 'Maps choose theirs in Map settings → Battles → Battle background.')));
+  }
+
+  /* ----------------------------------------------------------------- title screen */
+
+  private titleTimer = 0;
+
+  /** A picture as a title layer: fitted to the layer's size (covering, centred), GBA colours, see-through kept (not the sky). */
+  async importTitle(f: Blob, layer: TitleLayer): Promise<void> {
+    const L = TITLE_LAYERS.find((x) => x.id === layer)!;
+    const src = await blobToCanvas(f);
+    const c = blankCanvas(L.w, 160), g = ctx2d(c);
+    const k = Math.max(L.w / src.width, 160 / src.height);
+    g.imageSmoothingEnabled = k < 1;
+    g.drawImage(src, (L.w - src.width * k) / 2, (160 - src.height * k) / 2, src.width * k, src.height * k);
+    const d = g.getImageData(0, 0, c.width, c.height);
+    for (let i = 0; i < d.data.length; i += 4) { d.data[i] &= 0xf8; d.data[i + 1] &= 0xf8; d.data[i + 2] &= 0xf8; d.data[i + 3] = layer === 'sky' || d.data[i + 3] >= 128 ? 255 : 0; }
+    g.putImageData(d, 0, 0);
+    const path = `gba/title/${layer}.png`;
+    (this.data.title ??= {})[layer] = path;
+    this.images.set(path, c);
+    this.touch(path);
+    this.touch();
+    this.render();
+    toast(`Title screen ${L.name.toLowerCase()}: your picture (${L.w} × 160, GBA colours)`);
+  }
+
+  /** The title screen: the three layers together (the clouds drifting at their speed), and the chosen one's card. */
+  async renderTitle(): Promise<void> {
+    const layer = this.sel.title ?? 'sky', L = TITLE_LAYERS.find((x) => x.id === layer)!;
+    const pics = await Promise.all(TITLE_LAYERS.map((x) => this.backImage(titleImage(this.data, x.id))));
+    if (this.tab !== 'title') return;
+    const view = blankCanvas(240, 160);
+    view.className = 'gs-back-view';
+    let x = 0, last = performance.now();
+    clearInterval(this.titleTimer);
+    const draw = () => {
+      if (!view.isConnected && this.titleTimer) { clearInterval(this.titleTimer); return; }
+      const now = performance.now();
+      x = (x + ((this.data.title?.cloudSpeed ?? DEFAULT_CLOUD_SPEED) * (now - last)) / 1000) % 256; last = now;
+      const g = ctx2d(view);
+      g.clearRect(0, 0, 240, 160);
+      if (pics[0]) g.drawImage(pics[0], 0, 0, 240, 160);
+      if (pics[1]) { const cx = Math.floor(x); g.drawImage(pics[1], -cx, 0); g.drawImage(pics[1], 256 - cx, 0); }
+      if (pics[2]) g.drawImage(pics[2], 0, 0, 240, 160);
+      // The menu where the ROM puts it (a stand-in drawing).
+      g.fillStyle = 'rgba(248,248,248,0.92)'; g.fillRect(72, 56, 96, 60); g.strokeStyle = '#305090'; g.lineWidth = 2; g.strokeRect(72, 56, 96, 60);
+      g.fillStyle = '#303038'; g.font = '7px sans-serif';
+      ['NEW GAME', 'LOAD GAME', 'ACHIEVEMENTS', 'CREDITS', 'QUIT'].forEach((t, k) => g.fillText(t, 86, 68 + k * 11));
+    };
+    draw();
+    this.titleTimer = window.setInterval(draw, 50);
+    this.centerEl.replaceChildren(h('div', { class: 'gs-back-wrap' }, view,
+      h('p', { class: 'hint' }, 'The title screen as the ROM shows it (the menu box is a stand-in): sky at the back, the clouds drifting, the trees in front.')));
+    const fileIn = h('input', { type: 'file', accept: 'image/png,image/*', hidden: true }) as HTMLInputElement;
+    fileIn.addEventListener('change', () => { const f = fileIn.files?.[0]; if (f) void this.importTitle(f, layer); });
+    const own = !!this.data.title?.[layer];
+    const speed = h('input', { type: 'range', min: '0', max: '40', step: '1', value: String(this.data.title?.cloudSpeed ?? DEFAULT_CLOUD_SPEED), 'aria-label': 'Cloud speed' }) as HTMLInputElement;
+    const speedOut = h('span', { class: 'hint' }, `${speed.value} pixels a second`);
+    speed.addEventListener('input', () => { const v = Number(speed.value); speedOut.textContent = `${v} pixels a second`; this.data.title ??= {}; if (v === DEFAULT_CLOUD_SPEED) delete this.data.title.cloudSpeed; else this.data.title.cloudSpeed = v; this.touch(); });
+    const img = pics[TITLE_LAYERS.indexOf(L)];
+    const download = async () => { if (!img) return; const a = h('a', { href: URL.createObjectURL(await canvasBlob(img)), download: `title_${layer}.png` }) as HTMLAnchorElement; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); };
+    this.sideEl.replaceChildren(h('section', { class: 'gs-card' }, h('h3', {}, `${L.name} layer`),
+      h('p', { class: 'hint' }, L.note),
+      h('p', { class: 'hint' }, own ? 'Showing your picture in place of the built-in one.' : `Built in. Replace it with your own picture (${L.w} × 160) any time; the built-in one is kept.`),
+      h('div', { class: 'gs-actions' }, fileIn,
+        h('button', { type: 'button', class: 'btn small', onclick: () => fileIn.click() }, own ? 'Change picture…' : 'Replace with my picture…'),
+        h('button', { type: 'button', class: 'btn ghost small', title: 'Save it as a PNG to paint over in another program', onclick: () => void download() }, 'Download PNG'),
+        own ? h('button', { type: 'button', class: 'btn ghost small', onclick: () => { delete this.data.title![layer]; this.touch(); this.render(); } }, 'Back to the built-in') : null)),
+      h('section', { class: 'gs-card' }, h('h3', {}, 'Clouds'), field('Drift speed', speed), speedOut));
   }
 
   renderPalettes(): void {

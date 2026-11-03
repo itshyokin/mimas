@@ -84,7 +84,10 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
 - [x] Update 15 (Nov 3): timed Additions (a frame closes on the foe, A on time; a miss ends the string; perfect +10%),
       MP back per hit landed and for completing (per Addition), Timing window % and Automatic in Database → Combat;
       spells untimed; no mastery. Playtest and ROM.
-- [ ] Update 16: save slots, title screen, achievements, credits.
+- [x] Update 16 (Nov 3): three save slots (save asks which, overwrite confirms; load from the title); the title
+      screen (night sky, drifting clouds, pine tops; GBA Studio → Title screen); NEW GAME / LOAD GAME / ACHIEVEMENTS /
+      CREDITS / QUIT ("You can turn off the power now."); achievements on the cartridge across saves, with a pop-up and
+      a list; the credits roll. Playtest and ROM.
 - [ ] Battles with more than one hero and foe out at once (2 v 2 or 3 v 3): owner is thinking about it.
 - [ ] Music in the ROM (tracker files); support spells' buffs in the ROM; learning moves on level up (a learnset).
 - [ ] Surf on water (needs a key item / ability), one-way passability arrows.

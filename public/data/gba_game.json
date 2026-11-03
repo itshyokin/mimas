@@ -4104,6 +4104,237 @@
    "noRun": false
   }
  ],
+ "achievements": [
+  {
+   "id": "FIRST_BLOOD",
+   "name": "First Blood",
+   "description": "Win your first battle.",
+   "points": 5,
+   "hidden": false,
+   "rule": {
+    "kind": "record",
+    "record": "battlesWon",
+    "count": 1
+   }
+  },
+  {
+   "id": "SLIME_SLAYER",
+   "name": "Slime Slayer",
+   "description": "Defeat 25 slimes.",
+   "points": 15,
+   "hidden": false,
+   "rule": {
+    "kind": "defeat",
+    "enemy": "slime",
+    "count": 25
+   }
+  },
+  {
+   "id": "COMBO_ARTIST",
+   "name": "Combo Artist",
+   "description": "Perform 20 Additions.",
+   "points": 20,
+   "hidden": false,
+   "rule": {
+    "kind": "addition",
+    "count": 20
+   }
+  },
+  {
+   "id": "SPELLWRIGHT",
+   "name": "Spellwright",
+   "description": "Cast 15 spells in battle.",
+   "points": 15,
+   "hidden": false,
+   "rule": {
+    "kind": "spell",
+    "count": 15
+   }
+  },
+  {
+   "id": "UNTOUCHABLE",
+   "name": "Untouchable",
+   "description": "Win 5 battles without anyone taking damage.",
+   "points": 25,
+   "hidden": false,
+   "rule": {
+    "kind": "record",
+    "record": "flawless",
+    "count": 5
+   }
+  },
+  {
+   "id": "SEASONED",
+   "name": "Seasoned",
+   "description": "Reach level 10.",
+   "points": 20,
+   "hidden": false,
+   "rule": {
+    "kind": "level",
+    "level": 10
+   }
+  },
+  {
+   "id": "FULL_HOUSE",
+   "name": "Full House",
+   "description": "Have four in the party.",
+   "points": 10,
+   "hidden": false,
+   "rule": {
+    "kind": "party",
+    "size": 4
+   }
+  },
+  {
+   "id": "WANDERER",
+   "name": "Wanderer",
+   "description": "Take 5,000 steps.",
+   "points": 10,
+   "hidden": false,
+   "rule": {
+    "kind": "record",
+    "record": "steps",
+    "count": 5000
+   }
+  },
+  {
+   "id": "SECRET_OF_THE_STONE",
+   "name": "Secret of the Stone",
+   "description": "Learn what the Monolith hides.",
+   "points": 50,
+   "hidden": true,
+   "rule": {
+    "kind": "event"
+   }
+  }
+ ],
+ "credits": [
+  {
+   "title": "Titamas",
+   "lines": [
+    "Chapter 1. Arcturus"
+   ]
+  },
+  {
+   "title": "Misc. Sprites",
+   "lines": [
+    "Stephen Challener (Redshrike), hosted by OpenGameArt.org"
+   ]
+  },
+  {
+   "title": "Sprites and tiles",
+   "lines": [
+    "Eliza Wyatt (ElizaWy)",
+    "Johannes Sjölund (wulax)",
+    "Matthew Krohn (makrohn)",
+    "bluecarrot16",
+    "Evert",
+    "TheraHedwig",
+    "Benjamin K. Smith (BenCreating)",
+    "MuffinElZangano",
+    "Durrani",
+    "Pierre Vigier (pvigier)",
+    "Stephen Challener (Redshrike)",
+    "JaidynReiman",
+    "Manuel Riecke (MrBeast)",
+    "Joe White",
+    "Michael Whitlock (bigbeargames)",
+    "Marcel van de Steeg (MadMarcel)",
+    "Nila122",
+    "Page",
+    "William.Thompsonj",
+    "Mandi Paugh",
+    "Nyom",
+    "drjamgo@hotmail.com",
+    "Napsio (Vitruvian Studio)",
+    "",
+    "From the Liberated Pixel Cup (LPC) collection on OpenGameArt.org",
+    "opengameart.org/content/lpc-collection",
+    "LPC Revised: github.com/ElizaWy/LPC",
+    "Licences: CC-BY, CC-BY 3.0, CC-BY 3.0+, CC-BY-SA 3.0, CC0, GPL 2.0, GPL 3.0, OGA-BY 3.0, OGA-BY 3.0+"
+   ]
+  },
+  {
+   "title": "Sprite details",
+   "lines": [
+    "Trimmed Beard: ElizaWy (OGA-BY 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Hair https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+    "Leather Belt Alt: Johannes Sjölund (wulax), Matthew Krohn (makrohn) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-combat-armor-for-women",
+    "Body Color: bluecarrot16, Evert, TheraHedwig, Benjamin K. Smith (BenCreating), MuffinElZangano, Durrani, Pierre Vigier (pvigier), Eliza Wyatt (ElizaWy), Matthew Krohn (makrohn), Johannes Sjölund (wulax), Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites https://opengameart.org/content/lpc-ladies https://opengameart.org/content/lpc-teen-unisex-base-clothes https://opengameart.org/content/lpc-jump-expanded https://opengameart.org/content/lpc-revised-character-basics https://opengameart.org/content/lpc-be-seated https://gitlab.com/vagabondgame/lpc-characters https://opengameart.org/content/lpc-male-jumping-animation-by-durrani https://opengameart.org/content/lpc-jump-expanded",
+    "Longsleeve 2 Buttoned: ElizaWy, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) (OGA-BY 3.0) http://opengameart.org/content/lpc-revised-character-basics https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-simple-shirts",
+    "Neutral: JaidynReiman, ElizaWy, Stephen Challener (Redshrike) (OGA-BY 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Head https://opengameart.org/content/ulpc-expanded-expressions",
+    "Neutral: JaidynReiman, Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/ulpc-expanded-expressions",
+    "Plain: JaidynReiman, Manuel Riecke (MrBeast), Joe White (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/ponytail-and-plain-hairstyles https://opengameart.org/content/lpc-expanded-hair",
+    "Human Male: bluecarrot16, Benjamin K. Smith (BenCreating), Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-character-bases",
+    "Cuffed Pants: ElizaWy, JaidynReiman, Johannes Sjölund (wulax), Stephen Challener (Redshrike) (OGA-BY 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-pants",
+    "Basic Shoes: JaidynReiman, bluecarrot16, Johannes Sjölund (wulax) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites http://opengameart.org/content/lpc-clothing-updates https://opengameart.org/content/lpc-expanded-socks-shoes",
+    "Basic Shoes: JaidynReiman, Joe White, Johannes Sjölund (wulax) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites http://opengameart.org/content/lpc-clothing-updates https://opengameart.org/content/lpc-expanded-socks-shoes",
+    "Cuffed Longsleeves Overlay: ElizaWy, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) (OGA-BY 3.0) http://opengameart.org/content/lpc-revised-character-basics https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-simple-shirts",
+    "Armour: Michael Whitlock (bigbeargames), Matthew Krohn (makrohn), Johannes Sjölund (wulax), bluecarrot16, JaidynReiman (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites http://opengameart.org/content/lpc-clothing-updates",
+    "Medium Beard: ElizaWy (OGA-BY 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Hair https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+    "Body Color: bluecarrot16, JaidynReiman, Benjamin K. Smith (BenCreating), Evert, Eliza Wyatt (ElizaWy), TheraHedwig, MuffinElZangano, Durrani, Johannes Sjölund (wulax), Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites https://opengameart.org/content/lpc-male-jumping-animation-by-durrani https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle https://opengameart.org/content/lpc-revised-character-basics https://opengameart.org/content/lpc-be-seated https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads https://opengameart.org/content/lpc-jump-expanded https://opengameart.org/content/lpc-character-bases",
+    "Sleeveless laced: bluecarrot16, Matthew Krohn (makrohn), JaidynReiman, Marcel van de Steeg (MadMarcel), Nila122, Johannes Sjölund (wulax), Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-female-orcogregoblintroll-base-walkcycle https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more https://opengameart.org/content/more-lpc-clothes-and-hair https://opengameart.org/content/lpc-pirates",
+    "Page: Page, Johannes Sjölund (wulax) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites https://opengameart.org/content/lpc-expanded-hair",
+    "Pants: bluecarrot16, JaidynReiman, ElizaWy, Matthew Krohn (makrohn), Johannes Sjölund (wulax), Stephen Challener (Redshrike) (OGA-BY 3.0 / GPL 3.0 / CC-BY-SA 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites https://opengameart.org/content/lpc-expanded-pants",
+    "Obi Knot Right: JaidynReiman (OGA-BY 3.0+ / CC-BY 3.0+ / GPL 3.0) https://opengameart.org/content/lpc-kimono-relm",
+    "Folded Rim Boots: JaidynReiman (OGA-BY 3.0+ / CC-BY 3.0+ / GPL 3.0) https://opengameart.org/content/lpc-kimono-relm https://opengameart.org/content/lpc-expanded-socks-shoes",
+    "Leather: Johannes Sjölund (wulax), bluecarrot16, JaidynReiman (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites https://opengameart.org/content/lpc-clothing-updates https://opengameart.org/content/lpc-expanded-armor",
+    "Leather: Michael Whitlock (bigbeargames), Matthew Krohn (makrohn), Johannes Sjölund (wulax), bluecarrot16, JaidynReiman (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites https://opengameart.org/content/lpc-combat-armor-for-women https://opengameart.org/content/lpc-clothing-updates https://opengameart.org/content/lpc-expanded-armor",
+    "Bandana: Matthew Krohn (makrohn), JaidynReiman, Marcel van de Steeg (MadMarcel), JaidynReiman (OGA-BY 3.0 / CC-BY-SA 3.0) https://opengameart.org/content/lpc-female-orcogregoblintroll-base-walkcycle https://github.com/makrohn/Universal-LPC-spritesheet/commit/f50007cb47c235d8896cafae7a613f0b6a9a09a8?short_path=02b86d4#diff-02b86d45789a3e3e8e79519c7d17d15c9e6ecc9b4ddecb1bcd8dfbbaef430b75 https://opengameart.org/content/lpc-expanded-hats-facial-helmets",
+    "Longsleeve: bluecarrot16, ElizaWy, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) (OGA-BY 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-teen-unisex-base-clothes http://opengameart.org/content/lpc-clothing-updates https://opengameart.org/content/lpc-revised-character-basics https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-simple-shirts",
+    "Rolling Eyes: JaidynReiman, ElizaWy, Stephen Challener (Redshrike) (OGA-BY 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Head https://opengameart.org/content/ulpc-expanded-expressions",
+    "Eyepatch 2 Left: ElizaWy (OGA-BY 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Head%20Accessories https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+    "Buzzcut: ElizaWy (OGA-BY 3.0) https://opengameart.org/content/lpc-hair",
+    "Human Female: bluecarrot16, Benjamin K. Smith (BenCreating), Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/ https://opengameart.org/content/lpc-character-bases",
+    "Kerchief: bluecarrot16, JaidynReiman, Nila122 (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 2.0 / GPL 3.0) https://opengameart.org/content/more-lpc-clothes-and-hair https://opengameart.org/content/lpc-pirates https://opengameart.org/content/lpc-expanded-hats-facial-helmets",
+    "Obi Knot Left: JaidynReiman (OGA-BY 3.0+ / CC-BY 3.0+ / GPL 3.0) https://opengameart.org/content/lpc-kimono-relm",
+    "Basic Boots: JaidynReiman, bluecarrot16, Nila122 (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 2.0 / GPL 3.0) https://opengameart.org/content/lpc-clothes-and-hair https://opengameart.org/content/lpc-expanded-socks-shoes",
+    "Body Color: Benjamin K. Smith (BenCreating), bluecarrot16, TheraHedwig, Evert, MuffinElZangano, Durrani, Pierre Vigier (pvigier), ElizaWy, Matthew Krohn (makrohn), Johannes Sjölund (wulax), Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites https://opengameart.org/content/lpc-ladies https://opengameart.org/content/lpc-7-womens-shirts https://opengameart.org/content/lpc-jump-expanded https://opengameart.org/content/lpc-be-seated https://opengameart.org/content/lpc-revised-character-basics https://gitlab.com/vagabondgame/lpc-characters https://opengameart.org/content/lpc-male-jumping-animation-by-durrani https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle",
+    "Longsleeve: bluecarrot16, ElizaWy, JaidynReiman, Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-7-womens-shirts http://opengameart.org/content/lpc-clothing-updates https://opengameart.org/content/lpc-revised-character-basics https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-simple-shirts",
+    "Eyepatch Ambidextrous: bluecarrot16 (OGA-BY 3.0 / GPL 3.0) https://opengameart.org/content/lpc-pirates https://opengameart.org/content/lpc-expanded-hats-facial-helmets",
+    "Bangs bun: ElizaWy, bluecarrot16 (CC0) https://opengameart.org/content/lpc-hair https://github.com/ElizaWy/LPC/blob/main/Characters/Hair https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+    "TShirt: ElizaWy, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) (OGA-BY 3.0) https://opengameart.org/content/lpc-revised-character-basics https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-simple-shirts",
+    "Medium Elven Ears: JaidynReiman (OGA-BY 3.0+ / CC-BY 3.0+ / GPL 3.0) https://opengameart.org/content/lpc-new-elven-ear-variants",
+    "Angry: JaidynReiman, ElizaWy, Stephen Challener (Redshrike) (OGA-BY 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Head https://opengameart.org/content/ulpc-expanded-expressions",
+    "Sara: Stephen Challener (Redshrike), William.Thompsonj, Mandi Paugh, bluecarrot16 (OGA-BY 3.0 / CC-BY 3.0) https://opengameart.org/content/lpc-sara https://opengameart.org/content/lpc-hair https://opengameart.org/content/lpc-expanded-xlong-hair",
+    "Human Male Small: ElizaWy, Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY)",
+    "Backwards Horns: Nila122 (OGA-BY 3.0 / GPL 3.0 / CC-BY-SA 3.0) https://opengameart.org/content/lpc-lizard-headgear",
+    "Long Pants: ElizaWy, JaidynReiman, Johannes Sjölund (wulax), Stephen Challener (Redshrike) (OGA-BY 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-pants",
+    "Cuffs: bluecarrot16, JaidynReiman (OGA-BY 3.0) https://opengameart.org/content/lpc-pirates",
+    "Natural cut Gem: bluecarrot16 (CC0) https://opengameart.org/content/lpc-jewelry",
+    "Original Sleeveless: Nyom, bluecarrot16, ElizaWy, JaidynReiman, Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-7-womens-shirts http://opengameart.org/content/lpc-revised-character-basics http://opengameart.org/content/lpc-clothing-updates https://opengameart.org/content/lpc-teen-androgynous-short-sleeve-shirt https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-simple-shirts",
+    "Kimono: JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) (OGA-BY 3.0+ / CC-BY 3.0+ / GPL 3.0) https://opengameart.org/content/lpc-kimono-relm",
+    "Kimono Sleeves: JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) (OGA-BY 3.0+ / CC-BY 3.0+ / GPL 3.0) https://opengameart.org/content/lpc-kimono-relm",
+    "Bob: ElizaWy, bluecarrot16 (CC0) https://opengameart.org/content/lpc-hair https://github.com/ElizaWy/LPC/blob/main/Characters/Hair https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+    "Human Female Small: ElizaWy, Stephen Challener (Redshrike) (OGA-BY 3.0 / CC-BY)",
+    "Shadow: drjamgo@hotmail.com, JaidynReiman (CC0) https://opengameart.org/content/shadow-for-lpc-sprite",
+    "Plate: JaidynReiman, bluecarrot16, Michael Whitlock (bigbeargames), Matthew Krohn (makrohn), Johannes Sjölund (wulax) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites https://opengameart.org/content/lpc-combat-armor-for-women http://opengameart.org/content/lpc-clothing-updates",
+    "Solid: bluecarrot16, JaidynReiman (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more https://opengameart.org/content/lpc-roman-armor http://opengameart.org/content/lpc-clothing-updates",
+    "Solid: Nila122, JaidynReiman (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more https://opengameart.org/content/lpc-roman-armor",
+    "Cape Trim: bluecarrot16, JaidynReiman (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more http://opengameart.org/content/lpc-clothing-updates",
+    "Ponytail2: JaidynReiman, Manuel Riecke (MrBeast), Joe White (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/ponytail-and-plain-hairstyles https://opengameart.org/content/lpc-expanded-hair",
+    "Armour: bluecarrot16, JaidynReiman, Michael Whitlock (bigbeargames), Matthew Krohn (makrohn), Johannes Sjölund (wulax) (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+    "Mantal: bluecarrot16, JaidynReiman (OGA-BY 3.0 / GPL 3.0) https://opengameart.org/content/lpc-pirates",
+    "Chainmail: Johannes Sjölund (wulax), Napsio (Vitruvian Studio), JaidynReiman (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+    "Sleeveless 2 Polo: ElizaWy, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) (OGA-BY 3.0) http://opengameart.org/content/lpc-revised-character-basics https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-simple-shirts",
+    "Xlong: JaidynReiman, Nila122 (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 2.0 / GPL 3.0) https://opengameart.org/content/lpc-clothes-and-hair https://opengameart.org/content/lpc-expanded-xlong-hair",
+    "Human Male Gaunt: Stephen Challener (Redshrike), bluecarrot16 (OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0) https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-folk",
+    "Cuffed Pants: JaidynReiman, ElizaWy, Bluecarrot16, Johannes Sjölund (wulax), Stephen Challener (Redshrike) (OGA-BY 3.0 / GPL 3.0) https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more https://opengameart.org/content/lpc-expanded-pants"
+   ]
+  },
+  {
+   "title": "Made with",
+   "lines": [
+    "Butano, a GBA engine by Gustavo Valiente (zlib licence)",
+    "Mimas: the GBA side of the Saturn Game Engine"
+   ]
+  },
+  {
+   "title": "",
+   "lines": [
+    "Thank you for playing!"
+   ]
+  }
+ ],
  "text": {
   "cmd.attack": [
    "ATTACK"
@@ -4131,6 +4362,27 @@
   ],
   "menu.exit": [
    "EXIT"
+  ],
+  "title.new": [
+   "NEW GAME"
+  ],
+  "title.load": [
+   "LOAD GAME"
+  ],
+  "title.ach": [
+   "ACHIEVEMENTS"
+  ],
+  "title.credits": [
+   "CREDITS"
+  ],
+  "title.quit": [
+   "QUIT"
+  ],
+  "title.power": [
+   "You can turn off the power now."
+  ],
+  "ach.unlocked": [
+   "Achievement unlocked!"
   ],
   "battle.appear": [
    "A {foe} leaps out!"
@@ -4359,6 +4611,15 @@
   ],
   "save.done": [
    "{name} saved the game!"
+  ],
+  "save.which": [
+   "Save in which slot?"
+  ],
+  "save.overwrite": [
+   "Save over this game?"
+  ],
+  "load.which": [
+   "Load which game?"
   ],
   "shop.hello": [
    "Welcome! What can I get you?"

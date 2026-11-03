@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 3, 2026, after Update 15; Update 16 planned below)
+# Handoff: where Mimas stands (Nov 3, 2026, after Update 16: the agreed plan is done)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -48,7 +48,7 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Next up: the owner's plan (agreed Nov 3, 2026). Build in this order, one numbered update and build each.
-Updates 13-15 are built (below, kept for reference); 16 is not. Owner wants the game NOT too close to Pokémon
+Updates 13-16 are all built (below, kept for reference). Ask the owner what's next (NOTES.md has open ideas). Owner wants the game NOT too close to Pokémon
 (copyright worry); mechanics are fine, copied wording and look are what we're removing.
 
 ### Update 13 (BUILT): text, words, Database split, side view
@@ -109,7 +109,7 @@ Updates 13-15 are built (below, kept for reference); 16 is not. Owner wants the 
   (both custom numbers, so the owner can tune them against the bonus EXP).
 - No Addition mastery. Timed spells OFF in one-on-one (maybe back if 3-character battles happen later).
 
-### Update 16: saves, title, achievements, credits
+### Update 16 (BUILT): saves, title, achievements, credits
 - **Three save slots:** Save asks which slot (list: lead hero, level, map, play time; overwrite confirms); Load
   shows the same list. ROM SRAM has room; old saves become unreadable (bump SAVE_MAGIC). Playtest: three slots too.
 - **Title screen:** layers: Saturn Engine's own skybox art (it is in the Saturn engine; it already has the
@@ -125,6 +125,22 @@ Updates 13-15 are built (below, kept for reference); 16 is not. Owner wants the 
 - **Credits:** reuse Saturn's Credits tab (un-grey it) for a credits roll.
 
 ## Things to know
+- Update 16, slots / title / achievements / credits:
+  - Playtest (GbaGame.ts): titleScreen / achievementsScreen / creditsRoll / renderScreen (this.screen 'title' | 'credits'
+    | 'power' takes over update and render); saves in localStorage `mimas-gba-save:<title>:<1-3>` (the old single save
+    becomes slot 1); pickSlot; the cartridge `mimas-gba-cart:<title>` { records, unlocked }; tally() from the battle
+    host, steps and items; checkAchievements every 30 ticks and after battles; unlock() shows .gba-ach.
+  - src/gba/achievements.ts: GBA_RULES / GBA_RECORDS (the ROM's numbers are their places) and gbaAchievements();
+    src/gba/credits.ts gbaCredits(). Both exported in gba_game.json (`achievements`, `credits`).
+  - Title art: tools/make_title.py drew public/gba/title/builtin/{sky,clouds,trees}.png (sky from Saturn's own sky shader
+    look); GbaData.title { sky, clouds, trees, cloudSpeed } (GBA Studio → Title screen); export.py makes title_sky /
+    title_clouds / title_trees backgrounds sharing title_palette (≤12 banks) and mimas::title_cloud_speed.
+  - ROM: SRAM = cart_data (CART: records, kills per enemy, Addition and spell uses, unlocked) then 3 × save_data
+    (SAVE_MAGIC MIMAS09, read_slot / write_save at CART_SIZE + slot × SLOT_SIZE). title_screen(text) in main() returns
+    the slot loaded or -1; pick() calls frame_hook (the clouds drift during menus); credits_roll scrolls sprite text
+    (lines wrapped to 34 characters by gba_game.py); power_screen never returns. check_achievements() every 60 field
+    frames; OP_ACH k (gba_events.py `achievement`); ach_popup at the top. New text keys: title.*, ach.unlocked,
+    save.which / save.overwrite / load.which, menu.skills.
 - Update 15, timed Additions:
   - Playtest: TurnBattle.doAddition runs Saturn's startQte in GBA mode too (no forced 'auto' in GbaGame any more);
     windows × cfg.timingWindow / 100 (TurnBasedData.timingWindow, default 160); every strike's button is A

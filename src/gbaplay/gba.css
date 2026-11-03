@@ -157,3 +157,10 @@ body.gba-mode .qte-btn { width: calc(var(--u) * 4.4); height: calc(var(--u) * 4.
 body.gba-mode .qte.perfect .qte-mark { border-color: #e0a020; }
 body.gba-mode .qte.hit .qte-mark { border-color: #3a8a4a; }
 body.gba-mode .qte.miss .qte-mark { border-color: #d04040; }
+
+/* Update 16: "Achievement unlocked!" at the top of the screen. */
+.gba-ach { position: absolute; left: 50%; top: calc(var(--gba) * 4); transform: translateX(-50%); z-index: 30; display: grid; gap: calc(var(--gba) * 1); text-align: center;
+  background: #f8f8f8; color: #303038; border: calc(var(--gba) * 1) solid #305090; box-shadow: inset 0 0 0 calc(var(--gba) * 0.6) #7090c8; padding: calc(var(--gba) * 3) calc(var(--gba) * 8);
+  font-size: calc(var(--gba) * 7); animation: gba-ach-in 0.35s ease-out; pointer-events: none; white-space: nowrap; }
+.gba-ach b { color: #b07818; }
+@keyframes gba-ach-in { from { transform: translate(-50%, -140%); } to { transform: translate(-50%, 0); } }
