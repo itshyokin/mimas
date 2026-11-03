@@ -97,7 +97,9 @@ Last build: build-25 (Update 12 + fixes). Nothing below is built yet. Owner want
   "[ Spells ]" divider row (not selectable), then spells. Each row: name, element icon + type, MP cost (0 for most
   Additions); the selected move's details in the note box. ROM: a scrolling list (it has pick() lists already),
   remembering the cursor. Replaces the 4-move system, the forget questions and the moveSlots setting.
-  (Open: order learned, or let Party → Moves reorder? Ask.) Enemies keep their up-to-4 moves.
+  **Order (owner's answer):** Additions weakest first: sorted by strength (total power), ties in the order learned,
+  so "Better Quick Hit" (stronger) sits below "Quick Hit". Spells sorted by MP cost (cheaper / weaker at the top),
+  ties in the order learned. Enemies keep their up-to-4 moves.
 
 ### Update 15: timed Additions (Legend of Dragoon) with MP
 - Bring back Saturn's timing-based Additions (currently cfg.additionTiming 'auto' + gba.css hides the QTE): a frame
@@ -113,8 +115,9 @@ Last build: build-25 (Update 12 + fixes). Nothing below is built yet. Owner want
 - **Title screen:** layers: Saturn Engine's own skybox art (it is in the Saturn engine; it already has the
   artificial moon graphic, NOT the real moon Mimas; avoid anything Death Star-like) with a slowly scrolling cloud
   layer and trees in the foreground, looking up. GBA Studio gets a Title screen tab to swap each layer and set the
-  cloud speed. Menu: New Game, Load Game, Achievements, Credits, Quit. (Quit on a GBA: ask the owner: a "you can
-  turn off the power now" screen, or playtest only.)
+  cloud speed. Menu: New Game, Load Game, Achievements, Credits, Quit. **Quit (owner's answer):** on the GBA it shows a
+  "You can turn off the power now." screen. (Later, maybe: a non-GBA build for Steam, where Quit really quits; the
+  focus now is the GBA version.)
 - **Achievements in GBA mode** (src/game/achievements.ts): rules event, switch, defeat, addition, spell, level,
   gold, item, party, and records (steps, kills, battlesWon, flawless, crits, additions, spells, itemsUsed, fled,
   deaths). Grey out quest rules and Saturn-only records (fish, trees…). Kept on the cartridge apart from the save
