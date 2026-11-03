@@ -1201,11 +1201,12 @@ def main():
             w(f'constexpr event map{i}_events[] = {{\n    ' + ',\n    '.join(
                 f'{{ {x}, {z}, {ew}, {eh}, {fp}, {pc}, {sid} }}' for x, z, ew, eh, fp, pc, sid in events) + '\n};\n')
         name = ''.join(ch for ch in m['name'] if 32 <= ord(ch) < 127)
+        back_ref = '&bn::regular_bg_items::bback_%d' % m['back'] if m.get('back', -1) >= 0 else 'nullptr'
         infos.append(f'{{ {W}, {H}, {m["bw"]}, {m["bh"]}, {c_string(name)}, map{i}_collision, map{i}_heights, '
                      f'{f"map{i}_events" if events else "nullptr"}, {len(events)}, {f"map{i}_pages" if pages else "nullptr"}, map{i}_code, '
                      f'&bn::regular_bg_items::world_ground_{i}, &bn::regular_bg_items::world_over_{i}, '
                      f'{f"map{i}_water" if m.get("frames") else "nullptr"}, {len(m.get("frames") or []) + 1}, '
-                     f'{f"&bn::regular_bg_items::bback_{m["back"]}" if m.get("back", -1) >= 0 else "nullptr"} }}')
+                     f'{back_ref} }}')
         w('\n')
     w('constexpr map_info maps[] = {\n    ' + ',\n    '.join(infos) + '\n};\n')
     w(f'constexpr int map_count = {len(maps)};\n')
