@@ -95,13 +95,23 @@ def load_png(public, rel):
         return None
 
 
-def ui_tiles(gfx):
+def ui_tiles(gfx, bars=None):
     """
     The window pieces, 8 x 8 tiles in one column (the runtime draws boxes and health bars with them):
     0 empty, 1 white, 2-9 the frame (top-left, top, top-right, left, right, bottom-left, bottom, bottom-right),
     10-36 health bars (green, yellow, red; 0-8 pixels full), 37 a bar's left end, 38 its right end, 39 the dark line,
     40-48 the EXP bar, 49 / 50 its ends.
     """
+    # Database → Menus → Bars: health / EXP colours, and round ends unless the meters are square.
+    bars = bars or {}
+    upal = list(UI_PAL)
+    for k, i in (('hp', 5), ('xp', 10)):
+        try:
+            if bars.get(k):
+                upal[i] = hex_rgb(bars[k])
+        except ValueError:
+            pass   # not a #rrggbb colour: the default
+    round_ends = (bars.get('shape') or 'pill') in ('pill', 'thin')
     tiles = []
 
     def blank(v=0):
@@ -138,6 +148,13 @@ def ui_tiles(gfx):
     for y in range(2, 7):
         left_end[y][7] = 9
         right_end[y][0] = 9
+    if round_ends:
+        # a rounded cap: the corners cut, the track's colour inside
+        for t, x_in, x_out in ((left_end, 7, 6), (right_end, 0, 1)):
+            t[2][x_in] = t[6][x_in] = 1
+            for y in (3, 4, 5):
+                t[y][x_in] = 4
+                t[y][x_out] = 9
     tiles.append(left_end)
     tiles.append(right_end)
     line = blank(1)
@@ -156,6 +173,12 @@ def ui_tiles(gfx):
     for y in range(2, 6):
         xl[y][7] = 9
         xr[y][0] = 9
+    if round_ends:
+        for t, x_in, x_out in ((xl, 7, 6), (xr, 0, 1)):
+            t[2][x_in] = t[5][x_in] = 1
+            for y in (3, 4):
+                t[y][x_in] = 4
+                t[y][x_out] = 9
     tiles.append(xl)
     tiles.append(xr)
     im = Image.new('P', (8, 8 * len(tiles)))
@@ -163,11 +186,11 @@ def ui_tiles(gfx):
         for y in range(8):
             for x in range(8):
                 im.putpixel((x, i * 8 + y), t[y][x])
-    put_pal(im, UI_PAL)
+    put_pal(im, upal)
     im.save(os.path.join(gfx, 'ui_tiles.bmp'))
     write_json(os.path.join(gfx, 'ui_tiles.json'), {'type': 'regular_bg_tiles', 'bpp_mode': 'bpp_4'})
     pal = Image.new('P', (16, 16))
-    put_pal(pal, UI_PAL)
+    put_pal(pal, upal)
     pal.save(os.path.join(gfx, 'ui_palette.bmp'))
     write_json(os.path.join(gfx, 'ui_palette.json'), {'type': 'bg_palette', 'bpp_mode': 'bpp_4'})
     # the menu cursor: a dark triangle (8 x 8), in the text's palette (the two share one palette slot)
@@ -357,7 +380,7 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
         print(f'  more than {MAX_SPELLS} spells: the ROM keeps the first {MAX_SPELLS}')
         spells = spells[:MAX_SPELLS]
 
-    ui_tiles(gfx)
+    ui_tiles(gfx, game.get('bars'))
     missing = []
     for k, e in enumerate(enemies):
         img = load_png(public, f'gba/enemies/{e["id"]}.png')

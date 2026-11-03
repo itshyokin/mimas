@@ -42,6 +42,8 @@ export function romGameData(db: Database, gba: GbaData): unknown {
   return {
     v: 1,
     moveSlots: tb.moveSlots,
+    // Database → Menus → Bars: the ROM's health / EXP colours and whether the meters have round ends.
+    bars: { shape: db.menus?.barShape ?? (db.menus?.barsSquare ? 'rect' : 'pill'), hp: db.menus?.bars?.hp ?? null, xp: db.menus?.bars?.xp ?? null },
     partyDamage: tb.partyDamage, enemyDamage: tb.enemyDamage, flee: tb.flee,
     maxLevel,
     xp: Array.from({ length: maxLevel - 1 }, (_, i) => xpToNext(cfg, i + 1)),

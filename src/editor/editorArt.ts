@@ -211,6 +211,7 @@ export const flatImage = (path: string): HTMLCanvasElement | undefined => flatIm
  * scaled up (64 × 64 saved at 192 × 192): the scale is found (every pixel a k × k block) and undone, so the GBA gets
  * the art as it was drawn instead of a squashed copy. Built-in monsters and characters: their usual picture.
  */
+/** A flat enemy picture at its drawn size (undoing any k× upscale), facing left for the GBA battle screen. */
 export function enemyBattleImage(db: { characters: Record<string, CharacterDef> }, look: EnemyDef['look']): HTMLCanvasElement | null {
   const src = look.image ? flatImages.get(look.image) : undefined;
   if (!src) return enemyImage(db, look);
@@ -228,6 +229,9 @@ export function enemyBattleImage(db: { characters: Record<string, CharacterDef> 
   c.width = w / k; c.height = h / k;
   const g = c.getContext('2d')!;
   g.imageSmoothingEnabled = false;
+  // The foe stands top right looking at the hero (left): a picture drawn facing right is mirrored
+  // (Database → the picture faces; "doesn't matter" is never mirrored).
+  if ((look.flat?.faces ?? 'right') === 'right') { g.translate(c.width, 0); g.scale(-1, 1); }
   g.drawImage(src, 0, 0, c.width, c.height);
   return c;
 }

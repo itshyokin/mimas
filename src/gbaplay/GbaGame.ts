@@ -81,11 +81,20 @@ function showError(msg: string): void {
   document.body.appendChild(el);
 }
 
+/** Database → Menus: bar colours, meter fill and shape, and orb style (as Saturn's Game sets them). */
+function meterStyles(db: Database): void {
+  const mn = db.menus, root = document.documentElement, bars = mn?.bars ?? {};
+  for (const k of ['hp', 'mp', 'xp', 'sp'] as const) { if (bars[k]) root.style.setProperty(`--c-${k}`, bars[k]!); else root.style.removeProperty(`--c-${k}`); }
+  const fill = mn?.barFill ?? (mn?.barsSolid ? 'flat' : 'gradient'), shape = mn?.barShape ?? (mn?.barsSquare ? 'rect' : 'pill'), orb = mn?.orbStyle ?? 'sphere';
+  root.classList.add(`bar-fill-${fill}`, `bar-shape-${shape}`, `orb-${orb}`);
+}
+
 export async function startGbaGame(): Promise<void> {
   document.body.classList.add('gba-mode');
   const stamp = new URLSearchParams(location.search).get('gbaplay');
   const pt = await waitForPlaytest(stamp, 15000);
   if (!pt || !pt.gba) { showError('The playtest data didn’t arrive. Close this and press ▶ Playtest again.'); return; }
+  meterStyles(pt.db);
   const game = new GbaGame(pt);
   (window as unknown as { __gba: GbaGame }).__gba = game; // for tests
   await game.init();
@@ -595,7 +604,7 @@ class GbaGame {
     this.battlePending = true;
     this.audio.play('encounter');
     this.music(music || this.cur.data.battleMusic, 'battle', 0.2);
-    // A quick flash into the battle.
+    // A soft fade into the battle.
     this.flash = 30;
     window.setTimeout(() => {
       this.battlePending = false;
@@ -1081,7 +1090,8 @@ class GbaGame {
       g.fillStyle = '#fff';
       g.fillText(m.name, W / 2, 12);
     }
-    if (this.flash > 0) { g.fillStyle = (this.flash >> 2) & 1 ? '#fff' : '#000'; g.fillRect(0, 0, W, H); }
+    // Into a battle: a soft fade to white (no strobing).
+    if (this.flash > 0) { const t = 1 - this.flash / 30; g.fillStyle = `rgba(248,248,248,${(t * t * (3 - 2 * t)).toFixed(3)})`; g.fillRect(0, 0, W, H); }
     if (this.fade > 0) { g.fillStyle = `rgba(0,0,0,${Math.min(1, this.fade)})`; g.fillRect(0, 0, W, H); }
   }
 

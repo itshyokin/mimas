@@ -1015,3 +1015,11 @@ body.resizing-side { user-select: none; cursor: col-resize; }
 .moves-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .note.warn { color: #f0b040; }
 .moveset { padding: 8px; }
+
+/* Mimas: Database settings the GBA game doesn't use yet (src/editor/mimasSupport.ts): greyed, still editable. */
+.mimas-off { opacity: 0.42; filter: grayscale(0.8); }
+.mimas-off:hover, .mimas-off:focus-within { opacity: 0.7; }
+.field.mimas-off > label::after, label.check.mimas-off::after, .db-section.mimas-off > h3::after { content: 'Saturn only'; margin-left: 6px; padding: 0 5px; border-radius: 3px; font-size: 0.72em; font-weight: 600; background: #5a5a66; color: #fff; vertical-align: middle; }
+.db-tab.mimas-off-tab { opacity: 0.4; }
+.db-tab.mimas-off-tab[aria-selected="true"] { opacity: 0.75; }
+.mimas-off-note { border-left: 3px solid #8a8a96; padding-left: 8px; }

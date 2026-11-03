@@ -85,3 +85,12 @@ body.gba-mode .qte, body.gba-mode .qte-pads, body.gba-mode .spell-seq { display:
 .gba-fx { position: fixed; z-index: 50; pointer-events: none; image-rendering: pixelated; }
 /* FIGHT / BAG / PARTY / RUN: two by two, like the handheld games. */
 body.gba-mode .battle.layout-pocket .battle-cmd.bar .battle-cmd-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* The EXP bar follows Database → Menus → meter shape too. */
+:root.bar-shape-rect .pb-xp, :root.bar-shape-rect .pb-xp > *, :root.bar-shape-blocks .pb-xp, :root.bar-shape-blocks .pb-xp > *, :root.bar-shape-bevel .pb-xp { border-radius: 0 !important; }
+:root.bar-shape-bevel .pb-xp { clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0 50%); }
+:root.bar-shape-blocks .pb-xp { -webkit-mask: repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 10px); mask: repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 10px); }
+/* Bigger, easier panel text (about 1.3-1.4×); the bars are flexible, so they shrink to make room. */
+body.gba-mode .battle.layout-pocket .pb-top { font-size: calc(var(--u) * 2.4); }
+body.gba-mode .battle.layout-pocket .pb-lv { font-size: calc(var(--u) * 2.3); }
+body.gba-mode .battle.layout-pocket .pb-k { font-size: calc(var(--u) * 1.75); }
+body.gba-mode .battle.layout-pocket .pb-num { font-size: calc(var(--u) * 2); }

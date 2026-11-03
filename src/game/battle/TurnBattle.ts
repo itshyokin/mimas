@@ -759,8 +759,8 @@ export class TurnBattle {
       },
       (res) => {
         const clean = res.total > 0 && res.correct >= res.total;
-        const mult = clean ? 1 + 0.15 * res.left : 0.5 + (0.5 * res.correct) / Math.max(1, res.total);
-        if (clean) {
+        const mult = this.cfg.gba ? 1 : clean ? 1 + 0.15 * res.left : 0.5 + (0.5 * res.correct) / Math.max(1, res.total);
+        if (this.cfg.gba) { /* Mimas: no cast grades */ } else if (clean) {
           this.screen.popup(b.key, res.left >= 0.5 ? 'Perfect cast!' : 'Cast!', 'info');
           this.expPop(b, this.host.strikeExp?.(who, foe, 'complete') ?? 0);
           if (res.left >= 0.5) this.expPop(b, this.host.strikeExp?.(who, foe, 'perfect') ?? 0);
@@ -834,6 +834,8 @@ export class TurnBattle {
       this.screen.startQte(t.key, a.strikes.map((x) => ({ button: x.button, time: x.time, window: x.window })), this.cfg.additionTiming === 'auto',
         (i: number, r: QteResult) => {
           const st = a.strikes[i];
+          // Mimas: no timing game, every strike lands the same (no Perfect / Weak popups, like the ROM).
+          if (this.cfg.gba) r = 'good';
           if (r === 'miss') {
             this.screen.popup(t.key, i === 0 ? 'Weak' : 'Missed', 'info');
             // A first strike missed still lands, weakly.
@@ -843,7 +845,7 @@ export class TurnBattle {
           landed++;
           if (r === 'perfect') this.screen.popup(t.key, 'Perfect!', 'info');
           // EXP for each strike (more for a perfect one), like Legend of Dragoon's SP.
-          this.expPop(b, this.host.strikeExp?.(this.entry(b).who ?? 0, t.key, r) ?? 0);
+          if (!this.cfg.gba) this.expPop(b, this.host.strikeExp?.(this.entry(b).who ?? 0, t.key, r) ?? 0);
           this.screen.animate(b.key, 'strike');
           this.screen.animate(t.key, 'hit');
           this.host.sound('swing');

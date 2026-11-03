@@ -1,3 +1,4 @@
+import { markMimas, MIMAS_OFF_TABS } from './mimasSupport';
 import { partyLayoutSection } from './PartyLayoutEditor';
 import { FIELD_USE_NAMES, POWER_NAMES } from '../world/items';
 import { FIELD_POWERS, FIELD_USES } from '../world/types';
@@ -202,7 +203,7 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
     tabs.replaceChildren(...DB_GROUPS.map(([group, list]) => h('div', { class: 'db-tab-group', role: 'group', 'aria-label': group },
       h('span', { class: 'db-group-label' }, group),
       h('div', { class: 'db-group-icons' }, ...list.map(([id, label, icon]) => {
-        const b = h('button', { type: 'button', role: 'tab', class: 'db-tab', title: label, 'aria-label': label, 'aria-selected': String(tab === id), onclick: () => { (document.activeElement as HTMLElement | null)?.blur?.(); tab = id; render(); } });
+        const b = h('button', { type: 'button', role: 'tab', class: `db-tab${MIMAS_OFF_TABS.has(id) ? ' mimas-off-tab' : ''}`, title: MIMAS_OFF_TABS.has(id) ? `${label} (not in the GBA game yet)` : label, 'aria-label': label, 'aria-selected': String(tab === id), onclick: () => { (document.activeElement as HTMLElement | null)?.blur?.(); tab = id; render(); } });
         b.innerHTML = dbIcon(icon);
         return b;
       })))));
@@ -217,6 +218,8 @@ export function openDatabase(store: EditorStore, startTab: DbTab = 'player'): vo
     // The busiest pages: a narrow column, field grids, hints behind ⓘ.
     if (COMPACT_TABS.has(tab)) { const f = content.querySelector<HTMLElement>('.items-layout .item-form'); if (f) compactForm(f); else compactForm(content).classList.add('db-page'); }
     else content.classList.remove('db-compact', 'db-page');
+    // Mimas: what the GBA game doesn't use yet, greyed (kept, not erased).
+    markMimas(content, tab);
     content.scrollTop = top;
     addTopDelete();
   };
