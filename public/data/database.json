@@ -5475,6 +5475,10 @@
         "def": 14,
         "mdf": 14
       },
+      "additions": [
+        "quick_strike",
+        "guard"
+      ],
       "chatter": {
         "amount": 1,
         "lines": {
@@ -5521,11 +5525,7 @@
             "Always new places to see. Titamas is a big place."
           ]
         }
-      },
-      "additions": [
-        "quick_strike",
-        "guard"
-      ]
+      }
     },
     {
       "id": "hero_3",
@@ -5545,6 +5545,10 @@
       ],
       "absorb": [
         "dark"
+      ],
+      "additions": [
+        "quick_strike",
+        "guard"
       ],
       "chatter": {
         "amount": 9,
@@ -5592,11 +5596,7 @@
             "NOW where the hell are we!?"
           ]
         }
-      },
-      "additions": [
-        "quick_strike",
-        "guard"
-      ]
+      }
     },
     {
       "id": "hero_4",
@@ -5620,6 +5620,10 @@
       ],
       "resists": [
         "burn"
+      ],
+      "additions": [
+        "quick_strike",
+        "guard"
       ],
       "chatter": {
         "lines": {
@@ -5666,11 +5670,7 @@
             "This place seems... familiar."
           ]
         }
-      },
-      "additions": [
-        "quick_strike",
-        "guard"
-      ]
+      }
     },
     {
       "id": "hero_5",
@@ -6646,7 +6646,42 @@
         "effects": [],
         "parents": [
           "skill_earthborn"
-        ]
+        ],
+        "level": 3
+      },
+      {
+        "id": "skill_3",
+        "tree": "tree_2",
+        "name": "New skill2",
+        "x": 3,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "meleeDamage",
+            "value": 5
+          }
+        ],
+        "parents": [
+          "skill_earthborn"
+        ],
+        "level": 3
+      },
+      {
+        "id": "skill_4",
+        "tree": "tree_2",
+        "name": "New skill3",
+        "x": 1,
+        "y": 1,
+        "effects": [
+          {
+            "stat": "meleeDamage",
+            "value": 5
+          }
+        ],
+        "parents": [
+          "skill_earthborn"
+        ],
+        "level": 3
       }
     ]
   },
@@ -7129,6 +7164,15 @@
         "armor:medium": "untrained",
         "armor:heavy": "untrained",
         "shield": "untrained"
+      },
+      "perLevel": {
+        "str": 2,
+        "dex": 1,
+        "end": 2,
+        "mag": 1,
+        "def": 2,
+        "mdf": 2,
+        "agi": 1
       }
     }
   ],

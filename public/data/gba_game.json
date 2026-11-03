@@ -192,20 +192,20 @@
    "bonus": [
     1,
     0,
-    1,
     2,
-    3,
     0,
-    3
+    3,
+    3,
+    1
    ],
    "perLevel": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
+    20,
+    10,
+    20,
+    10,
+    20,
+    20,
+    10
    ],
    "hpDie": 8,
    "mpDie": 6,
@@ -364,11 +364,11 @@
    "untrained": [
     0,
     0,
-    -2,
     0,
     0,
     0,
-    0
+    0,
+    -2
    ],
    "weapon": false
   },
@@ -377,11 +377,11 @@
    "untrained": [
     0,
     -2,
-    -4,
     0,
     0,
     0,
-    0
+    0,
+    -4
    ],
    "weapon": false
   },
@@ -390,11 +390,11 @@
    "untrained": [
     0,
     -3,
-    -7,
     0,
     0,
     0,
-    0
+    0,
+    -7
    ],
    "weapon": false
   },
@@ -687,11 +687,11 @@
     "stats": [
      0,
      0,
-     2,
      0,
      0,
      0,
-     0
+     0,
+     2
     ],
     "addition": null,
     "spell": null,
@@ -794,6 +794,30 @@
     "spellFrom": 1
    },
    {
+    "id": "skill_4",
+    "name": "New skill3",
+    "description": "",
+    "tree": "tree_2",
+    "parents": [
+     "skill_earthborn"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 3,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
     "id": "heavy_blows",
     "name": "Heavy Blows",
     "description": "Every melee hit does more damage.",
@@ -851,7 +875,7 @@
     ],
     "ranks": 1,
     "cost": 1,
-    "level": 0,
+    "level": 3,
     "stats": [
      0,
      0,
@@ -912,6 +936,30 @@
     "addition": null,
     "spell": "fire",
     "spellFrom": 2
+   },
+   {
+    "id": "skill_3",
+    "name": "New skill2",
+    "description": "",
+    "tree": "tree_2",
+    "parents": [
+     "skill_earthborn"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 3,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
    },
    {
     "id": "arms_training",

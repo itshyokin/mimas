@@ -1,5 +1,4 @@
 {
-  "battleBack": "meadow",
   "name": "Starter Meadow",
   "width": 32,
   "height": 24,
@@ -14,6 +13,7 @@
     }
   },
   "ambience": "builtin:forest",
+  "battleBack": "meadow",
   "gba": {
     "tiles": [
       "grass",
