@@ -5,17 +5,19 @@
  * enemies, troops and the EXP table.
  */
 import { additionList, spellAtRank, spellList, spellMaxRank } from '../game/abilities';
-import { attrsFrom } from '../game/attributes';
 import { enemyAgility } from '../game/battle/rules';
 import { combatConfig, xpToNext } from '../game/combat/config';
 import { configFromDb } from '../game/stats';
-import { levelGains, ranksOf } from '../game/statRanks';
 import { mainHero } from '../world/heroes';
 import type { Database, Element, Inflict, MoveRef } from '../world/types';
 import { ELEMENT_LIST, elementResult } from '../game/elements';
 import { effectSprites, moveEffects } from '../gba/effects';
 import type { GbaData } from '../gba/types';
 import { TEXT_LINES, lineVersions } from '../gba/text';
+import { ATTRS } from '../game/attributes';
+import { armorTypes, gearKindOf, gearKinds } from '../game/classes';
+import { isSharedTree, skillsData } from '../game/skills';
+import { classGrowth } from '../gbaplay/party';
 
 /** The ailments the ROM knows (its order: their numbers there). */
 export const ROM_AILMENTS = ['poison', 'burn', 'paralyze', 'sleep', 'chill', 'confusion', 'blind', 'silence'] as const;
@@ -42,7 +44,6 @@ export function romGameData(db: Database, gba: GbaData): unknown {
   const heroes = db.heroes?.length ? db.heroes : [mainHero(db)];
   return {
     v: 1,
-    moveSlots: tb.moveSlots,
     // Database → Menus → Bars: the ROM's health / EXP colours and whether the meters have round ends.
     bars: { shape: db.menus?.barShape ?? (db.menus?.barsSquare ? 'rect' : 'pill'), hp: db.menus?.bars?.hp ?? null, xp: db.menus?.bars?.xp ?? null },
     partyDamage: tb.partyDamage, enemyDamage: tb.enemyDamage, flee: tb.flee,
@@ -52,11 +53,25 @@ export function romGameData(db: Database, gba: GbaData): unknown {
     unarmed: cfg.unarmedDamage * cfg.classes.unarmed.damage,
     heroes: heroes.map((h, i) => ({
       id: h.id, name: h.name, first: i === 0, startsInParty: i === 0 || !!h.startsInParty, joinLevel: h.joinLevel ?? 0,
-      stats: attrsFrom(h.stats), gains: levelGains(ranksOf(h.ranks, undefined)),
+      cls: h.cls && (db.classes ?? []).some((c) => c.id === h.cls) ? h.cls : null,
       noAdditions: !!h.noAdditions, elements: (h.elements ?? []).slice(0, 2) as Element[], gender: h.gender ?? null, battleLook: h.battleLook?.mode ?? 'default',
       moves: h.noAdditions ? [] : [...new Set([...(h.defaultAddition ? [h.defaultAddition] : h.additions?.length ? [] : [additionList(db).find((d) => d.id === 'quick_strike')?.id ?? additionList(db)[0]?.id]), ...(h.additions ?? [])].filter(Boolean))],
       spells: h.spells ?? {}, gear: h.gear ?? {},
     })),
+    // Update 14: classes grow the stats (tenths a level), roll health and magic, open skill trees and limit gear.
+    pointsPerLevel: Math.max(0, cfg.pointsPerLevel ?? 1), startPoints: Math.max(0, cfg.startPoints ?? 0),
+    classes: (db.classes ?? []).map((c) => ({ id: c.id, name: c.name, description: c.description ?? '',
+      bonus: ATTRS.map((k) => Math.round(c.bonus?.[k] ?? 0)), perLevel: ATTRS.map((k) => Math.round((c.perLevel?.[k] ?? 0) * 10)),
+      hpDie: classGrowth(c).hp, mpDie: classGrowth(c).mp, trees: c.trees, gear: c.gear ?? {} })),
+    gearKinds: gearKinds(db).map(([k]) => ({ id: k, untrained: ATTRS.map((a) => (k.startsWith('armor:') ? armorTypes(db).find((t) => `armor:${t.id}` === k)?.untrained?.[a] ?? 0 : 0)), weapon: !k.startsWith('armor:') && k !== 'shield' })),
+    skills: (() => {
+      const sk = skillsData(db.skills), trees = sk.trees.filter((t) => !isSharedTree(sk, t.id));
+      // In each tree bottom row first, left to right (the order the Skills page lists them).
+      const nodes = sk.nodes.filter((n) => trees.some((t) => t.id === n.tree)).sort((a, b) => a.y - b.y || a.x - b.x);
+      return { trees: trees.map((t) => ({ id: t.id, name: t.name })), nodes: nodes.map((n) => ({
+        id: n.id, name: n.name, description: n.description ?? '', tree: n.tree, parents: n.parents ?? [], ranks: Math.max(1, n.ranks ?? 1), cost: Math.max(0, n.cost ?? 1), level: n.level ?? 0,
+        stats: ATTRS.map((k) => n.effects.filter((e) => e.stat === k).reduce((a, e) => a + e.value, 0)), addition: n.teachesAddition ?? null, spell: n.teachesSpell ?? null, spellFrom: n.spellRankFrom ?? 1 })) };
+    })(),
     // Types: how much each element does to each (one element on the defender), from the game's own chart.
     elements: ELEMENT_LIST,
     chart: ELEMENT_LIST.map((a) => ELEMENT_LIST.map((d) => { const r = elementResult(a, { elements: d === 'neutral' ? [] : [d] }); return r.kind === 'hit' ? r.mult : 1; })),
@@ -77,7 +92,7 @@ export function romGameData(db: Database, gba: GbaData): unknown {
       const w = it.weapon;
       const cls = w && w.class !== 'bow' ? w.class : null;
       return {
-        id: it.id, name: it.name, kind: it.kind, slot: it.slot ?? null, price: it.price ?? 0, noSell: !!it.noSell, description: it.description ?? '',
+        id: it.id, name: it.name, kind: it.kind, slot: it.slot ?? null, gearKind: gearKindOf(it, db), price: it.price ?? 0, noSell: !!it.noSell, description: it.description ?? '',
         hp: it.restore?.hp ?? 0, mp: it.restore?.mp ?? 0, hpPct: it.restorePct?.hp ?? 0, mpPct: it.restorePct?.mp ?? 0, revive: !!it.revive,
         attack: cls ? w!.damage * cfg.classes[cls].damage : 0, defense: it.defense ?? 0, magicDefense: it.magicDefense ?? 0, bonus: it.bonus ?? {}, crit: it.crit ?? 0,
       };

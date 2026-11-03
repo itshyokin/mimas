@@ -4434,6 +4434,8 @@ export class Game {
 
   /** Event command: change a hero's class (its skill trees open; nothing learned is lost), or unlock it for later. */
   private eventClass(c: Extract<Command, { cmd: 'heroClass' }>): string | null {
+    // (The class trainer is Mimas's: Saturn changes class from the menu.)
+    if (c.op === 'pick') return null;
     const cl = findClass(this.db, c.cls);
     if (!cl) return null;
     const lines: string[] = [];

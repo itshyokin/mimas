@@ -507,6 +507,14 @@ export class TurnBattle {
   }
 
   /** Mimas (GBA): FIGHT is the hero's four moves in order: Additions (and guards) and spells, each with its MP. */
+  /** Mimas: where the cursor was in each hero's move list (it comes back there). */
+  private lastMove = new Map<string, number>();
+
+  /**
+   * Mimas: the move list, top to bottom: Additions (weakest first), a "[ Spells ]" divider, then spells (cheapest
+   * first); each with its element and MP cost, the chosen one's details in the note box. It scrolls, and the cursor
+   * stays where it was last time.
+   */
   private gbaFightMenu(b: Battler): void {
     const foes = this.anyone(this.otherSide(b), b);
     const order = b.moveOrder ?? (b.additions ?? []).map((a) => `a:${a.id}`);
@@ -516,26 +524,30 @@ export class TurnBattle {
       return sp ? [{ a: null as BattleAddition | null, s: sp }] : [];
     });
     if (!moves.length) { this.pickTarget(foes, (t) => this.doAttack(b, t), () => this.commandMenu(b)); return; }
-    // Four buttons: the name, then its element and MP cost (0 for Additions); the details go in the note box.
     const typeWord = (e: string) => (e === 'neutral' ? 'Normal' : e[0].toUpperCase() + e.slice(1));
-    const list: ChoiceItem[] = moves.map(({ a, s }) => {
+    const rows: (ChoiceItem & { at?: number })[] = [];
+    moves.forEach(({ a, s }, i) => {
+      if (s && !moves[i - 1]?.s) rows.push({ label: '[ Spells ]', divider: true, disabled: true });
       if (a) {
         const el = a.element ?? b.attackElement ?? 'neutral', mp = a.mp ?? 0, hits = `${a.strikes.length} hit${a.strikes.length === 1 ? '' : 's'}`;
-        const desc = (a as { description?: string }).description;
-        return { label: a.name, icon: 'attack', disabled: mp > b.mp, rank: RANK.attack, move: { element: el, type: a.guard !== undefined ? 'GUARD' : typeWord(el).toUpperCase(), mp },
-          detail: a.guard !== undefined ? `${a.name === 'Guard' ? 'Guard' : `${a.name} · Guard`}\nHalf damage and no ailments until your next turn; ${a.guard}% health back.` : `${a.name} · ${hits} · ${typeWord(el)}${desc ? `\n${desc}` : ''}` };
+        const desc = (a as { description?: string }).description, type = a.guard !== undefined ? 'GUARD' : typeWord(el).toUpperCase();
+        rows.push({ at: i, label: a.name, inlineIcon: true, iconUrl: elementIconUrl(el), right: `${type}  ${mp} MP`, disabled: mp > b.mp, rank: RANK.attack, move: { element: el, type, mp },
+          detail: a.guard !== undefined ? `${a.name === 'Guard' ? 'Guard' : `${a.name} · Guard`}\nHalf damage and no ailments until your next turn; ${a.guard}% health back.` : `${a.name} · ${hits} · ${typeWord(el)}${desc ? `\n${desc}` : ''}` });
+        return;
       }
-      const r = s!.ranks[s!.ranks.length - 1];
-      return { label: r.name, icon: 'magic', disabled: r.mp > b.mp || b.status.silenced, rank: RANK.magic, move: { element: s!.element, type: typeWord(s!.element).toUpperCase(), mp: r.mp },
-        detail: `${r.name} · ${s!.kind === 'heal' ? 'Heals' : typeWord(s!.element)}${b.status.silenced ? ' · Silenced!' : ''}${s!.description ? `\n${s!.description}` : ''}` };
+      const r = s!.ranks[s!.ranks.length - 1], type = typeWord(s!.element).toUpperCase();
+      rows.push({ at: i, label: r.name, inlineIcon: true, iconUrl: elementIconUrl(s!.element), right: `${type}  ${r.mp} MP`, disabled: r.mp > b.mp || b.status.silenced, rank: RANK.magic, move: { element: s!.element, type, mp: r.mp },
+        detail: `${r.name} · ${s!.kind === 'heal' ? 'Heals' : typeWord(s!.element)}${b.status.silenced ? ' · Silenced!' : ''}${s!.description ? `\n${s!.description}` : ''}` });
     });
-    this.screen.choose('Fight', list, (i) => {
-      const { a, s } = moves[i];
+    const start = Math.min(rows.length - 1, this.lastMove.get(b.key) ?? 0);
+    this.screen.choose('Moves', rows, (i) => {
+      this.lastMove.set(b.key, i);
+      const { a, s } = moves[rows[i].at!];
       if (a && a.guard !== undefined) { this.doGuard(b, a.guard, a); return; }
       if (a) { this.pickTarget(foes, (t) => this.doAddition(b, a, t), () => this.gbaFightMenu(b)); return; }
       // The highest rank they know.
       this.rankMenu(b, { ...s!, ranks: [s!.ranks[s!.ranks.length - 1]] });
-    }, () => this.commandMenu(b), () => this.showOrder(RANK.attack), 0, true);
+    }, () => this.commandMenu(b), (i) => { this.lastMove.set(b.key, i); this.showOrder(rows[i]?.rank ?? RANK.attack); }, start, false);
   }
 
   private attackMenu(b: Battler): void {

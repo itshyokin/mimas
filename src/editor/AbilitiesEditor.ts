@@ -6,6 +6,7 @@ import { soundField } from './CommandEditor';
  */
 import type { AdditionDef, AdditionStrike, ArmorTypeDef, WeaponTypeDef, ClassDef, FaceButton, GearSkill, SkillsData, SpellEntry } from '../world/types';
 import { gearKinds } from '../game/classes';
+import { DICE } from '../gbaplay/party';
 import { openArmorTypes, openWeaponTypes } from './armorTypesEditor';
 import { ATTRS, ATTR_INFO } from '../game/attributes';
 import { checkbox, field, h, numberInput, select, textInput } from './dom';
@@ -165,6 +166,17 @@ export function classesTab(list: ClassDef[], skills: SkillsData, state: { sel: n
         if (n) (d.bonus ??= {})[k] = n; else if (d.bonus) { delete d.bonus[k]; if (!Object.keys(d.bonus).length) delete d.bonus; }
       }, { step: 1, min: -50, max: 50, 'aria-label': `${d.name} ${ATTR_INFO[k].name} boost` })))),
       h('p', { class: 'note' }, 'Given once, for good, when a hero joins the class (their starting class counts). A Fighter might get Strength and Endurance, a Mage Magic and Magic Defence.')),
+    h('section', { class: 'db-section' }, h('h3', {}, 'Each level up'),
+      h('div', { class: 'field-row class-stats' }, ...ATTRS.map((k) => field(ATTR_INFO[k].name, numberInput(d.perLevel?.[k] ?? 0, (v) => {
+        const n = Math.max(0, Math.min(20, Math.round(v * 10) / 10));
+        if (n) (d.perLevel ??= {})[k] = n; else if (d.perLevel) { delete d.perLevel[k]; if (!Object.keys(d.perLevel).length) delete d.perLevel; }
+      }, { step: 0.5, min: 0, max: 20, 'aria-label': `${d.name} ${ATTR_INFO[k].name} each level` })))),
+      h('div', { class: 'field-row' },
+        field('Health growth', select(DICE.map((n) => [String(n), `1–${n} a level`] as [string, string]), String(d.hpDie ?? 8), (v) => { d.hpDie = Number(v); if (d.hpDie === 8) delete d.hpDie; }, { 'aria-label': `${d.name} health growth` }),
+          'Rolled every level up and added to their health (fighters 1–10 or 1–12, mages 1–4). Endurance adds on top.'),
+        field('Magic growth', select(DICE.map((n) => [String(n), `1–${n} a level`] as [string, string]), String(d.mpDie ?? 6), (v) => { d.mpDie = Number(v); if (d.mpDie === 6) delete d.mpDie; }, { 'aria-label': `${d.name} magic growth` }),
+          'Rolled every level up and added to their magic (mages 1–12).')),
+      h('p', { class: 'note' }, 'Every hero starts at 10 in each stat; their class grows them. Each level up adds these to the stats (fractions are kept: +1.5 adds 1, then 2, then 1…). Joining at level 5 means 4 levels of their starting class. Changing class keeps everything so far; the new class’s numbers count from the next level. Skill trees, gear and items add on top.')),
     h('section', { class: 'db-section' }, h('h3', {}, 'Weapons and armor'),
       h('div', { class: 'db-table class-gear' }, h('span', { class: 'db-head' }, 'Kind'), h('span', { class: 'db-head' }, 'This class'),
         ...gearKinds({ armorTypes: armor, weaponTypes: weapons }).flatMap(([k, name]) => [h('span', { class: 'db-name' }, name), select([['trained', 'Trained (full effect)'], ['untrained', 'Untrained (weaker)'], ['none', 'Can’t use']], d.gear?.[k] ?? 'trained', (v) => {

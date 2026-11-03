@@ -16,6 +16,8 @@ export interface Row {
   /** Text on the right (×3, a price). */
   right?: string;
   disabled?: boolean;
+  /** A heading inside the list ("[ Spells ]"): the cursor passes over it. */
+  divider?: boolean;
   /** Shown in the window's description box while this line is chosen. */
   detail?: string;
   /** A health bar under the label (0 … 1). */
@@ -170,12 +172,14 @@ export class GbaUi {
     const n = w.opts.rows.length;
     if (w.onUpDown) { if (this.input.consume('up')) w.onUpDown(1); if (this.input.consume('down')) w.onUpDown(-1); }
     else {
-      if (n && this.input.consume('up')) this.move(w, (w.i + n - 1) % n);
-      if (n && this.input.consume('down')) this.move(w, (w.i + 1) % n);
+      // Dividers are passed over.
+      const step = (d: number) => { let j = w.i; for (let k = 0; k < n; k++) { j = (j + d + n) % n; if (!w.opts.rows[j].divider) break; } return j; };
+      if (n && this.input.consume('up')) this.move(w, step(-1));
+      if (n && this.input.consume('down')) this.move(w, step(1));
     }
     if (w.onSide && this.input.consume('left')) w.onSide(-1);
     if (w.onSide && this.input.consume('right')) w.onSide(1);
-    if (this.input.consume('ok')) { if (n && !w.opts.rows[w.i].disabled) { this.sound?.('menuOk'); w.resolve?.(w.i); } }
+    if (this.input.consume('ok')) { if (n && !w.opts.rows[w.i].disabled && !w.opts.rows[w.i].divider) { this.sound?.('menuOk'); w.resolve?.(w.i); } }
     else if (this.input.consume('cancel')) { this.sound?.('menuBack'); w.resolve?.(-1); }
   }
 
@@ -203,6 +207,7 @@ export class GbaUi {
       row.className = 'gba-row';
       if (i === w.i) row.classList.add('sel');
       if (r.disabled) row.classList.add('off');
+      if (r.divider) row.classList.add('divider');
       if (r.icon) { const im = document.createElement('img'); im.src = r.icon; im.alt = ''; row.append(im); }
       const l = document.createElement('span'); l.className = 'gba-label'; l.textContent = r.label; row.append(l);
       if (r.sub !== undefined || r.bar !== undefined) {

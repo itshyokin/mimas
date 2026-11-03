@@ -1,6 +1,10 @@
 {
  "v": 1,
- "moveSlots": "forget",
+ "bars": {
+  "shape": "rect",
+  "hp": null,
+  "xp": null
+ },
  "partyDamage": 1,
  "enemyDamage": 1,
  "flee": 50,
@@ -68,27 +72,11 @@
    "first": true,
    "startsInParty": true,
    "joinLevel": 0,
-   "stats": {
-    "str": 10,
-    "dex": 10,
-    "agi": 10,
-    "end": 10,
-    "def": 10,
-    "mag": 10,
-    "mdf": 10
-   },
-   "gains": {
-    "str": 2,
-    "dex": 2,
-    "end": 2,
-    "mag": 2,
-    "def": 2,
-    "mdf": 2,
-    "agi": 2
-   },
+   "cls": "class_titan",
    "noAdditions": false,
    "elements": [],
    "gender": "male",
+   "battleLook": "default",
    "moves": [
     "quick_strike",
     "guard"
@@ -102,27 +90,11 @@
    "first": false,
    "startsInParty": false,
    "joinLevel": 0,
-   "stats": {
-    "str": 16,
-    "dex": 12,
-    "agi": 10,
-    "end": 10,
-    "def": 14,
-    "mag": 8,
-    "mdf": 14
-   },
-   "gains": {
-    "str": 2,
-    "dex": 2,
-    "end": 2,
-    "mag": 2,
-    "def": 2,
-    "mdf": 2,
-    "agi": 2
-   },
+   "cls": null,
    "noAdditions": false,
    "elements": [],
    "gender": "female",
+   "battleLook": "default",
    "moves": [
     "quick_strike",
     "guard"
@@ -136,29 +108,13 @@
    "first": false,
    "startsInParty": false,
    "joinLevel": 0,
-   "stats": {
-    "str": 8,
-    "dex": 8,
-    "agi": 10,
-    "end": 10,
-    "def": 11,
-    "mag": 19,
-    "mdf": 17
-   },
-   "gains": {
-    "str": 2,
-    "dex": 2,
-    "end": 2,
-    "mag": 2,
-    "def": 2,
-    "mdf": 2,
-    "agi": 2
-   },
+   "cls": null,
    "noAdditions": false,
    "elements": [
     "dark"
    ],
    "gender": "transman",
+   "battleLook": "default",
    "moves": [
     "quick_strike",
     "guard"
@@ -172,29 +128,13 @@
    "first": false,
    "startsInParty": false,
    "joinLevel": 0,
-   "stats": {
-    "str": 14,
-    "dex": 18,
-    "agi": 10,
-    "end": 10,
-    "def": 13,
-    "mag": 13,
-    "mdf": 7
-   },
-   "gains": {
-    "str": 2,
-    "dex": 2,
-    "end": 2,
-    "mag": 2,
-    "def": 2,
-    "mdf": 2,
-    "agi": 2
-   },
+   "cls": null,
    "noAdditions": false,
    "elements": [
     "fire"
    ],
    "gender": "female",
+   "battleLook": "default",
    "moves": [
     "quick_strike",
     "guard"
@@ -208,27 +148,11 @@
    "first": false,
    "startsInParty": false,
    "joinLevel": 0,
-   "stats": {
-    "str": 13,
-    "dex": 16,
-    "agi": 10,
-    "end": 10,
-    "def": 8,
-    "mag": 12,
-    "mdf": 8
-   },
-   "gains": {
-    "str": 2,
-    "dex": 2,
-    "end": 2,
-    "mag": 2,
-    "def": 2,
-    "mdf": 2,
-    "agi": 2
-   },
+   "cls": null,
    "noAdditions": false,
    "elements": [],
    "gender": "female",
+   "battleLook": "default",
    "moves": [
     "quick_strike",
     "guard"
@@ -242,30 +166,14 @@
    "first": false,
    "startsInParty": false,
    "joinLevel": 0,
-   "stats": {
-    "str": 16,
-    "dex": 16,
-    "agi": 10,
-    "end": 10,
-    "def": 15,
-    "mag": 8,
-    "mdf": 8
-   },
-   "gains": {
-    "str": 2,
-    "dex": 2,
-    "end": 2,
-    "mag": 2,
-    "def": 2,
-    "mdf": 2,
-    "agi": 2
-   },
+   "cls": null,
    "noAdditions": false,
    "elements": [
     "nature",
     "light"
    ],
    "gender": "transwoman",
+   "battleLook": "default",
    "moves": [
     "quick_strike",
     "guard"
@@ -274,6 +182,1124 @@
    "gear": {}
   }
  ],
+ "pointsPerLevel": 1,
+ "startPoints": 1,
+ "classes": [
+  {
+   "id": "class_titan",
+   "name": "Titan",
+   "description": "You hail from Old Earth, knowing little of magic---but your technological skills are vastly superior to most born on Titamas.",
+   "bonus": [
+    1,
+    0,
+    1,
+    2,
+    3,
+    0,
+    3
+   ],
+   "perLevel": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "hpDie": 8,
+   "mpDie": 6,
+   "trees": [
+    "tree_2"
+   ],
+   "gear": {
+    "sword": "untrained",
+    "axe": "untrained",
+    "mace": "untrained",
+    "spear": "untrained",
+    "staff": "none",
+    "wand": "none",
+    "fist": "untrained",
+    "bow": "untrained",
+    "crossbow": "untrained",
+    "armor:medium": "untrained",
+    "armor:heavy": "untrained",
+    "shield": "untrained"
+   }
+  }
+ ],
+ "gearKinds": [
+  {
+   "id": "sword",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "dagger",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "axe",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "mace",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "spear",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "staff",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "wand",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "fist",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "bow",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "crossbow",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": true
+  },
+  {
+   "id": "armor:light",
+   "untrained": [
+    0,
+    0,
+    -2,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": false
+  },
+  {
+   "id": "armor:medium",
+   "untrained": [
+    0,
+    -2,
+    -4,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": false
+  },
+  {
+   "id": "armor:heavy",
+   "untrained": [
+    0,
+    -3,
+    -7,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": false
+  },
+  {
+   "id": "armor:new",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": false
+  },
+  {
+   "id": "shield",
+   "untrained": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weapon": false
+  }
+ ],
+ "skills": {
+  "trees": [
+   {
+    "id": "might",
+    "name": "Might"
+   },
+   {
+    "id": "dexterity",
+    "name": "Dexterity"
+   },
+   {
+    "id": "magic",
+    "name": "Magic"
+   },
+   {
+    "id": "vitality",
+    "name": "Vitality"
+   },
+   {
+    "id": "tree",
+    "name": "Additions"
+   },
+   {
+    "id": "tree_2",
+    "name": "Titan"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "toughness",
+    "name": "Toughness",
+    "description": "More health.",
+    "tree": "vitality",
+    "parents": [],
+    "ranks": 5,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "quick_strike",
+    "name": "Quick Strike",
+    "description": "One clean cut!",
+    "tree": "tree",
+    "parents": [],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": "quick_strike",
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "archer",
+    "name": "Archer",
+    "description": "Arrows fly true. Opens archery.",
+    "tree": "dexterity",
+    "parents": [],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "fighter",
+    "name": "Fighter",
+    "description": "The basics of the blade. Opens the Might tree.",
+    "tree": "might",
+    "parents": [],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": "quick_strike",
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "fire",
+    "name": "Arcana",
+    "description": "Spell bolts hit harder, and learn Fire. Opens the Magic tree.",
+    "tree": "magic",
+    "parents": [],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": "fire",
+    "spellFrom": 1
+   },
+   {
+    "id": "endurance",
+    "name": "Endurance",
+    "description": "More stamina.",
+    "tree": "vitality",
+    "parents": [],
+    "ranks": 5,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "skill_earthborn",
+    "name": "Earthborn",
+    "description": "Your heritage lets you use weapons/armor made from TitanTech.",
+    "tree": "tree_2",
+    "parents": [],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "shadow",
+    "name": "Shadow",
+    "description": "Harder to see while sneaking: slip past foes, or catch them unaware for the first turns. Opens stealth.",
+    "tree": "dexterity",
+    "parents": [],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "focus",
+    "name": "Focus",
+    "description": "More magic.",
+    "tree": "vitality",
+    "parents": [],
+    "ranks": 5,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "mending",
+    "name": "Mending",
+    "description": "Learn Mend, healing for one of the party; more ranks raise it.",
+    "tree": "vitality",
+    "parents": [],
+    "ranks": 3,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": "mend",
+    "spellFrom": 1
+   },
+   {
+    "id": "quick_hands",
+    "name": "Quick Hands",
+    "description": "Quicker in battle: Agility up, so turns come round sooner.",
+    "tree": "might",
+    "parents": [
+     "fighter"
+    ],
+    "ranks": 3,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "steady_draw",
+    "name": "Steady Draw",
+    "description": "A steadier hand: Dexterity up (aim, critical hits, bow damage).",
+    "tree": "dexterity",
+    "parents": [
+     "archer"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "frost_lore",
+    "name": "Frost Lore",
+    "description": "Learn Frost; more ranks raise it.",
+    "tree": "magic",
+    "parents": [
+     "fire"
+    ],
+    "ranks": 3,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": "frost",
+    "spellFrom": 1
+   },
+   {
+    "id": "skill",
+    "name": "Double Slash",
+    "description": "Dart would be proud.",
+    "tree": "tree",
+    "parents": [
+     "quick_strike"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": "double_slash",
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "thrift",
+    "name": "Mana Thrift",
+    "description": "Every spell costs less magic: bolts, and Light and Water Walk to cast and to keep going.",
+    "tree": "magic",
+    "parents": [
+     "fire"
+    ],
+    "ranks": 3,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "heavy_blows",
+    "name": "Heavy Blows",
+    "description": "Every melee hit does more damage.",
+    "tree": "might",
+    "parents": [
+     "fighter"
+    ],
+    "ranks": 3,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "eagle_eye",
+    "name": "Eagle Eye",
+    "description": "Lock on to enemies further away with a bow: spot them first and snipe one to start the battle with the first turns.",
+    "tree": "dexterity",
+    "parents": [
+     "archer"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "skill_2",
+    "name": "New skill",
+    "description": "",
+    "tree": "tree_2",
+    "parents": [
+     "skill_earthborn"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "light_step",
+    "name": "Light Step",
+    "description": "Make less noise while sneaking.",
+    "tree": "dexterity",
+    "parents": [
+     "shadow"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "empower",
+    "name": "Empower",
+    "description": "Spell bolts hit harder still, and Fire ranks up (Fire II, Fire III).",
+    "tree": "magic",
+    "parents": [
+     "fire"
+    ],
+    "ranks": 3,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": "fire",
+    "spellFrom": 2
+   },
+   {
+    "id": "arms_training",
+    "name": "Arms Training",
+    "description": "Trained with medium weapons (longswords, rapiers): untrained, they hit for three quarters. Opens the masteries.",
+    "tree": "might",
+    "parents": [
+     "fighter"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "backstab",
+    "name": "Backstab",
+    "description": "Find the weak spots: more critical hits.",
+    "tree": "dexterity",
+    "parents": [
+     "shadow"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "heavy_arms",
+    "name": "Heavy Arms",
+    "description": "Trained with heavy weapons (greatswords, great axes, hammers): untrained, they hit for three quarters.",
+    "tree": "might",
+    "parents": [
+     "arms_training"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 3,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "steady_guard",
+    "name": "Steady Guard",
+    "description": "Guard gives back more health.",
+    "tree": "might",
+    "parents": [
+     "quick_hands"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "double_slash",
+    "name": "Double Slash",
+    "description": "An Addition: two timed strikes.",
+    "tree": "might",
+    "parents": [
+     "quick_hands"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": "double_slash",
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "power_shot",
+    "name": "Power Shot",
+    "description": "Arrows hit harder.",
+    "tree": "dexterity",
+    "parents": [
+     "steady_draw"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "radiance",
+    "name": "Radiance",
+    "description": "The Light spell shines further.",
+    "tree": "magic",
+    "parents": [
+     "thrift"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "light_mastery",
+    "name": "Light Mastery",
+    "description": "Daggers and short swords: deadlier, with more critical hits.",
+    "tree": "might",
+    "parents": [
+     "arms_training"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "silent_shot",
+    "name": "Silent Shot",
+    "description": "An arrow from 5 tiles or more at a foe that hasn’t noticed you wounds it before the battle starts (and can finish it).",
+    "tree": "dexterity",
+    "parents": [
+     "light_step",
+     "archer"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "far_cast",
+    "name": "Far Cast",
+    "description": "Spell bolts fly further.",
+    "tree": "magic",
+    "parents": [
+     "empower"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "storm_lore",
+    "name": "Storm Lore",
+    "description": "Learn Spark, lightning on every foe; more ranks raise it.",
+    "tree": "magic",
+    "parents": [
+     "empower"
+    ],
+    "ranks": 3,
+    "cost": 1,
+    "level": 5,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": "spark",
+    "spellFrom": 1
+   },
+   {
+    "id": "heavy_mastery",
+    "name": "Heavy Mastery",
+    "description": "Greatswords and great axes hit even harder.",
+    "tree": "might",
+    "parents": [
+     "heavy_arms"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "assassinate",
+    "name": "Assassinate",
+    "description": "A sword strike on an ordinary foe that hasn’t noticed you ends it on the spot: no battle (not bosses).",
+    "tree": "dexterity",
+    "parents": [
+     "backstab"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 5,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "medium_mastery",
+    "name": "Medium Mastery",
+    "description": "Longswords and rapiers: the balanced path.",
+    "tree": "might",
+    "parents": [
+     "arms_training"
+    ],
+    "ranks": 2,
+    "cost": 1,
+    "level": 0,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": null,
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "volley",
+    "name": "Volley",
+    "description": "An Addition: four timed strikes with mixed buttons.",
+    "tree": "might",
+    "parents": [
+     "heavy_blows"
+    ],
+    "ranks": 1,
+    "cost": 1,
+    "level": 4,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": "volley",
+    "spell": null,
+    "spellFrom": 1
+   },
+   {
+    "id": "crescent_storm",
+    "name": "Crescent Storm",
+    "description": "An Addition: seven fast strikes.",
+    "tree": "might",
+    "parents": [
+     "volley"
+    ],
+    "ranks": 1,
+    "cost": 2,
+    "level": 10,
+    "stats": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "addition": "crescent_storm",
+    "spell": null,
+    "spellFrom": 1
+   }
+  ]
+ },
  "elements": [
   "neutral",
   "water",
@@ -918,6 +1944,7 @@
    "name": "Potion",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 200,
    "noSell": false,
    "description": "A bitter red tonic. Restores 30 health.",
@@ -937,6 +1964,7 @@
    "name": "Plus Potion",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 500,
    "noSell": false,
    "description": "A bitter red tonic. Restores 60 health.",
@@ -956,6 +1984,7 @@
    "name": "Mega Potion",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "A bitter red tonic. Restores 120 health.",
@@ -975,6 +2004,7 @@
    "name": "Full Potion",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 2500,
    "noSell": false,
    "description": "A bitter red tonic. Restores all lost health.",
@@ -994,6 +2024,7 @@
    "name": "Ether",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 400,
    "noSell": false,
    "description": "Shimmering blue. Restores 20 magic.",
@@ -1013,6 +2044,7 @@
    "name": "High Ether",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 850,
    "noSell": false,
    "description": "Shimmering blue. Restores 50 magic.",
@@ -1032,6 +2064,7 @@
    "name": "Full Ether",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 2000,
    "noSell": false,
    "description": "Shimmering blue. Restores all lost magic.",
@@ -1051,6 +2084,7 @@
    "name": "Stamina Tonic",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 150,
    "noSell": false,
    "description": "Fully restores stamina.",
@@ -1070,6 +2104,7 @@
    "name": "Body Cure",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 200,
    "noSell": false,
    "description": "Cures physical ailments: Burn, Poison, Chill, Paralyze, Blind, and Stagger.",
@@ -1089,6 +2124,7 @@
    "name": "Mind Cure",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 200,
    "noSell": false,
    "description": "Cures Mental ailments: Silence, Sleep, and Confusion.",
@@ -1108,6 +2144,7 @@
    "name": "Holy Water",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 250,
    "noSell": false,
    "description": "Cures Zombie. Lethal if used on most Zombie-afflicated enemies.",
@@ -1127,6 +2164,7 @@
    "name": "Crit Up!",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "Increases chance of Critical Hits in combat!",
@@ -1146,6 +2184,7 @@
    "name": "STR Up!",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "Temporarily increases STR of one character in combat!",
@@ -1165,6 +2204,7 @@
    "name": "DEX Up!",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "Temporarily increases DEX of one character in combat!",
@@ -1184,6 +2224,7 @@
    "name": "MAG Up!",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "Temporarily increases MAG of one character in combat!",
@@ -1203,6 +2244,7 @@
    "name": "DEF Up!",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "Temporarily increases DEF of one character in combat!",
@@ -1222,6 +2264,7 @@
    "name": "MDF Up!",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "Temporarily increases MDF of one character in combat!",
@@ -1241,6 +2284,7 @@
    "name": "AGL Up!",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "Temporarily increases AGL of one character in combat!",
@@ -1260,6 +2304,7 @@
    "name": "Stat Guard",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 1000,
    "noSell": false,
    "description": "Prevents stat reduction in combat for one character!",
@@ -1279,6 +2324,7 @@
    "name": "Revive",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 250,
    "noSell": false,
    "description": "Restores a KO'd character to 1/2 HP.",
@@ -1298,6 +2344,7 @@
    "name": "Full Revive",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 500,
    "noSell": false,
    "description": "Restores a KO'd character to max HP.",
@@ -1317,6 +2364,7 @@
    "name": "Bread",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 5,
    "noSell": false,
    "description": "A crusty loaf. Restores a little health and stamina.",
@@ -1336,6 +2384,7 @@
    "name": "Short Sword",
    "kind": "equipment",
    "slot": "weapon",
+   "gearKind": "sword",
    "price": 150,
    "noSell": false,
    "description": "Quick and light. A light weapon: fast swings, short reach.",
@@ -1355,6 +2404,7 @@
    "name": "Little Knife",
    "kind": "equipment",
    "slot": "weapon",
+   "gearKind": "dagger",
    "price": 150,
    "noSell": false,
    "description": "Quick and light. A light weapon: fast swings, short reach.",
@@ -1374,6 +2424,7 @@
    "name": "Longsword",
    "kind": "equipment",
    "slot": "weapon",
+   "gearKind": "sword",
    "price": 180,
    "noSell": false,
    "description": "A medium weapon: balanced speed, reach and damage.",
@@ -1393,6 +2444,7 @@
    "name": "Greatsword",
    "kind": "equipment",
    "slot": "weapon",
+   "gearKind": "sword",
    "price": 320,
    "noSell": false,
    "description": "A heavy weapon: slow, long reach, hits very hard.",
@@ -1412,6 +2464,7 @@
    "name": "Hunting Bow",
    "kind": "equipment",
    "slot": "ranged",
+   "gearKind": "bow",
    "price": 120,
    "noSell": false,
    "description": "Hold 2 to draw, let go to shoot. A full draw flies furthest and hits hardest.",
@@ -1431,6 +2484,7 @@
    "name": "Round Shield",
    "kind": "equipment",
    "slot": "shield",
+   "gearKind": "shield",
    "price": 40,
    "noSell": false,
    "description": "A sturdy wooden shield. Worn with a melee weapon.",
@@ -1450,6 +2504,7 @@
    "name": "Iron Arrows",
    "kind": "ammo",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "Plain arrows. You'll never run out.",
@@ -1469,6 +2524,7 @@
    "name": "Steel Arrows",
    "kind": "ammo",
    "slot": null,
+   "gearKind": null,
    "price": 3,
    "noSell": false,
    "description": "Sharper and heavier. Nock them from the bag.",
@@ -1488,6 +2544,7 @@
    "name": "Leather Armor",
    "kind": "equipment",
    "slot": "armor",
+   "gearKind": "armor:light",
    "price": 120,
    "noSell": false,
    "description": "Supple and quiet.",
@@ -1507,6 +2564,7 @@
    "name": "TitanTech Armor",
    "kind": "equipment",
    "slot": "armor",
+   "gearKind": "armor:new",
    "price": 120,
    "noSell": false,
    "description": "Old Earth-style armor built using strange technology.",
@@ -1526,6 +2584,7 @@
    "name": "Lantern",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "Lights the way in the dark. Switch it on or off in the bag, or assign it to the B button.",
@@ -1545,6 +2604,7 @@
    "name": "Strider Boots",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "Walk on water of any depth while they’re on; they switch off when you step back on land. Switch them on in the bag, or assign them to the B button.",
@@ -1564,6 +2624,7 @@
    "name": "Swim Fin",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "Swim and wade through water. Switch them on in the bag, or assign them to the B button.",
@@ -1583,6 +2644,7 @@
    "name": "Moon Amulet",
    "kind": "equipment",
    "slot": "accessory",
+   "gearKind": null,
    "price": 200,
    "noSell": false,
    "description": "Engraved with a tiny moon.",
@@ -1602,6 +2664,7 @@
    "name": "Old Key",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "Rusty, heavy, and clearly important.",
@@ -1621,6 +2684,7 @@
    "name": "Fire Shard",
    "kind": "equipment",
    "slot": "magic",
+   "gearKind": null,
    "price": 120,
    "noSell": false,
    "description": "A splinter of ember crystal. Ready it with key 3 (or Y) to hurl firebolts.",
@@ -1640,6 +2704,7 @@
    "name": "Firewood",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 4,
    "noSell": false,
    "description": "Dry branches. Feed a fire to keep it burning (+1 hour).",
@@ -1659,6 +2724,7 @@
    "name": "Stone",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 2,
    "noSell": false,
    "description": "Rough stone, broken from a boulder.",
@@ -1678,6 +2744,7 @@
    "name": "Iron Ore",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 6,
    "noSell": false,
    "description": "Rusty rock from an iron vein. Smelt two into an iron ingot at a forge.",
@@ -1697,6 +2764,7 @@
    "name": "Gold Ore",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 15,
    "noSell": false,
    "description": "Rock flecked with gold. Smelt two into a gold ingot at a forge.",
@@ -1716,6 +2784,7 @@
    "name": "Iron Ingot",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 20,
    "noSell": false,
    "description": "Upgrades iron weapons and armor at a forge. Two make a steel ingot.",
@@ -1735,6 +2804,7 @@
    "name": "Steel Ingot",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 45,
    "noSell": false,
    "description": "Upgrades steel weapons and armor at a forge.",
@@ -1754,6 +2824,7 @@
    "name": "Gold Ingot",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 60,
    "noSell": false,
    "description": "Upgrades golden weapons and jewellery at a forge.",
@@ -1773,6 +2844,7 @@
    "name": "Pickaxe",
    "kind": "equipment",
    "slot": "weapon",
+   "gearKind": null,
    "price": 60,
    "noSell": false,
    "description": "Breaks boulders and ore veins: swing it at the rock.",
@@ -1792,6 +2864,7 @@
    "name": "Fishing Rod",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 40,
    "noSell": false,
    "description": "A simple rod and line. Face a fishing spot by the water and press Talk (A / Enter) to cast; when the float bobs under, press it again.",
@@ -1811,6 +2884,7 @@
    "name": "Minnow",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 4,
    "noSell": false,
    "description": "A little silver fish. Restores a bit of health.",
@@ -1830,6 +2904,7 @@
    "name": "Trout",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 14,
    "noSell": false,
    "description": "A speckled trout, out by day. Restores health.",
@@ -1849,6 +2924,7 @@
    "name": "Night Eel",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 18,
    "noSell": false,
    "description": "A slippery eel that only bites after dark. Restores magic.",
@@ -1868,6 +2944,7 @@
    "name": "Golden Koi",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 160,
    "noSell": false,
    "description": "A rare golden fish. Collectors pay well for one.",
@@ -1887,6 +2964,7 @@
    "name": "Old Boot",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 1,
    "noSell": false,
    "description": "Not a fish. Someone lost this a long time ago.",
@@ -1906,6 +2984,7 @@
    "name": "Fur",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 25,
    "noSell": false,
    "description": "Soft and warm, perfect for a cloak or blanket.",
@@ -1925,6 +3004,7 @@
    "name": "Speed Boost Item",
    "kind": "consumable",
    "slot": null,
+   "gearKind": null,
    "price": 10,
    "noSell": false,
    "description": "",
@@ -1944,6 +3024,7 @@
    "name": "Saddle",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "Your rented horse's saddle. Use it to send the horse home to its stable.",
@@ -1963,6 +3044,7 @@
    "name": "Water Fragment",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 8,
    "noSell": false,
    "description": "A chip of water power, dropped by water monsters. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -1982,6 +3064,7 @@
    "name": "Water Shard",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 240,
    "noSell": false,
    "description": "A whole shard of water power. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2001,6 +3084,7 @@
    "name": "Water Heart Stone",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 3000,
    "noSell": false,
    "description": "The heart of water power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2020,6 +3104,7 @@
    "name": "Fire Fragment",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 8,
    "noSell": false,
    "description": "A chip of fire power, dropped by fire monsters. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2039,6 +3124,7 @@
    "name": "Fire Shard",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 240,
    "noSell": false,
    "description": "A whole shard of fire power. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2058,6 +3144,7 @@
    "name": "Fire Heart Stone",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 3000,
    "noSell": false,
    "description": "The heart of fire power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2077,6 +3164,7 @@
    "name": "Nature Fragment",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 8,
    "noSell": false,
    "description": "A chip of nature power, dropped by nature monsters. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2096,6 +3184,7 @@
    "name": "Nature Shard",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 240,
    "noSell": false,
    "description": "A whole shard of nature power. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2115,6 +3204,7 @@
    "name": "Nature Heart Stone",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 3000,
    "noSell": false,
    "description": "The heart of nature power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2134,6 +3224,7 @@
    "name": "Earth Fragment",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 8,
    "noSell": false,
    "description": "A chip of earth power, dropped by earth monsters. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2153,6 +3244,7 @@
    "name": "Earth Shard",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 240,
    "noSell": false,
    "description": "A whole shard of earth power. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2172,6 +3264,7 @@
    "name": "Earth Heart Stone",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 3000,
    "noSell": false,
    "description": "The heart of earth power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2191,6 +3284,7 @@
    "name": "Shock Fragment",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 8,
    "noSell": false,
    "description": "A chip of shock power, dropped by shock monsters. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2210,6 +3304,7 @@
    "name": "Shock Shard",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 240,
    "noSell": false,
    "description": "A whole shard of shock power. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2229,6 +3324,7 @@
    "name": "Shock Heart Stone",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 3000,
    "noSell": false,
    "description": "The heart of shock power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2248,6 +3344,7 @@
    "name": "Light Fragment",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 8,
    "noSell": false,
    "description": "A chip of light power, dropped by light monsters. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2267,6 +3364,7 @@
    "name": "Light Shard",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 240,
    "noSell": false,
    "description": "A whole shard of light power. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2286,6 +3384,7 @@
    "name": "Light Heart Stone",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 3000,
    "noSell": false,
    "description": "The heart of light power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2305,6 +3404,7 @@
    "name": "Dark Fragment",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 8,
    "noSell": false,
    "description": "A chip of dark power, dropped by dark monsters. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2324,6 +3424,7 @@
    "name": "Dark Shard",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 240,
    "noSell": false,
    "description": "A whole shard of dark power. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2343,6 +3444,7 @@
    "name": "Dark Heart Stone",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 3000,
    "noSell": false,
    "description": "The heart of dark power: strong hits without worse weaknesses. Wear it in an Element slot (Bag → Shards) to take on its element.",
@@ -2362,6 +3464,7 @@
    "name": "Lockpick",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 25,
    "noSell": false,
    "description": "A thin steel pick for locks. It snaps if you force a lock in the wrong spot.",
@@ -2381,6 +3484,7 @@
    "name": "Traveler’s Clothes",
    "kind": "equipment",
    "slot": "armor",
+   "gearKind": "armor:light",
    "price": 40,
    "noSell": false,
    "description": "A sturdy shirt and pants for the road.",
@@ -2400,6 +3504,7 @@
    "name": "Leather Armor",
    "kind": "equipment",
    "slot": "armor",
+   "gearKind": "armor:light",
    "price": 120,
    "noSell": false,
    "description": "Boiled leather over a padded shirt.",
@@ -2419,6 +3524,7 @@
    "name": "Chainmail Shirt",
    "kind": "equipment",
    "slot": "armor",
+   "gearKind": "armor:medium",
    "price": 260,
    "noSell": false,
    "description": "Rings of steel over cuffed pants.",
@@ -2438,6 +3544,7 @@
    "name": "Plate Armor",
    "kind": "equipment",
    "slot": "armor",
+   "gearKind": "armor:heavy",
    "price": 600,
    "noSell": false,
    "description": "Full plate: chest and greaves.",
@@ -2457,6 +3564,7 @@
    "name": "Wanderer’s Cape",
    "kind": "equipment",
    "slot": "accessory",
+   "gearKind": null,
    "price": 60,
    "noSell": false,
    "description": "A long cloth cape against the wind.",
@@ -2476,6 +3584,7 @@
    "name": "Beaded Necklace",
    "kind": "equipment",
    "slot": "accessory",
+   "gearKind": null,
    "price": 30,
    "noSell": false,
    "description": "Painted wooden beads on a cord.",
@@ -2495,6 +3604,7 @@
    "name": "Storm Ring",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "Use it outdoors to change the weather here.",
@@ -2514,6 +3624,7 @@
    "name": "Smash Hammer",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "Use it facing a boulder or ore vein to break it in one blow, no pickaxe needed.",
@@ -2533,6 +3644,7 @@
    "name": "Dark Pumpkin Core",
    "kind": "material",
    "slot": null,
+   "gearKind": null,
    "price": 1,
    "noSell": false,
    "description": "Used to corrupt The Great Pumpkin's minions. With enough of them, the spell can be reversed.",
@@ -2552,6 +3664,7 @@
    "name": "Pumpkin Head",
    "kind": "equipment",
    "slot": "accessory",
+   "gearKind": null,
    "price": 1,
    "noSell": false,
    "description": "A gift from The Great Pumpkin for completing his quest. (Halloween 2026 Event)",
@@ -2571,6 +3684,7 @@
    "name": "Machete",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "A broad blade for vines, thin trees and crates.",
@@ -2590,6 +3704,7 @@
    "name": "Hunting Bow",
    "kind": "key",
    "slot": null,
+   "gearKind": null,
    "price": 0,
    "noSell": false,
    "description": "For switches and targets out of reach.",
@@ -2863,6 +3978,9 @@
   "menu.bag": [
    "BAG"
   ],
+  "menu.skills": [
+   "SKILLS"
+  ],
   "menu.save": [
    "SAVE"
   ],
@@ -3019,6 +4137,9 @@
   "battle.gold": [
    "You earned ${n}!"
   ],
+  "battle.points": [
+   "{name} has {n} skill points to spend!"
+  ],
   "battle.fled": [
    "You got away!"
   ],
@@ -3054,6 +4175,24 @@
   ],
   "learn.knows": [
    "{name} already knows {move}."
+  ],
+  "skill.ask": [
+   "Learn {move} for {n} points?"
+  ],
+  "skill.done": [
+   "{name} learned {move}!"
+  ],
+  "class.changed": [
+   "{name} is now a {class}!"
+  ],
+  "class.unlocked": [
+   "{name} can now become a {class}."
+  ],
+  "class.already": [
+   "{name} is already a {class}."
+  ],
+  "class.none": [
+   "{name} has no other classes yet."
   ],
   "item.no_effect": [
    "It won’t have any effect."

@@ -26,8 +26,10 @@ void sfx(int k)
 }
 
 constexpr int MAX_PARTY = 6;
-constexpr int MAX_MOVES = 4;
+constexpr int MAX_KNOWN = mimas::max_additions + mimas::max_spells;
 
+// Update 14: stats come from classes (everyone starts at 10; tenths keep the per-level fractions), health and magic
+// grow by dice rolls, skill trees add stats and teach moves, and every move known stays (no four-move limit).
 struct member
 {
     int8_t hero;
@@ -35,12 +37,19 @@ struct member
     int32_t xp;
     int16_t hp;
     int16_t mp;
-    int16_t stats[7];
-    int8_t moves[MAX_MOVES];              // an Addition (k), or a spell (-(k + 1))
-    uint8_t move_count;
+    int16_t tenths[7];                    // their own stats x10 (before skills and gear)
+    int16_t hp_roll;                      // health and magic their level ups rolled
+    int16_t mp_roll;
+    int8_t cls;                           // their class (-1 none)
+    uint32_t classes;                     // classes unlocked (bits)
+    uint32_t joined;                      // classes they've been (each gave its one-time boost)
+    int8_t learned[MAX_KNOWN];            // every move, in the order learned: an Addition (k), or a spell (-(k + 1))
+    uint8_t learned_count;
     uint8_t spells[mimas::max_spells];   // rank known (0: not)
     int16_t equip[4];                     // item, or -1
-    uint32_t known;                       // every Addition they know (bits)
+    uint8_t nodes[mimas::max_nodes];     // skill-tree ranks taken
+    int16_t points;                       // skill points to spend
+    uint8_t move_at;                      // where the battle list's cursor was
 };
 
 member party[MAX_PARTY];
@@ -59,6 +68,7 @@ struct tv
     const char* target = "";
     const char* move = "";
     const char* item = "";
+    const char* cls = "";
     int n = 0;
     int level = 0;
 
@@ -67,6 +77,7 @@ struct tv
     tv& T(const char* v) { target = v; return *this; }
     tv& M(const char* v) { move = v; return *this; }
     tv& I(const char* v) { item = v; return *this; }
+    tv& C(const char* v) { cls = v; return *this; }
     tv& num(int v) { n = v; return *this; }
     tv& lv(int v) { level = v; return *this; }
 };
@@ -102,6 +113,7 @@ struct tv
                 else if(k == "target") { val = v.target; }
                 else if(k == "move") { val = v.move; }
                 else if(k == "item") { val = v.item; }
+                else if(k == "class") { val = v.cls; }
                 else if(k == "n") { num = bn::to_string<12>(v.n); }
                 else if(k == "level") { num = bn::to_string<12>(v.level); }
                 else { k = bn::string_view(); }
@@ -144,6 +156,19 @@ struct totals
     int crit;
 };
 
+[[nodiscard]] int stat_of(const member& m, int k)
+{
+    return bn::max(1, bn::min(100, m.tenths[k] / 10));
+}
+
+// How their class handles an item: 0 trained, 1 untrained (weaker), 2 can't use.
+[[nodiscard]] int gear_skill(const member& m, int item)
+{
+    if(item < 0 || m.cls < 0 || mimas::class_count == 0) { return 0; }
+    int k = mimas::items[item].gear_kind;
+    return k >= 0 && k < mimas::gear_kind_count ? mimas::classes[m.cls].gear[k] : 0;
+}
+
 [[nodiscard]] totals totals_of(const member& m)
 {
     totals t;
@@ -152,7 +177,16 @@ struct totals
 
     for(int k = 0; k < 7; ++k)
     {
-        t.attrs[k] = m.stats[k];
+        t.attrs[k] = stat_of(m, k);
+    }
+
+    // Skill-tree skills: their stats for each rank taken.
+    for(int n = 0; n < mimas::node_count; ++n)
+    {
+        if(m.nodes[n])
+        {
+            for(int k = 0; k < 7; ++k) { t.attrs[k] += mimas::nodes[n].stats[k] * m.nodes[n]; }
+        }
     }
 
     for(int s = 0; s < 4; ++s)
@@ -167,6 +201,12 @@ struct totals
         for(int k = 0; k < 7; ++k)
         {
             t.attrs[k] += it.bonus[k];
+        }
+
+        // Untrained armor costs its type's stats.
+        if(s == mimas::ARMOR && gear_skill(m, m.equip[s]) == 1)
+        {
+            for(int k = 0; k < 7; ++k) { t.attrs[k] += mimas::gear_kinds[it.gear_kind].untrained[k]; }
         }
 
         crit += it.crit;
@@ -191,19 +231,21 @@ struct totals
 
 [[nodiscard]] int max_hp(const member& m)
 {
-    return bn::max(1, mimas::base_hp + (totals_of(m).attrs[mimas::END] - 10) * 2);
+    return bn::max(1, mimas::base_hp + (totals_of(m).attrs[mimas::END] - 10) * 2 + m.hp_roll);
 }
 
-[[nodiscard]] int max_mp(const member&)
+[[nodiscard]] int max_mp(const member& m)
 {
-    return mimas::base_mp;
+    return bn::max(0, mimas::base_mp + m.mp_roll);
 }
 
-// x100
+// x100 (an untrained weapon hits for three quarters)
 [[nodiscard]] int attack_of(const member& m)
 {
-    int base = m.equip[mimas::WEAPON] >= 0 ? mimas::items[m.equip[mimas::WEAPON]].attack : mimas::unarmed_attack;
-    return base * (40 + totals_of(m).attrs[mimas::STR]) / 50;
+    int w = m.equip[mimas::WEAPON];
+    int base = w >= 0 ? mimas::items[w].attack : mimas::unarmed_attack;
+    int a = base * (40 + totals_of(m).attrs[mimas::STR]) / 50;
+    return gear_skill(m, w) == 1 ? a * 3 / 4 : a;
 }
 
 [[nodiscard]] int xp_to_next(int level)
@@ -216,6 +258,11 @@ struct totals
     return mimas::heroes[m.hero].name;
 }
 
+[[nodiscard]] const char* class_name(const member& m)
+{
+    return m.cls >= 0 && m.cls < mimas::class_count ? mimas::classes[m.cls].name : "-";
+}
+
 // A move: an Addition (a >= 0) or a spell (-(spell + 1)).
 [[nodiscard]] const char* move_name(int mv)
 {
@@ -224,59 +271,133 @@ struct totals
 
 [[nodiscard]] bool knows(const member& m, int mv)
 {
-    return mv >= 0 ? ((m.known >> mv) & 1) != 0 : m.spells[-mv - 1] > 0;
-}
-
-void set_known(member& m, int mv, bool on)
-{
-    if(mv >= 0) { m.known = on ? m.known | (1u << mv) : m.known & ~(1u << mv); }
-    else if(! on) { m.spells[-mv - 1] = 0; }
-}
-
-void add_move(member& m, int a)
-{
-    if(a >= 0) { m.known |= 1u << a; }
-
-    if(m.move_count < MAX_MOVES)
+    for(int k = 0; k < m.learned_count; ++k)
     {
-        m.moves[m.move_count++] = int8_t(a);
-    }
-}
-
-[[nodiscard]] bool has_move(const member& m, int a)
-{
-    for(int k = 0; k < m.move_count; ++k)
-    {
-        if(m.moves[k] == a)
-        {
-            return true;
-        }
+        if(m.learned[k] == mv) { return true; }
     }
 
     return false;
 }
 
-// A hero joining at this level: their Database stats grown by their ranks, their moves, spells and gear.
+// Learn a move (nothing is ever forgotten): false if they knew it.
+bool add_move(member& m, int mv)
+{
+    if(knows(m, mv) || m.learned_count >= MAX_KNOWN)
+    {
+        return false;
+    }
+
+    m.learned[m.learned_count++] = int8_t(mv);
+    if(mv < 0 && m.spells[-mv - 1] == 0) { m.spells[-mv - 1] = 1; }
+    return true;
+}
+
+// The move list, as battles show it: Additions weakest first (their power; ties in the order learned), then
+// spells cheapest first (MP; ties in the order learned). Returns how many; *spells_at: where the spells start.
+int move_list(const member& m, int8_t* out, int* spells_at)
+{
+    int n = 0;
+
+    for(int k = 0; k < m.learned_count; ++k)
+    {
+        if(m.learned[k] >= 0) { out[n++] = m.learned[k]; }
+    }
+
+    // Insertion sorts keep the order learned for ties.
+    for(int i = 1; i < n; ++i)
+    {
+        int8_t v = out[i];
+        int j = i;
+        while(j > 0 && mimas::additions[out[j - 1]].power > mimas::additions[v].power) { out[j] = out[j - 1]; --j; }
+        out[j] = v;
+    }
+
+    *spells_at = n;
+    auto cost = [&m](int mv) { int s = -mv - 1; return int(mimas::spells[s].ranks[bn::max(1, int(m.spells[s])) - 1].mp); };
+
+    for(int k = 0; k < m.learned_count; ++k)
+    {
+        if(m.learned[k] < 0) { out[n++] = m.learned[k]; }
+    }
+
+    for(int i = *spells_at + 1; i < n; ++i)
+    {
+        int8_t v = out[i];
+        int j = i;
+        while(j > *spells_at && cost(out[j - 1]) > cost(v)) { out[j] = out[j - 1]; --j; }
+        out[j] = v;
+    }
+
+    return n;
+}
+
+// The class's growth for one level: its stat bonuses (tenths), a health roll, a magic roll, skill points.
+void grow_level(member& m)
+{
+    int hp_die = 8, mp_die = 6;
+
+    if(m.cls >= 0 && m.cls < mimas::class_count)
+    {
+        const mimas::class_def& c = mimas::classes[m.cls];
+        for(int k = 0; k < 7; ++k) { m.tenths[k] = int16_t(bn::min(1000, m.tenths[k] + c.per_level[k])); }
+        hp_die = c.hp_die;
+        mp_die = c.mp_die;
+    }
+
+    m.hp_roll = int16_t(m.hp_roll + 1 + rng.get_int(bn::max(1, hp_die)));
+    m.mp_roll = int16_t(m.mp_roll + 1 + rng.get_int(bn::max(1, mp_die)));
+    m.points = int16_t(m.points + mimas::points_per_level);
+}
+
+// Join a class: its one-time boost the first time ever. The new class's numbers count from the next level.
+void join_class(member& m, int cls)
+{
+    if(cls < 0 || cls >= mimas::class_count)
+    {
+        return;
+    }
+
+    m.cls = int8_t(cls);
+    m.classes |= 1u << cls;
+
+    if(! ((m.joined >> cls) & 1))
+    {
+        m.joined |= 1u << cls;
+        for(int k = 0; k < 7; ++k) { m.tenths[k] = int16_t(bn::max(10, bn::min(1000, m.tenths[k] + mimas::classes[cls].bonus[k] * 10))); }
+    }
+}
+
+// A hero joining at this level: 10 in every stat, their starting class (its boost, and level - 1 levels of its
+// growth), their moves, spells and gear.
 [[nodiscard]] member new_member(int hero, int level)
 {
     const mimas::hero_def& h = mimas::heroes[hero];
     member m = {};
     m.hero = int8_t(hero);
     m.level = uint8_t(bn::max(1, bn::min(mimas::max_level, level)));
+    m.cls = -1;
+    m.points = int16_t(mimas::start_points);
 
     for(int k = 0; k < 7; ++k)
     {
-        m.stats[k] = int16_t(bn::min(100, h.stats[k] + h.gains[k] * (m.level - 1)));
+        m.tenths[k] = 100;
     }
 
-    for(int k = 0; k < h.move_count; ++k)
+    join_class(m, h.cls);
+
+    for(int l = 1; l < m.level; ++l)
     {
-        add_move(m, h.moves[k]);
+        grow_level(m);
     }
 
     for(int k = 0; k < mimas::max_spells; ++k)
     {
         m.spells[k] = h.spells[k];
+    }
+
+    for(int k = 0; k < h.move_count; ++k)
+    {
+        add_move(m, h.moves[k]);
     }
 
     for(int s = 0; s < 4; ++s)
@@ -311,11 +432,10 @@ void new_party()
     }
 }
 
-// EXP: the levels gained (each adds the hero's growth; health and magic grow with their maximums).
+// EXP: the levels gained (each grows them by their class; health and magic grow with their maximums).
 int gain_xp(member& m, int xp)
 {
-    const mimas::hero_def& h = mimas::heroes[m.hero];
-    int before = max_hp(m);
+    int before = max_hp(m), before_mp = max_mp(m);
     int ups = 0;
     m.xp += xp;
 
@@ -324,11 +444,7 @@ int gain_xp(member& m, int xp)
         m.xp -= xp_to_next(m.level);
         ++m.level;
         ++ups;
-
-        for(int k = 0; k < 7; ++k)
-        {
-            m.stats[k] = int16_t(bn::min(100, m.stats[k] + h.gains[k]));
-        }
+        grow_level(m);
     }
 
     if(m.level >= mimas::max_level)
@@ -341,6 +457,7 @@ int gain_xp(member& m, int xp)
         m.hp = int16_t(bn::min(max_hp(m), m.hp + bn::max(0, max_hp(m) - before)));
     }
 
+    m.mp = int16_t(bn::min(max_mp(m), m.mp + bn::max(0, max_mp(m) - before_mp)));
     return ups;
 }
 
@@ -647,6 +764,7 @@ struct row
     int16_t bar;       // health bar: have (bar_max > 0)
     int16_t bar_max;
     bool off;
+    bool divider;      // a heading inside the list ("[ Spells ]"): the cursor passes over it
 };
 
 void set_row(row& r, const char* label, const char* right = "", int icon = -1, bool off = false)
@@ -724,7 +842,7 @@ int pick(const row* rows, int n, const list_spec& s, int start = 0)
                     lx += 19;
                 }
 
-                ui::text(lx, ry, r.label, sprites);
+                ui::text(r.divider ? px + s.w * 4 - G->width(r.label) / 2 : lx, ry, r.label, sprites);
                 ui::text_right(px + s.w * 8 - 10, ry, r.right, sprites);
 
                 if(r.bar_max > 0)
@@ -771,11 +889,12 @@ int pick(const row* rows, int n, const list_spec& s, int start = 0)
 
         bn::core::update();
 
-        if(bn::keypad::up_pressed()) { at = (at + n - 1) % n; sfx(mimas::snd_menuMove); }
-        else if(bn::keypad::down_pressed()) { at = (at + 1) % n; sfx(mimas::snd_menuMove); }
+        if(bn::keypad::up_pressed()) { do { at = (at + n - 1) % n; } while(rows[at].divider && n > 1); sfx(mimas::snd_menuMove); }
+        else if(bn::keypad::down_pressed()) { do { at = (at + 1) % n; } while(rows[at].divider && n > 1); sfx(mimas::snd_menuMove); }
         else if(s.sides && bn::keypad::left_pressed()) { result = -2; sfx(mimas::snd_menuMove); break; }
         else if(s.sides && bn::keypad::right_pressed()) { result = -3; sfx(mimas::snd_menuMove); break; }
-        else if(bn::keypad::a_pressed() && ! rows[at].off) { result = at; sfx(mimas::snd_menuOk); break; }
+        else if(bn::keypad::a_pressed() && ! rows[at].off && ! rows[at].divider) { result = at; sfx(mimas::snd_menuOk); break; }
+        else if(bn::keypad::a_pressed()) { sfx(mimas::snd_dodge); }
         else if(bn::keypad::b_pressed() && s.cancel) { result = -1; sfx(mimas::snd_menuBack); break; }
     }
 
@@ -795,8 +914,8 @@ int pick(const row* rows, int n, const list_spec& s, int start = 0)
 }
 
 BN_DATA_EWRAM_BSS row ROWS_A[100];
-BN_DATA_EWRAM_BSS row ROWS_B[16];
-BN_DATA_EWRAM_BSS row ROWS_C[16];
+BN_DATA_EWRAM_BSS row ROWS_B[MAX_KNOWN + 2];
+BN_DATA_EWRAM_BSS row ROWS_C[34];
 
 // A question in the text box, YES / NO beside it: true for YES.
 bool ask(const bn::string_view& text)
@@ -892,38 +1011,82 @@ int pick_member(const char* title)
     return pick(ROWS_A, party_count, s);
 }
 
-int detail_member = 0;
+int8_t list_ids[MAX_KNOWN + 2];   // the move list's rows: a move, or 127 for the divider
 
+// A move's details for the box under a list: its type (or GUARD), then its description.
 const char* move_detail(int k)
 {
-    const member& m = party[detail_member];
-    if(k >= m.move_count) { return ""; }
-    int mv = m.moves[k];
-    return mv >= 0 ? mimas::additions[mv].description : mimas::spells[-mv - 1].description;
+    static bn::string<200> d;
+    int mv = list_ids[k];
+    d.clear();
+
+    if(mv == 127)
+    {
+        return "";
+    }
+
+    if(mv >= 0)
+    {
+        const mimas::addition_def& a = mimas::additions[mv];
+        d = a.guard >= 0 ? "GUARD" : mimas::element_names[a.element];
+        d += " - ";
+        d += bn::to_string<4>(a.hits);
+        d += a.hits == 1 ? " hit. " : " hits. ";
+        d += a.description;
+    }
+    else
+    {
+        const mimas::spell_def& sp = mimas::spells[-mv - 1];
+        d = mimas::element_names[sp.element];
+        d += sp.kind == 1 ? " - heals. " : " - spell. ";
+        d += sp.description;
+    }
+
+    return d.c_str();
 }
 
-void move_rows(const member& m, const int8_t* ids, int n, row* out)
+// The move list as rows (Additions, a "[ Spells ]" divider, spells), each with its MP (GUARD for a guard). In battle
+// (`mp` >= 0), ones they can't use now (too little MP, silenced) are greyed. Returns how many rows.
+int move_list_rows(const member& m, row* out, int mp = -1, bool silenced = false)
 {
+    int8_t mv[MAX_KNOWN];
+    int sat;
+    int n = move_list(m, mv, &sat);
+    int r = 0;
+
     for(int k = 0; k < n; ++k)
     {
-        bn::string<12> r;
-
-        if(ids[k] < 0)
+        if(k == sat)
         {
-            int sp = -ids[k] - 1;
-            r = bn::to_string<4>(mimas::spells[sp].ranks[bn::max(1, int(m.spells[sp])) - 1].mp);
-            r += " MP";
+            set_row(out[r], "[ Spells ]");
+            out[r].divider = true;
+            list_ids[r++] = 127;
+        }
+
+        bn::string<12> right;
+        int cost;
+
+        if(mv[k] < 0)
+        {
+            int sp = -mv[k] - 1;
+            cost = mimas::spells[sp].ranks[bn::max(1, int(m.spells[sp])) - 1].mp;
+            right = bn::to_string<4>(cost);
+            right += " MP";
         }
         else
         {
-            const mimas::addition_def& a = mimas::additions[ids[k]];
-            if(a.guard >= 0) { r = "GUARD"; }
-            else if(a.mp > 0) { r = bn::to_string<4>(a.mp); r += " MP"; }
-            else { r = bn::to_string<4>(a.hits); r += a.hits == 1 ? " HIT" : " HITS"; }
+            const mimas::addition_def& a = mimas::additions[mv[k]];
+            cost = a.mp;
+            if(a.guard >= 0) { right = "GUARD "; }
+            right += bn::to_string<4>(a.mp);
+            right += " MP";
         }
 
-        set_row(out[k], move_name(ids[k]), r.c_str());
+        set_row(out[r], move_name(mv[k]), right.c_str(), -1, mp >= 0 && (cost > mp || (mv[k] < 0 && silenced)));
+        list_ids[r++] = mv[k];
     }
+
+    return r;
 }
 
 void summary(const member& m)
@@ -944,6 +1107,8 @@ void summary(const member& m)
         set_row(ROWS_A[n++], label, r.c_str());
     };
     line("LEVEL", m.level);
+    set_row(ROWS_A[n++], "CLASS", class_name(m));
+    line("SKILL POINTS", m.points);
     line("HP", m.hp, max_hp(m));
     line("MP", m.mp, max_mp(m));
     line("EXP TO NEXT", bn::max(0, xp_to_next(m.level) - int(m.xp)));
@@ -960,73 +1125,26 @@ void summary(const member& m)
     pick(ROWS_A, n, s);
 }
 
+// Their moves (nothing to choose: they all come to battle), with each one's details.
 void moves_menu(member& m)
 {
-    detail_member = &m - party;
+    int n = move_list_rows(m, ROWS_B);
+
+    if(! n)
+    {
+        say("No moves.");
+        return;
+    }
+
+    list_spec s;
+    s.x = 2; s.y = 0; s.w = 26; s.visible = 5; s.title = "MOVES"; s.detail = move_detail;
+    int at = 0;
 
     while(true)
     {
-        move_rows(m, m.moves, m.move_count, ROWS_B);
-        int n = m.move_count;
-        bool spare = false;
-
-        if(mimas::equip_moves && m.move_count < MAX_MOVES)
-        {
-            for(int a = -mimas::spell_count; a < mimas::addition_count; ++a)
-            {
-                spare = spare || (knows(m, a) && ! has_move(m, a));
-            }
-
-            if(spare)
-            {
-                set_row(ROWS_B[n++], "-");
-            }
-        }
-
-        if(! n)
-        {
-            say("No moves.");
-            return;
-        }
-
-        list_spec s;
-        s.x = 2; s.y = 0; s.w = 26; s.visible = 4; s.title = "MOVES"; s.detail = move_detail;
-        int k = pick(ROWS_B, n, s);
-
-        if(k < 0 || ! mimas::equip_moves)
-        {
-            if(k < 0) { return; }
-            continue;
-        }
-
-        // Equip: another move they know in this slot.
-        int8_t ids[mimas::max_additions + mimas::max_spells];
-        int c = 0;
-
-        for(int a = -mimas::spell_count; a < mimas::addition_count; ++a)
-        {
-            if(knows(m, a) && ! has_move(m, a))
-            {
-                ids[c++] = int8_t(a);
-            }
-        }
-
-        if(! c)
-        {
-            say("There are no other moves to use.");
-            continue;
-        }
-
-        move_rows(m, ids, c, ROWS_C);
-        list_spec s2;
-        s2.x = 4; s2.y = 2; s2.w = 22; s2.visible = 5; s2.title = "Use which move?";
-        int j = pick(ROWS_C, c, s2);
-
-        if(j >= 0)
-        {
-            if(k < m.move_count) { m.moves[k] = ids[j]; }
-            else { m.moves[m.move_count++] = ids[j]; }
-        }
+        int k = pick(ROWS_B, n, s, at);
+        if(k < 0) { return; }
+        at = k;
     }
 }
 
@@ -1074,7 +1192,8 @@ void equip_menu(member& m)
         {
             if(bag[i] && mimas::items[i].kind == 2 && mimas::items[i].slot == k)
             {
-                set_row(ROWS_C[c], mimas::items[i].name, "", i);
+                // Greyed: their class can't use it.
+                set_row(ROWS_C[c], mimas::items[i].name, "", i, gear_skill(m, i) == 2);
                 ids[c++] = int16_t(i);
             }
         }
@@ -1145,7 +1264,7 @@ void party_menu()
     }
 }
 
-// Learning a move: at once with a free slot, else Pokémon's questions (forget one, or put one away: Equip moves).
+// Learning a move: it joins their list (nothing is ever forgotten).
 void learn_move(member& m, int a, bool silent)
 {
     // a: an Addition, or a spell (-(k + 1); learn_spell has set its rank already).
@@ -1154,84 +1273,11 @@ void learn_move(member& m, int a, bool silent)
         return;
     }
 
-    const char* who = name_of(m);
-    const char* name = move_name(a);
-    bn::string<96> t;
+    bool fresh = add_move(m, a);
 
-    if(has_move(m, a) || (a >= 0 && knows(m, a) && ! mimas::equip_moves))
+    if(! silent)
     {
-        if(! silent) { say(txt(mimas::T_learn_knows, tv().N(who).M(name))); }
-        return;
-    }
-
-    set_known(m, a, true);
-
-    if(m.move_count < MAX_MOVES)
-    {
-        m.moves[m.move_count++] = int8_t(a);
-        if(! silent) { say(txt(mimas::T_learn_learned, tv().N(who).M(name))); }
-        return;
-    }
-
-    t = who; t += " is trying to learn "; t += name; t += ".";
-    say(t);
-    t = "But "; t += who; t += " can't use more than 4 moves.";
-    say(t);
-
-    while(true)
-    {
-        t = mimas::equip_moves ? "Replace a move with " : "Delete a move to make room for ";
-        t += name; t += "?";
-
-        if(ask(t))
-        {
-            int8_t ids[5] = { m.moves[0], m.moves[1], m.moves[2], m.moves[3], int8_t(a) };
-            move_rows(m, ids, 5, ROWS_B);
-            list_spec s;
-            s.x = 2; s.y = 0; s.w = 26; s.visible = 5; s.title = mimas::equip_moves ? "Replace which move?" : "Forget which move?";
-            int k = pick(ROWS_B, 5, s);
-
-            if(k >= 0 && k < 4)
-            {
-                const char* old = move_name(m.moves[k]);
-
-                if(! mimas::equip_moves)
-                {
-                    set_known(m, m.moves[k], false);
-                    t = "1, 2, and... Poof! "; t += who; t += " forgot "; t += old; t += ".";
-                }
-                else
-                {
-                    t = who; t += " put away "; t += old; t += ".";
-                }
-
-                m.moves[k] = int8_t(a);
-                say(t);
-                t = "And... "; t += who; t += " learned "; t += name; t += "!";
-                say(t);
-                return;
-            }
-
-            if(k < 0)
-            {
-                continue;
-            }
-        }
-
-        t = "Stop learning "; t += name; t += "?";
-
-        if(ask(t))
-        {
-            if(! mimas::equip_moves)
-            {
-                set_known(m, a, false);
-            }
-
-            t = who; t += mimas::equip_moves ? " learned " : " did not learn "; t += name;
-            t += mimas::equip_moves ? ", but kept their four moves." : ".";
-            say(t);
-            return;
-        }
+        say(txt(fresh ? mimas::T_learn_learned : mimas::T_learn_knows, tv().N(name_of(m)).M(move_name(a))));
     }
 }
 
@@ -1252,7 +1298,7 @@ void learn_spell(member& m, int sp, int rank, bool silent)
     bool fresh = m.spells[sp] == 0;
     m.spells[sp] = uint8_t(r);
 
-    // A new spell is a move: it takes a free slot, or Pokémon's questions.
+    // A new spell joins their move list.
     if(fresh)
     {
         learn_move(m, -(sp + 1), silent);
@@ -1418,7 +1464,13 @@ void bag_menu()
         {
             int who = pick_member("Equip on whom?");
 
-            if(who >= 0)
+            if(who >= 0 && gear_skill(party[who], item) == 2)
+            {
+                bn::string<96> t = name_of(party[who]);
+                t += "'s class can't use that.";
+                say(t);
+            }
+            else if(who >= 0)
             {
                 equip_item(party[who], it.slot, item);
                 bn::string<160> t = txt(mimas::T_item_equipped, tv().N(name_of(party[who])).I(it.name));
@@ -1605,7 +1657,7 @@ struct save_data
 };
 
 BN_DATA_EWRAM_BSS save_data SAVE;
-constexpr char SAVE_MAGIC[8] = { 'M', 'I', 'M', 'A', 'S', '0', '7', 0 };
+constexpr char SAVE_MAGIC[8] = { 'M', 'I', 'M', 'A', 'S', '0', '8', 0 };
 
 [[nodiscard]] bool save_exists()
 {
@@ -2005,68 +2057,6 @@ struct battle_scene
 
 enum outcome { LOST, WON, RAN };
 
-// The FIGHT / MAGIC box: up to four in a 2 x 2 grid on the left, the chosen one's right text (hits, MP) on the
-// right, like the handheld games. More than four: a list.
-int grid_pick(const row* rows, int n)
-{
-    bool fits = true;
-
-    for(int k = 0; k < n; ++k)
-    {
-        fits = fits && G->width(rows[k].label) <= (k % 2 ? 64 : 80);
-    }
-
-    // Long names (or more than four): a list, each with its right text.
-    if(n > 4 || ! fits)
-    {
-        list_spec s;
-        s.x = 0; s.w = 30; s.visible = bn::min(4, n);
-        s.y = 20 - (s.visible * 16 + 8 + (n > 4 ? 8 : 0) + 7) / 8;
-        return pick(rows, n, s);
-    }
-
-    ui::open();
-    ui::box(0, 14, 22, 6);
-    ui::box(22, 14, 8, 6);
-    bn::vector<bn::sprite_ptr, 24> labels;
-    bn::vector<bn::sprite_ptr, 8> info;
-    bn::sprite_ptr cur = bn::sprite_items::cursor.create_sprite(0, 0);
-    cur.set_bg_priority(0);
-
-    for(int k = 0; k < n; ++k)
-    {
-        ui::text(14 + (k % 2) * 90, 118 + (k / 2) * 16, rows[k].label, labels);
-    }
-
-    int at = 0, shown = -1, result = -1;
-
-    while(true)
-    {
-        if(shown != at)
-        {
-            shown = at;
-            info.clear();
-            ui::text(22 * 8 + 8, 118, rows[at].right, info);
-            ui::text(22 * 8 + 8, 134, rows[at].sub, info);
-        }
-
-        cur.set_position(8 + (at % 2) * 90 - HALF_W, 118 + (at / 2) * 16 + 8 - HALF_H);
-        bn::core::update();
-
-        if(bn::keypad::left_pressed() || bn::keypad::right_pressed()) { int k = at ^ 1; if(k < n) { at = k; sfx(mimas::snd_menuMove); } }
-        else if(bn::keypad::up_pressed() || bn::keypad::down_pressed()) { int k = at ^ 2; if(k < n) { at = k; sfx(mimas::snd_menuMove); } }
-        else if(bn::keypad::a_pressed() && ! rows[at].off) { result = at; sfx(mimas::snd_menuOk); break; }
-        else if(bn::keypad::b_pressed()) { sfx(mimas::snd_menuBack); break; }
-    }
-
-    labels.clear();
-    info.clear();
-    ui::box(0, 14, 30, 6);
-    bn::core::update();
-    ui::close();
-    return result;
-}
-
 // An ailment landing (its chance, unless they resist it or already have one): true if it took hold.
 bool give_ailment(ailing& st, int ail, int chance, uint8_t resists, const char* name)
 {
@@ -2240,54 +2230,31 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                     if(cmd_at == 0)
                     {
-                        if(! m.move_count)
+                        // The move list (Additions weakest first, then "[ Spells ]"), scrolling, above the
+                        // details box; the cursor comes back where it was.
+                        int n = move_list_rows(m, ROWS_B, m.mp, hst.ailment == mimas::SILENCE);
+
+                        if(! n)
                         {
                             choice = 0;   // a plain hit (no moves known)
                             break;
                         }
 
-                        // Each move: its name, then its cost (MP), hits or GUARD, and its type.
-                        for(int k = 0; k < m.move_count; ++k)
-                        {
-                            int mv = m.moves[k];
-                            bn::string<12> r;
-                            int el = 0;
-                            bool off = false;
-
-                            if(mv < 0)
-                            {
-                                const mimas::spell_def& sp = mimas::spells[-mv - 1];
-                                int cost = sp.ranks[bn::max(1, int(m.spells[-mv - 1])) - 1].mp;
-                                r = bn::to_string<4>(cost);
-                                r += " MP";
-                                el = sp.element;
-                                off = cost > m.mp || hst.ailment == mimas::SILENCE;
-                            }
-                            else
-                            {
-                                // Like the playtest: its MP (0 for most Additions) and its type (GUARD for a guard).
-                                const mimas::addition_def& a = mimas::additions[mv];
-                                r = bn::to_string<4>(a.mp);
-                                r += " MP";
-                                el = a.guard >= 0 ? -1 : a.element;
-                                off = a.mp > m.mp;
-                            }
-
-                            set_row(ROWS_B[k], move_name(mv), r.c_str(), -1, off);
-                            bn::string_view eln(el >= 0 ? mimas::element_names[el] : "GUARD");
-                            for(int c = 0; c < eln.size() && c < 13; ++c) { ROWS_B[k].sub[c] = eln[c]; }
-                        }
-
-                        int k = grid_pick(ROWS_B, m.move_count);
+                        list_spec ls;
+                        ls.x = 0; ls.w = 18; ls.visible = bn::min(4, n); ls.detail = move_detail;
+                        ls.y = 14 - (ls.visible * 16 + 8 + (n > ls.visible ? 8 : 0) + 7) / 8;
+                        int k = pick(ROWS_B, n, ls, bn::min(int(m.move_at), n - 1));
+                        ui::box(0, 14, 30, 6);
                         sc.draw_foe();
                         sc.draw_hero();
 
                         if(k >= 0)
                         {
-                            int mv = m.moves[k];
+                            m.move_at = uint8_t(k);
+                            int mv = list_ids[k];
                             if(mv < 0) { choice = 1; arg = -mv - 1; }
                             else if(mimas::additions[mv].guard >= 0) { choice = 3; arg = mv; }
-                            else { choice = 0; arg = k; }
+                            else { choice = 0; arg = mv; }
                         }
                     }
                     else if(cmd_at == 1)
@@ -2421,7 +2388,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                         if(choice == 0)
                         {
-                            const mimas::addition_def* a = arg >= 0 ? &mimas::additions[hm.moves[arg]] : nullptr;
+                            const mimas::addition_def* a = arg >= 0 ? &mimas::additions[arg] : nullptr;
                             int power = a ? a->power : 100, hits = a ? a->hits : 1, el = a ? a->element : 0;
 
                             if(a && a->mp > hm.mp)
@@ -2676,6 +2643,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                         {
                             sfx(mimas::snd_levelUp);
                             bsay(txt(mimas::T_battle_level, tv().N(name_of(party[i])).lv(party[i].level)));
+                            if(mimas::points_per_level > 0) { bsay(txt(mimas::T_battle_points, tv().N(name_of(party[i])).num(party[i].points))); }
                         }
 
                         if(i == sc.who) { sc.draw_hero(); }
@@ -2868,9 +2836,283 @@ void card()
     pick(ROWS_B, 3, s);
 }
 
+// ------------------------------------------------------------------------------------------------ skills and classes
+
+// The trees they learn from (their class's; with no class, or no classes in the game, every tree) and the ones they
+// can only look at (classes they've had or unlocked). Bits.
+void member_trees(const member& m, uint32_t& learn, uint32_t& view)
+{
+    uint32_t all = mimas::tree_count >= 32 ? ~0u : (1u << mimas::tree_count) - 1;
+    view = 0;
+
+    if(mimas::class_count == 0 || m.cls < 0)
+    {
+        learn = all;
+        return;
+    }
+
+    learn = mimas::classes[m.cls].trees & all;
+
+    for(int c = 0; c < mimas::class_count; ++c)
+    {
+        if(((m.classes | m.joined) >> c) & 1) { view |= mimas::classes[c].trees; }
+    }
+
+    view &= all & ~learn;
+}
+
+// Whether they can take the next rank of skill `n` now; `why` says why not (nullptr: they can).
+bool node_ok(const member& m, int n, bn::istring& why)
+{
+    const mimas::node_def& d = mimas::nodes[n];
+    uint32_t learn, view;
+    member_trees(m, learn, view);
+    why.clear();
+
+    if(m.nodes[n] >= d.ranks) { why = "Learned in full."; }
+    else if(! ((learn >> d.tree) & 1)) { why = "Only another class can learn this."; }
+    else
+    {
+        for(int p = 0; p < 4 && why.empty(); ++p)
+        {
+            if(d.parents[p] >= 0 && ! m.nodes[d.parents[p]]) { why = "Needs "; why += mimas::nodes[d.parents[p]].name; why += " first."; }
+        }
+
+        if(why.empty() && d.level > m.level) { why = "Needs level "; why += bn::to_string<4>(d.level); why += "."; }
+        if(why.empty() && m.points < d.cost) { why = "Needs "; why += bn::to_string<4>(d.cost); why += " skill points."; }
+    }
+
+    return why.empty();
+}
+
+// Take the next rank of skill `n`: its points, its stats, and the Addition or spell it teaches.
+void take_node(member& m, int n)
+{
+    const mimas::node_def& d = mimas::nodes[n];
+    int before = max_hp(m);
+    m.points = int16_t(m.points - d.cost);
+    ++m.nodes[n];
+
+    if(d.addition >= 0 && ! mimas::heroes[m.hero].no_additions)
+    {
+        add_move(m, d.addition);
+    }
+
+    if(d.spell >= 0)
+    {
+        int r = bn::max(1, bn::min(int(mimas::spells[d.spell].rank_count), m.nodes[n] + d.spell_from - 1));
+        if(m.spells[d.spell] < r) { m.spells[d.spell] = uint8_t(r); }
+        add_move(m, -(d.spell + 1));
+    }
+
+    if(m.hp > 0) { m.hp = int16_t(bn::min(max_hp(m), m.hp + bn::max(0, max_hp(m) - before))); }
+}
+
+const member* skill_member = nullptr;
+int skill_rows[mimas::max_nodes + 1];
+
+// A skill's description and, when it can't be taken now, why.
+const char* skill_detail(int k)
+{
+    static bn::string<200> d;
+    bn::string<64> why;
+    node_ok(*skill_member, skill_rows[k], why);
+    d = mimas::nodes[skill_rows[k]].description;
+
+    if(! why.empty())
+    {
+        if(! d.empty()) { d += " "; }
+        d += why;
+    }
+
+    return d.c_str();
+}
+
+// The Skills page: whose, then their trees (left / right), each skill with its rank or cost; A takes the next rank.
+void skills_menu()
+{
+    int who = party_count > 1 ? pick_member("Whose skills?") : 0;
+
+    if(who < 0 || mimas::tree_count == 0)
+    {
+        return;
+    }
+
+    member& m = party[who];
+    skill_member = &m;
+    int tree_ids[32];
+    bool own[32];
+    int tc = 0;
+    uint32_t learn, view;
+    member_trees(m, learn, view);
+
+    for(int pass = 0; pass < 2; ++pass)
+    {
+        for(int t = 0; t < mimas::tree_count && t < 32; ++t)
+        {
+            if(((pass == 0 ? learn : view) >> t) & 1) { tree_ids[tc] = t; own[tc++] = pass == 0; }
+        }
+    }
+
+    if(! tc)
+    {
+        say("No skill trees.");
+        return;
+    }
+
+    int p = 0, at = 0;
+
+    while(true)
+    {
+        int n = 0;
+
+        for(int i = 0; i < mimas::node_count; ++i)
+        {
+            if(mimas::nodes[i].tree != tree_ids[p]) { continue; }
+
+            const mimas::node_def& d = mimas::nodes[i];
+            bn::string<64> why;
+            bool ok = node_ok(m, i, why);
+            bn::string<14> r;
+
+            if(m.nodes[i] >= d.ranks)
+            {
+                if(d.ranks > 1) { r = bn::to_string<2>(m.nodes[i]); r += "/"; r += bn::to_string<2>(d.ranks); }
+                else { r = "DONE"; }
+            }
+            else
+            {
+                if(d.ranks > 1) { r = bn::to_string<2>(m.nodes[i]); r += "/"; r += bn::to_string<2>(d.ranks); r += " "; }
+                r += bn::to_string<3>(d.cost);
+                r += " SP";
+            }
+
+            set_row(ROWS_A[n], d.name, r.c_str(), -1, ! ok);
+            skill_rows[n++] = i;
+        }
+
+        bn::string<48> title = "< ";
+        title += mimas::trees[tree_ids[p]].name;
+        if(! own[p]) { title += " (VIEW)"; }
+        title += " >  ";
+        title += bn::to_string<4>(m.points);
+        title += " SP";
+
+        if(! n)
+        {
+            set_row(ROWS_A[0], "-", "", -1, true);
+            skill_rows[0] = 0;
+            n = 0;
+        }
+
+        list_spec s;
+        s.x = 1; s.y = 0; s.w = 28; s.visible = 5; s.title = title.c_str(); s.detail = n ? skill_detail : nullptr; s.sides = tc > 1;
+        int k = pick(ROWS_A, bn::max(1, n), s, bn::min(at, bn::max(0, n - 1)));
+
+        if(k == -2 || k == -3)
+        {
+            p = (p + (k == -2 ? tc - 1 : 1)) % tc;
+            at = 0;
+            continue;
+        }
+
+        if(k < 0)
+        {
+            return;
+        }
+
+        at = k;
+
+        if(! n)
+        {
+            continue;
+        }
+
+        const mimas::node_def& d = mimas::nodes[skill_rows[k]];
+
+        if(ask(txt(mimas::T_skill_ask, tv().N(name_of(m)).M(d.name).num(d.cost))))
+        {
+            take_node(m, skill_rows[k]);
+            sfx(mimas::snd_levelUp);
+            say(txt(mimas::T_skill_done, tv().N(name_of(m)).M(d.name)));
+        }
+    }
+}
+
+int class_rows[32];
+
+const char* class_detail(int k)
+{
+    return mimas::classes[class_rows[k]].description;
+}
+
+// A class trainer: one of the classes they've unlocked (-1: none chosen).
+int pick_class(const member& m)
+{
+    int n = 0;
+
+    for(int c = 0; c < mimas::class_count && c < 32; ++c)
+    {
+        if((m.classes >> c) & 1)
+        {
+            set_row(ROWS_C[n], mimas::classes[c].name, c == m.cls ? "NOW" : "");
+            class_rows[n++] = c;
+        }
+    }
+
+    if(! n)
+    {
+        say(txt(mimas::T_class_none, tv().N(name_of(m))));
+        return -1;
+    }
+
+    bn::string<40> title = name_of(m);
+    title += ": which class?";
+    list_spec s;
+    s.x = 4; s.y = 1; s.w = 22; s.visible = bn::min(5, n); s.title = title.c_str(); s.detail = class_detail;
+    int k = pick(ROWS_C, n, s);
+    return k >= 0 ? class_rows[k] : -1;
+}
+
+// The Change class command: op 0 change to `cls`, 1 unlock it, 2 the player picks one they've unlocked.
+void class_event(member& m, int op, int cls, bool silent)
+{
+    if(op == 1)
+    {
+        if(cls >= 0 && cls < mimas::class_count && ! ((m.classes >> cls) & 1))
+        {
+            m.classes |= 1u << cls;
+            if(! silent) { say(txt(mimas::T_class_unlocked, tv().N(name_of(m)).C(mimas::classes[cls].name))); }
+        }
+
+        return;
+    }
+
+    if(op == 2)
+    {
+        cls = pick_class(m);
+    }
+
+    if(cls < 0 || cls >= mimas::class_count)
+    {
+        return;
+    }
+
+    if(m.cls == cls)
+    {
+        if(op == 2 && ! silent) { say(txt(mimas::T_class_already, tv().N(name_of(m)).C(mimas::classes[cls].name))); }
+        return;
+    }
+
+    join_class(m, cls);
+    sfx(mimas::snd_levelUp);
+    if(! silent) { say(txt(mimas::T_class_changed, tv().N(name_of(m)).C(mimas::classes[cls].name))); }
+}
+
 const char* start_detail(int k)
 {
-    constexpr const char* d[] = { "Check and organize your party.", "Items, gear and key items you carry.", "Your money and play time.", "Save your progress.", "Close this menu." };
+    constexpr const char* d[] = { "Check and organize your party.", "Items, gear and key items you carry.", "Spend skill points in the skill trees.",
+                                  "Your money and play time.", "Save your progress.", "Close this menu." };
     return d[k];
 }
 
@@ -2887,14 +3129,15 @@ void start_menu(world& w, int map)
     {
         set_row(ROWS_C[0], txt(mimas::T_menu_party).c_str());
         set_row(ROWS_C[1], txt(mimas::T_menu_bag).c_str());
-        set_row(ROWS_C[2], name_of(party[0]));
-        set_row(ROWS_C[3], txt(mimas::T_menu_save).c_str());
-        set_row(ROWS_C[4], txt(mimas::T_menu_exit).c_str());
+        set_row(ROWS_C[2], txt(mimas::T_menu_skills).c_str());
+        set_row(ROWS_C[3], name_of(party[0]));
+        set_row(ROWS_C[4], txt(mimas::T_menu_save).c_str());
+        set_row(ROWS_C[5], txt(mimas::T_menu_exit).c_str());
         list_spec s;
-        s.x = 20; s.y = 0; s.w = 10; s.visible = 5; s.detail = start_detail;
-        int k = pick(ROWS_C, 5, s, at);
+        s.x = 20; s.y = 0; s.w = 10; s.visible = 6; s.detail = start_detail;
+        int k = pick(ROWS_C, 6, s, at);
 
-        if(k < 0 || k == 4)
+        if(k < 0 || k == 5)
         {
             break;
         }
@@ -2903,7 +3146,8 @@ void start_menu(world& w, int map)
 
         if(k == 0) { party_menu(); }
         else if(k == 1) { bag_menu(); }
-        else if(k == 2) { card(); }
+        else if(k == 2) { skills_menu(); }
+        else if(k == 3) { card(); }
         else if(save_flow(map, w.cell_x, w.cell_y, w.facing)) { break; }
     }
 

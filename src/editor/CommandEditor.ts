@@ -259,6 +259,7 @@ function summary(c: Command): string {
     }
     case 'heroClass': {
       const cl = dbNow ? findClass(dbNow(), c.cls) : undefined;
+      if (c.op === 'pick') return `${whoName(c.who)}: choose a class (from those unlocked)`;
       return `${whoName(c.who)}: ${c.op === 'change' ? 'becomes' : 'may become'} ${cl?.name ?? (c.cls || '(no class)')}`;
     }
     case 'quest': {
@@ -820,10 +821,10 @@ export class CommandEditor {
         const heroes: [string, string][] = [['', 'The hero you play'], ['@party', 'Everyone in the party'], ...(db.heroes ?? []).slice(1).map((x) => [x.id, x.name] as [string, string])];
         const classes = classList(db).map((x) => [x.id, x.name] as [string, string]);
         return [field('Who', select(heroes, d.who, (v) => (d.who = v))),
-          field('Do', select([['change', 'Change to this class now'], ['unlock', 'Let them change to it (Menu → Abilities)']], d.op, (v) => (d.op = v as 'change' | 'unlock'))),
-          field('Class', select(classes.length ? classes : [['', '(add classes in Database → Classes)']], d.cls, (v) => (d.cls = v))),
+          field('Do', select([['change', 'Change to this class now'], ['unlock', 'Unlock it (they can pick it at a class trainer)'], ['pick', 'Class trainer: the player chooses from the classes unlocked']], d.op, (v) => (d.op = v as 'change' | 'unlock' | 'pick'))),
+          field('Class', select(classes.length ? classes : [['', '(add classes in Database → Classes)']], d.cls, (v) => (d.cls = v)), 'Not used by the class trainer (they choose).'),
           checkbox('Quietly (no message)', !!d.silent, (v) => (d.silent = v || undefined)),
-          h('p', { class: 'hint' }, 'A class opens its skill trees. Changing class keeps every skill, spell and Addition already learned.')];
+          h('p', { class: 'hint' }, 'A class opens its skill trees. Changing class keeps every stat, skill, spell and Addition so far; the new class’s level-up bonuses count from the next level. Old classes’ trees can still be looked at, but points are spent only in the current class’s trees. Players can only change class through this command.')];
       }
       case 'roost':
         return [h('div', { class: 'field-row' },

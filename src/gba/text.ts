@@ -3,8 +3,8 @@
  *
  * Each line has a default (shown greyed in Database → Text & dialog); typing replaces it, Reset brings it back.
  * A line can have several versions: one is picked at random each time (in the playtest and the ROM).
- * Fill-ins: {name} the hero, {foe} the enemy, {target} who it's done to, {move} a move or spell, {item} an item,
- * {n} a number, {level} a level. "A {foe}" becomes "An …" before a vowel ("An Owlbear leaps out!").
+ * Fill-ins: {name} the hero, {foe} the enemy, {target} who it's done to, {move} a move, spell or skill, {item} an
+ * item, {class} a class, {n} a number, {level} a level. "A {foe}" becomes "An …" before a vowel ("An Owlbear leaps out!").
  *
  * Stored in the database as `gbaText` (only lines that differ from the default). The ROM gets them through
  * tools/gba_game.py (gba_game.json `text`, keyed by name: the ROM gets a T_<key> number for each), so keep the keys stable.
@@ -27,7 +27,7 @@ export interface TextLine {
 const L = (group: string, key: string, label: string, ...def: string[]): TextLine => ({ key, group, label, def });
 const W = (group: string, key: string, label: string, word: string): TextLine => ({ key, group, label, def: [word], word: true });
 
-export const TEXT_GROUPS = ['Command words', 'Battle: start', 'Battle: moves', 'Battle: hits', 'Battle: ailments', 'Battle: end', 'Battle: running and swapping', 'Learning', 'Items', 'Party', 'Saving', 'Shops'] as const;
+export const TEXT_GROUPS = ['Command words', 'Battle: start', 'Battle: moves', 'Battle: hits', 'Battle: ailments', 'Battle: end', 'Battle: running and swapping', 'Learning', 'Skills and classes', 'Items', 'Party', 'Saving', 'Shops'] as const;
 
 /** Every line, by group. */
 export const TEXT_LINES: TextLine[] = [
@@ -37,6 +37,7 @@ export const TEXT_LINES: TextLine[] = [
   W('Command words', 'cmd.flee', 'Battle: run away', 'FLEE'),
   W('Command words', 'menu.party', 'START menu: party', 'PARTY'),
   W('Command words', 'menu.bag', 'START menu: bag', 'BAG'),
+  W('Command words', 'menu.skills', 'START menu: skills', 'SKILLS'),
   W('Command words', 'menu.save', 'START menu: save', 'SAVE'),
   W('Command words', 'menu.exit', 'START menu: close', 'EXIT'),
 
@@ -94,6 +95,7 @@ export const TEXT_LINES: TextLine[] = [
   L('Battle: end', 'battle.exp', 'EXP', '{name} gained {n} EXP!'),
   L('Battle: end', 'battle.level', 'A level up', '{name} reached level {level}!'),
   L('Battle: end', 'battle.gold', 'Money for winning', 'You earned ${n}!'),
+  L('Battle: end', 'battle.points', 'Skill points from a level up', '{name} has {n} skill points to spend!'),
 
   L('Battle: running and swapping', 'battle.fled', 'Got away', 'You got away!'),
   L('Battle: running and swapping', 'battle.no_escape', 'Couldn’t get away', 'No way out!'),
@@ -108,6 +110,13 @@ export const TEXT_LINES: TextLine[] = [
 
   L('Learning', 'learn.learned', 'A move learned', '{name} learned {move}!'),
   L('Learning', 'learn.knows', 'Already known', '{name} already knows {move}.'),
+
+  L('Skills and classes', 'skill.ask', 'Taking a skill', 'Learn {move} for {n} points?'),
+  L('Skills and classes', 'skill.done', 'A skill taken', '{name} learned {move}!'),
+  L('Skills and classes', 'class.changed', 'A new class', '{name} is now a {class}!'),
+  L('Skills and classes', 'class.unlocked', 'A class unlocked', '{name} can now become a {class}.'),
+  L('Skills and classes', 'class.already', 'Already that class', '{name} is already a {class}.'),
+  L('Skills and classes', 'class.none', 'No classes to choose from', '{name} has no other classes yet.'),
 
   L('Items', 'item.no_effect', 'An item that wouldn’t do anything', 'It won’t have any effect.'),
   L('Items', 'item.revived', 'A hero revived', '{name} was revived!'),
@@ -129,7 +138,7 @@ export const TEXT_LINES: TextLine[] = [
 
 export const TEXT_BY_KEY: ReadonlyMap<string, TextLine> = new Map(TEXT_LINES.map((l) => [l.key, l]));
 
-export type TextVars = Partial<Record<'name' | 'foe' | 'target' | 'move' | 'item' | 'n' | 'level', string | number>>;
+export type TextVars = Partial<Record<'name' | 'foe' | 'target' | 'move' | 'item' | 'class' | 'n' | 'level', string | number>>;
 
 /** The versions of a line: yours, else the default. */
 export function lineVersions(db: Pick<Database, 'gbaText'> | undefined, key: string): string[] {

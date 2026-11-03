@@ -32,13 +32,15 @@ The script (game/src/main.cpp runs it; keep the two in step, and the op numbers 
   SAVE                             "Would you like to save the game?"
   GAUGE which op value             which 0 HP, 1 MP; op 0 set, 1 add, 2 fill (everyone in the party)
   HEAL                             everyone back to full (Full rest)
+  CLASS who op cls silent          who -2: the hero you play, -1: the whole party, else a hero (Database order);
+                                   op 0: change to cls now, 1: unlock cls, 2: the player picks one they've unlocked
 
 Text: \\v[name] becomes {Vn} (the variable's value) and \\s[name] {Sn} (ON / OFF); Saturn's rich-text tags are dropped.
 """
 import re
 
 OPS = ['END', 'TEXT', 'CHOICE', 'JUMP', 'IF', 'SWITCH', 'VAR', 'SELF', 'GIVE', 'TAKE', 'GOLD', 'TRANSFER', 'WAIT',
-       'FADEOUT', 'FADEIN', 'BATTLE', 'PARTY', 'LEARN', 'SHOP', 'SAVE', 'GAUGE', 'HEAL']
+       'FADEOUT', 'FADEIN', 'BATTLE', 'PARTY', 'LEARN', 'SHOP', 'SAVE', 'GAUGE', 'HEAL', 'CLASS']
 OP = {n: i for i, n in enumerate(OPS)}
 DIRS = {'down': 0, 'up': 1, 'left': 2, 'right': 3}
 TRIGGERS = {'action': 0, 'touch': 1, 'auto': 2, 'none': 3}
@@ -81,6 +83,7 @@ class Compiler:
         self.hero_index = {h.get('id'): n for n, h in enumerate(heroes)}
         self.addition_index = {a.get('id'): n for n, a in enumerate(additions_of(db))}
         self.spell_index = {sp.get('id'): n for n, sp in enumerate(spells_of(db))}
+        self.class_index = {c.get('id'): n for n, c in enumerate(db.get('classes') or [])}
         self.switches, self.vars, self.strings = {}, {}, []
         self.string_index = {}
         self.conds = [(0, 0, 0, 0)]           # 0: always
@@ -284,6 +287,15 @@ class Compiler:
                     return
                 emit(OP['LEARN'], w, self.addition_index.get(c.get('addition'), -1), self.spell_index.get(c.get('spell'), -1),
                      int(c.get('rank', 1) or 1), 1 if c.get('silent') else 0)
+            elif k == 'heroClass':
+                who = c.get('who') or ''
+                w = -2 if not who else -1 if who == '@party' else self.hero_index.get(who, -3)
+                op = {'change': 0, 'unlock': 1, 'pick': 2}.get(c.get('op'), 0)
+                cls = self.class_index.get(c.get('cls'), -1)
+                if w == -3 or (op != 2 and cls < 0):
+                    self.warn(f'Change class: “{who or c.get("cls")}” isn\'t in the Database')
+                    return
+                emit(OP['CLASS'], w, op, cls, 1 if c.get('silent') else 0)
             elif k == 'shop':
                 goods = [(self.items[g['item']], int(g['price']) if g.get('price') is not None else -1) for g in c.get('goods', []) if g.get('item') in self.items][:16]
                 if not goods:

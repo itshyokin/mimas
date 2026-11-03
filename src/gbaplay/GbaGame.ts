@@ -7,7 +7,7 @@
  * from its GBA layers on a 240×160 screen, with grid steps, running, ledge hops, props and events, as the ROM does.
  */
 import { AudioManager, setUiSound, type Sfx } from '../audio/sfx';
-import { findAddition, findSpell, learnSpell, rankName } from '../game/abilities';
+import { findAddition, findClass, findSpell, learnSpell, rankName } from '../game/abilities';
 import { Interpreter, type EventContext } from '../events/Interpreter';
 import { BattleStatus } from '../game/battle/status';
 import { TurnBattle, type BattleEntry, type BattleHost } from '../game/battle/TurnBattle';
@@ -32,7 +32,7 @@ import { blockedTiles, PropCatalog } from '../world/props';
 import { pickTroop } from '../world/zones';
 import type { Command, Database, Dir, Element, EnemyDef, EventData, EventPage, ItemDef, MapData, MoveRef } from '../world/types';
 import { Menus } from './menus';
-import { battleMoves, battleNumbers, battleSpells, gainXp, loadMember, MAX_PARTY, maxOf, moveSpell, newMember, saveMember, spellMove, type Member, type MemberSave } from './party';
+import { battleMoves, battleNumbers, battleOrder, battleSpells, changeClass, gainXp, learnMove, loadMember, MAX_PARTY, maxOf, newMember, saveMember, spellMove, unlockClass, type Member, type MemberSave } from './party';
 import { GbaUi } from './ui';
 import { foeActions } from './foes';
 import { atLevel } from '../game/enemyLevels';
@@ -159,7 +159,7 @@ class GbaGame {
     this.cfg.turnBased = { ...this.cfg.turnBased, layout: 'pocket', mode: 'single', singleParty: MAX_PARTY, additions: 'choose', additionTiming: 'auto', heroLocked: false, gba: true };
     // The hero, and everyone set to start in the party.
     const heroes = this.db.heroes?.length ? this.db.heroes : [mainHero(this.db)];
-    this.party = heroes.filter((h, i) => i === 0 || h.startsInParty).slice(0, MAX_PARTY).map((h) => newMember(this.db, h, Math.max(1, h.joinLevel ?? 1)));
+    this.party = heroes.filter((h, i) => i === 0 || h.startsInParty).slice(0, MAX_PARTY).map((h) => newMember(this.db, h, Math.max(1, h.joinLevel ?? 1), this.cfg));
   }
 
   get lead(): Member { return this.party[0]; }
@@ -382,7 +382,7 @@ class GbaGame {
     if (op === 'add') {
       if (at >= 0) return;
       if (this.party.length >= MAX_PARTY) { if (!quiet) await this.ui.say(`There’s no room in the party for ${def.name}.`); return; }
-      this.party.push(newMember(this.db, def, def.joinLevel ?? this.lead?.level ?? 1));
+      this.party.push(newMember(this.db, def, def.joinLevel ?? this.lead?.level ?? 1, this.cfg));
       if (!quiet) { this.audio.play('questDone'); await this.ui.say(this.t('party.joined', { name: def.name })); }
     } else if (at > 0) {
       this.party.splice(at, 1);
@@ -390,18 +390,48 @@ class GbaGame {
     }
   }
 
-  /** The Learn command: a spell (learned at once) or an Addition (a move: four at most, Pokémon's questions). */
+  /** The Learn command: a spell or an Addition joins their move list (nothing is ever forgotten). */
   async learn(c: Extract<Command, { cmd: 'learn' }>): Promise<void> {
     const who = !c.who || c.who === '@party' ? this.party : this.party.filter((m) => m.id === c.who);
     const sp = findSpell(this.db, c.spell);
     for (const m of who) {
       if (sp) {
-        // A spell is a move: it takes one of the four (Pokémon's questions when they're full).
         const had = (m.abil.spells?.[sp.id] ?? 0) > 0;
-        if (learnSpell(m.abil, sp, c.rank ?? 1) && had && m.moves.includes(spellMove(sp.id)) && !c.silent) await this.ui.say(`${m.def.name}'s ${rankName(sp.name, m.abil.spells![sp.id])} grew stronger!`);
-        else await this.menus.learn(m, spellMove(sp.id), had);
+        const up = learnSpell(m.abil, sp, c.rank ?? 1);
+        learnMove(m, spellMove(sp.id));
+        if (!c.silent && (up || !had)) await this.ui.say(had ? `${m.def.name}'s ${rankName(sp.name, m.abil.spells![sp.id])} grew stronger!` : this.t('learn.learned', { name: m.def.name, move: sp.name }));
+        else if (!c.silent) await this.ui.say(this.t('learn.knows', { name: m.def.name, move: sp.name }));
       }
-      if (c.addition && findAddition(this.db, c.addition)) await this.menus.learn(m, c.addition);
+      const ad = findAddition(this.db, c.addition);
+      if (ad && !m.def.noAdditions) {
+        const fresh = learnMove(m, ad.id);
+        if (!c.silent) await this.ui.say(this.t(fresh ? 'learn.learned' : 'learn.knows', { name: m.def.name, move: ad.name }));
+      }
+    }
+  }
+
+  /** The Change class command: change now, unlock, or (pick) the player chooses from the classes unlocked. */
+  async heroClass(c: Extract<Command, { cmd: 'heroClass' }>): Promise<void> {
+    const who = c.who === '@party' ? this.party : this.party.filter((m) => (c.who ? m.id === c.who : m === this.party[0]));
+    for (const m of who) {
+      if (c.op === 'unlock') {
+        const cl = findClass(this.db, c.cls);
+        if (cl && unlockClass(m, cl.id) && !c.silent) await this.ui.say(this.t('class.unlocked', { name: m.def.name, class: cl.name }));
+        continue;
+      }
+      let id = c.cls;
+      if (c.op === 'pick') {
+        const list = (m.abil.classes ?? []).flatMap((x) => { const cl = findClass(this.db, x); return cl ? [cl] : []; });
+        if (!list.length) { await this.ui.say(this.t('class.none', { name: m.def.name })); continue; }
+        const i = await this.menus.pickClass(m, list);
+        if (i < 0) continue;
+        id = list[i].id;
+      }
+      const cl = findClass(this.db, id);
+      if (!cl) continue;
+      if (!changeClass(this.db, m, cl.id)) { if (c.op === 'pick' && !c.silent) await this.ui.say(this.t('class.already', { name: m.def.name, class: cl.name })); continue; }
+      this.audio.play('levelUp');
+      if (!c.silent) await this.ui.say(this.t('class.changed', { name: m.def.name, class: cl.name }));
     }
   }
 
@@ -455,7 +485,7 @@ class GbaGame {
   loadSave(): boolean {
     const d = this.readSave();
     if (!d || !this.maps.get(d.map)?.gba) return false;
-    const party = d.party.map((x) => loadMember(this.db, x)).filter((m): m is Member => !!m);
+    const party = d.party.map((x) => loadMember(this.db, x, this.cfg)).filter((m): m is Member => !!m);
     if (!party.length) return false;
     this.party.splice(0, this.party.length, ...party);
     this.inventory.load(d.inventory as never, this.inventory.size);
@@ -552,7 +582,7 @@ class GbaGame {
         this.startBattle(foes, c.canRun !== false, c.music, false);
       },
       learn: (c) => { void this.ui.run(() => this.learn(c)); return null; },
-      heroClass: () => null,
+      heroClass: (c) => { void this.ui.run(() => this.heroClass(c)); return null; },
       busy: () => this.battle.active || this.battlePending || this.ui.busy,
     } as EventContext;
     return ctx;
@@ -573,7 +603,7 @@ class GbaGame {
 
   /** Party member `who` (their place in the party) as a fighter: their numbers, moves, spells and pictures. */
   memberEntry(who: number): BattleEntry {
-    const m = this.party[who], c = this.cfg, n = battleNumbers(c, m, this.itemDef), mx = this.maxOf(m);
+    const m = this.party[who], c = this.cfg, n = battleNumbers(c, m, this.itemDef, this.db), mx = this.maxOf(m);
     const w = m.equip.weapon ? this.items.get(m.equip.weapon) : undefined;
     const key = `p${who}`;
     const battler: Battler = {
@@ -585,7 +615,7 @@ class GbaGame {
       status: new BattleStatus([...(m.def.resists ?? []), ...Object.values(m.equip).flatMap((id) => (id ? this.items.get(id)?.protects ?? [] : []))] as never),
       inflicts: w?.inflicts,
       additions: m.def.noAdditions ? [] : battleMoves(this.db, m),
-      moveOrder: m.moves.map((k) => (moveSpell(k) ? `s:${moveSpell(k)}` : `a:${k}`)),
+      moveOrder: battleOrder(this.db, m),
     };
     const frame = (img: HTMLCanvasElement | undefined, sx: number, sy: number, fw: number, fh: number, scale: number) => {
       if (!img) return undefined;
@@ -861,7 +891,7 @@ class GbaGame {
           const m = this.party[who];
           if (!m || m.hp <= 0) continue;
           total = Math.max(total, xp);
-          const startLevel = m.level, startXp = m.xp;
+          const startLevel = m.level, startXp = m.xp, startPts = m.points, startMax = this.maxOf(m);
           const segments: VictoryReport['heroes'][number]['segments'] = [];
           let level = m.level, have = m.xp, left = xp;
           for (let guard = 0; guard < 50; guard++) {
@@ -873,7 +903,7 @@ class GbaGame {
           }
           gainXp(this.db, this.cfg, m, xp, this.itemDef);
           heroes.push({ key: `p${who}`, name: m.def.name, icon: this.faceOf(m) ?? '', level: startLevel, xp: startXp, toNext: xpToNext(this.cfg, startLevel), gained: xp, segments,
-            changes: m.level > startLevel ? [`Level ${startLevel} → ${m.level}`] : [], after: { level: m.level, xp: m.xp, toNext: xpToNext(this.cfg, m.level) } });
+            changes: m.level > startLevel ? [`Level ${startLevel} → ${m.level}`, `HP +${this.maxOf(m).hp - startMax.hp}`, `MP +${this.maxOf(m).mp - startMax.mp}`, ...(m.points > startPts ? [`+${m.points - startPts} skill point${m.points - startPts === 1 ? '' : 's'}`] : [])] : [], after: { level: m.level, xp: m.xp, toNext: xpToNext(this.cfg, m.level) } });
         }
         return { xp: total, heroes, loot: gold ? [{ name: 'Gold', icon: '', count: gold, kind: 'gold' }] : [] };
       },

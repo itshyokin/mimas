@@ -20,6 +20,7 @@ STATS = ['str', 'dex', 'agi', 'end', 'def', 'mag', 'mdf']
 SLOTS = ['weapon', 'shield', 'armor', 'accessory']   # what the ROM equips (others: none)
 MAX_SPELLS = 16
 MAX_ADDITIONS = 32
+MAX_NODES = 64      # skill-tree skills the ROM keeps (each hero saves a rank for each)
 
 # The menus' and battles' colours: the text box palette (index 0-3 as before) and the health bars.
 UI_PAL = [(255, 0, 255), (248, 248, 248), (48, 80, 144), (112, 144, 200),
@@ -495,7 +496,8 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w('struct moveset { uint8_t level; uint8_t count; int16_t moves[4]; };\n')
     w('// An effect: its sprite (64 x 64 frames), frames, whether it\'s a hit (recoloured by element), its sound (-1 none).\n')
     w('struct effect_def { const bn::sprite_item* sprite; uint8_t frames; bool hit; int16_t sound; };\n')
-    w('struct hero_def { const char* name; int16_t stats[7]; int8_t gains[7]; int8_t moves[4]; uint8_t move_count; uint8_t spells[max_spells];\n'
+    w('// moves: the Additions and spells they start with (an Addition k, a spell -(k + 1)); cls: their starting class (-1 none).\n')
+    w('struct hero_def { const char* name; int8_t cls; int8_t moves[16]; uint8_t move_count; uint8_t spells[max_spells];\n'
       '    int16_t gear[4]; bool starts; uint8_t join_level; bool no_additions; const bn::sprite_item* back; const bn::sprite_item* face; int8_t elements[2];\n'
       '    int8_t gender; };   // gender: 0 male, 1 female, -1 none shown\n')
     w('// power: the strikes\' powers added up, x100. inflict: an ailment (-1 none) and its chance. hit / burst: effects (-1 none).\n')
@@ -508,7 +510,7 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w('// kind: 0 usable (restores), 1 key item, 2 gear, 3 other. slot: -1 none, else enum slot. attack x100.\n')
     w('struct item_def { const char* name; const char* description; uint8_t kind; int8_t slot; int16_t price; bool no_sell;\n'
       '    int16_t hp; int16_t mp; int16_t hp_pct; int16_t mp_pct; bool revive; int16_t attack; int16_t defense; int16_t magic_defense;\n'
-      '    int8_t bonus[7]; int8_t crit; const bn::sprite_item* icon; };\n')
+      '    int8_t bonus[7]; int8_t crit; const bn::sprite_item* icon; int8_t gear_kind; };   // gear_kind: a gear_kinds row (-1: anyone)\n')
     w('// attack x100.\n')
     w('// elements: up to two (-1 none); immune / absorb: element bits; resists: ailment bits; movesets: by level (the first is\n'
       '// its own moves, level 0); element / inflict: its plain hit\'s.\n')
@@ -560,21 +562,62 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w(f'constexpr int fx_hit_plain = {fx_index.get("fx_hit", -1)};\n')
     w(f'constexpr int fx_sparkle = {fx_index.get("fx_sparkle", -1)};\n\n')
 
+    # classes (Update 14): stats start at 10 and grow by class; each class's gear rules and skill trees
+    classes = game.get('classes') or []
+    class_index = {c['id']: i for i, c in enumerate(classes)}
+    kinds = game.get('gearKinds') or []
+    kind_index = {g['id']: i for i, g in enumerate(kinds)}
+    skills = game.get('skills') or {'trees': [], 'nodes': []}
+    trees = skills.get('trees') or []
+    tree_index = {t['id']: i for i, t in enumerate(trees)}
+    nodes = [n for n in (skills.get('nodes') or []) if n.get('tree') in tree_index][:MAX_NODES]
+    node_index = {n['id']: i for i, n in enumerate(nodes)}
+    w(f'constexpr int class_count = {len(classes)};\nconstexpr int gear_kind_count = {max(1, len(kinds))};\n')
+    w(f'constexpr int tree_count = {len(trees)};\nconstexpr int node_count = {len(nodes)};\nconstexpr int max_nodes = {MAX_NODES};\n')
+    w(f'constexpr int points_per_level = {int(game.get("pointsPerLevel", 1))};\nconstexpr int start_points = {int(game.get("startPoints", 0))};\n')
+    w('// A gear kind (weapon type, armor type, shields): untrained armor costs these stats.\n')
+    w('struct gear_kind_def { int8_t untrained[7]; bool weapon; };\n')
+    w('constexpr gear_kind_def gear_kinds[] = { ' + (', '.join('{ { ' + ', '.join(str(max(-99, min(99, int(v)))) for v in (g.get('untrained') or [0] * 7)) + ' }, ' + ('true' if g.get('weapon') else 'false') + ' }' for g in kinds) or '{ { 0, 0, 0, 0, 0, 0, 0 }, false }') + ' };\n')
+    w('// bonus: once, joining it; per_level: each level up, in tenths; dice: health and magic rolls; trees: bits;\n'
+      '// gear: each gear kind 0 trained, 1 untrained (weaker), 2 can\'t use.\n')
+    w('struct class_def { const char* name; const char* description; int8_t bonus[7]; int16_t per_level[7]; uint8_t hp_die; uint8_t mp_die;\n'
+      '    uint32_t trees; uint8_t gear[gear_kind_count]; };\n')
+    crows = []
+    for c in classes:
+        tb = sum(1 << tree_index[t] for t in c.get('trees', []) if t in tree_index and tree_index[t] < 32)
+        gr = [{'trained': 0, 'untrained': 1, 'none': 2}.get((c.get('gear') or {}).get(g['id'], 'trained'), 0) for g in kinds] or [0]
+        crows.append(f'{{ {c_str(c.get("name"))}, {c_str(c.get("description", ""))}, {{ {", ".join(str(max(-99, min(99, int(v)))) for v in c.get("bonus", [0] * 7))} }}, '
+                     f'{{ {", ".join(str(i16(v)) for v in c.get("perLevel", [0] * 7))} }}, {int(c.get("hpDie", 8))}, {int(c.get("mpDie", 6))}, {tb}u, {{ {", ".join(str(x) for x in gr)} }} }}')
+    w('constexpr class_def classes[] = {\n    ' + (',\n    '.join(crows) or '{ "", "", { 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0 }, 8, 6, 0u, { 0 } }') + '\n};\n')
+    w('struct tree_def { const char* name; };\n')
+    w('constexpr tree_def trees[] = { ' + (', '.join(f'{{ {c_str(t.get("name"))} }}' for t in trees) or '{ "" }') + ' };\n')
+    w('// A skill: its tree, up to four skills needed first (-1 none), ranks, cost (points a rank), level needed, stats a rank,\n'
+      '// the Addition (-1) or spell (-1) it teaches (the spell at rank r + spell_from - 1).\n')
+    w('struct node_def { const char* name; const char* description; int8_t tree; int8_t parents[4]; uint8_t ranks; uint8_t cost; uint8_t level;\n'
+      '    int8_t stats[7]; int8_t addition; int8_t spell; uint8_t spell_from; };\n')
+    nrows = []
+    for n in nodes:
+        par = [node_index[p] for p in n.get('parents', []) if p in node_index][:4]
+        ad = add_index.get(n.get('addition'), -1) if n.get('addition') else -1
+        sp_ = spell_index.get(n.get('spell'), -1) if n.get('spell') else -1
+        nrows.append(f'{{ {c_str(n.get("name"))}, {c_str(n.get("description", ""))}, {tree_index[n["tree"]]}, {{ {", ".join(str(x) for x in (par + [-1] * 4)[:4])} }}, '
+                     f'{max(1, min(9, int(n.get("ranks", 1))))}, {max(0, min(99, int(n.get("cost", 1))))}, {max(0, min(99, int(n.get("level", 0))))}, '
+                     f'{{ {", ".join(str(max(-99, min(99, int(v)))) for v in n.get("stats", [0] * 7))} }}, {ad if ad < MAX_ADDITIONS else -1}, {sp_ if sp_ < MAX_SPELLS else -1}, {max(1, int(n.get("spellFrom", 1)))} }}')
+    w('constexpr node_def nodes[] = {\n    ' + (',\n    '.join(nrows) or '{ "", "", 0, { -1, -1, -1, -1 }, 1, 1, 0, { 0, 0, 0, 0, 0, 0, 0 }, -1, -1, 1 }') + '\n};\n\n')
+
     # heroes
     rows = []
     for k, h in enumerate(heroes):
-        st = h.get('stats') or {}
-        gn = h.get('gains') or {}
-        mv = [add_index[m] for m in h.get('moves', []) if m in add_index][:4]
+        mv = [add_index[m] for m in h.get('moves', []) if m in add_index][:16]
         sp = [0] * MAX_SPELLS
         for sid, rank in (h.get('spells') or {}).items():
             if sid in spell_index and spell_index[sid] < MAX_SPELLS:
                 sp[spell_index[sid]] = max(0, min(5, int(rank or 0)))
-        # Spells they start with are moves too (FIGHT holds both), in the free slots.
-        mv += [-(i + 1) for i, r in enumerate(sp) if r > 0][:max(0, 4 - len(mv))]
+        # Spells they start with are moves too.
+        mv += [-(i + 1) for i, r in enumerate(sp) if r > 0][:max(0, 16 - len(mv))]
         gear = [item_index.get((h.get('gear') or {}).get(s), -1) for s in SLOTS]
-        rows.append(f'{{ {c_str(h.get("name"))}, {{ {", ".join(str(i16(st.get(s, 10))) for s in STATS)} }}, {{ {", ".join(str(int(gn.get(s, 2))) for s in STATS)} }}, '
-                    f'{{ {", ".join(str(x) for x in (mv + [-1] * 4)[:4])} }}, {len(mv)}, {{ {", ".join(str(x) for x in sp)} }}, {{ {", ".join(str(x) for x in gear)} }}, '
+        rows.append(f'{{ {c_str(h.get("name"))}, {class_index.get(h.get("cls"), -1)}, '
+                    f'{{ {", ".join(str(x) for x in (mv + [-1] * 16)[:16])} }}, {len(mv)}, {{ {", ".join(str(x) for x in sp)} }}, {{ {", ".join(str(x) for x in gear)} }}, '
                     f'{"true" if h.get("startsInParty") else "false"}, {int(h.get("joinLevel", 0) or 0)}, {"true" if h.get("noAdditions") else "false"}, '
                     f'&bn::sprite_items::hback_{k}, &bn::sprite_items::hface_{k}, '
                     f'{{ {", ".join(str(el_index.get(x, -1)) for x in ((h.get("elements") or []) + [None, None])[:2])} }}, '
@@ -611,8 +654,9 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
         irows.append(f'{{ {c_str(it.get("name"))}, {c_str(it.get("description", ""))}, {kind}, {slot}, {i16(it.get("price", 0))}, {"true" if it.get("noSell") else "false"}, '
                      f'{i16(it.get("hp", 0))}, {i16(it.get("mp", 0))}, {i16(it.get("hpPct", 0))}, {i16(it.get("mpPct", 0))}, {"true" if it.get("revive") else "false"}, '
                      f'{i16(float(it.get("attack", 0)) * 100)}, {i16(it.get("defense", 0))}, {i16(it.get("magicDefense", 0))}, '
-                     f'{{ {", ".join(str(max(-128, min(127, int(b.get(s, 0))))) for s in STATS)} }}, {max(-128, min(127, int(it.get("crit", 0))))}, &bn::sprite_items::icon_{k} }}')
-    w('constexpr item_def items[] = {\n    ' + (',\n    '.join(irows) or '{ "", "", 3, -1, 0, false, 0, 0, 0, 0, false, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0, nullptr }') + '\n};\n\n')
+                     f'{{ {", ".join(str(max(-128, min(127, int(b.get(s, 0))))) for s in STATS)} }}, {max(-128, min(127, int(it.get("crit", 0))))}, &bn::sprite_items::icon_{k}, '
+                     f'{kind_index.get(it.get("gearKind"), -1)} }}')
+    w('constexpr item_def items[] = {\n    ' + (',\n    '.join(irows) or '{ "", "", 3, -1, 0, false, 0, 0, 0, 0, false, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0, nullptr, -1 }') + '\n};\n\n')
 
     erows = []
     for k, e in enumerate(enemies):
@@ -696,8 +740,6 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     w(f'constexpr int party_damage = {i16(float(game.get("partyDamage", 1)) * 100)};   // %\n')
     w(f'constexpr int enemy_damage = {i16(float(game.get("enemyDamage", 1)) * 100)};   // %\n')
     w(f'constexpr int flee_chance = {int(game.get("flee", 50))};\n')
-    w(f'// Additions past four: forget one (Pokemon), or keep them all and equip four (Party > Moves).\n')
-    w(f'constexpr bool equip_moves = {"true" if game.get("moveSlots") == "equip" else "false"};\n')
     text_table(w, game.get('text') or {})
     w('}\n\n#endif\n')
     with open(os.path.join(inc, 'mimas_game.h'), 'w') as f:

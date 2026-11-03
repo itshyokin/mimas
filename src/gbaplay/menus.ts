@@ -9,12 +9,14 @@
  *          move off the four: nothing is forgotten, and the four are chosen here).
  */
 import { builtinIcon, builtinIconName } from '../art/itemIcons';
-import { findAddition, spellList } from '../game/abilities';
 import { ATTR_INFO, ATTRS } from '../game/attributes';
 import { xpToNext, type CombatConfig } from '../game/combat/config';
 import type { Inventory } from '../game/inventory';
 import type { Database, EquipSlot, ItemDef } from '../world/types';
-import { battleNumbers, knownMoves, MAX_MOVES, maxOf, moveInfo, moveSpell, type Member } from './party';
+import { battleNumbers, canWear, maxOf, memberTrees, moveInfo, moveList, nodeState, takeNode, type Member } from './party';
+import { findClass } from '../game/abilities';
+import { skillsData } from '../game/skills';
+import type { ClassDef } from '../world/types';
 import type { GbaUi, Row } from './ui';
 import type { TextVars } from '../gba/text';
 
@@ -66,6 +68,7 @@ export class Menus {
     const rows = (): Row[] => [
       { label: h.t('menu.party'), detail: 'Check and organize your party.', disabled: !h.party.length },
       { label: h.t('menu.bag'), detail: 'Items, gear and key items you carry.' },
+      { label: h.t('menu.skills'), detail: 'Spend skill points in the skill trees.', disabled: !h.party.length },
       { label: (hero?.def.name ?? 'HERO').toUpperCase(), detail: 'Your money and play time.' },
       { label: h.t('menu.save'), detail: 'Save your progress.' },
       { label: h.t('menu.exit'), detail: 'Close this menu.' },
@@ -75,12 +78,13 @@ export class Menus {
       const win = this.ui.open({ x: 160, y: 4, w: 76, rows: rows(), detail: true, cls: 'start' });
       for (;;) {
         const i = await this.ui.pick(win);
-        if (i < 0 || i === 4) break;
+        if (i < 0 || i === 5) break;
         win.el.hidden = true; if (win.detailEl) win.detailEl.hidden = true;
         if (i === 0) await this.partyMenu();
         else if (i === 1) await this.bag();
-        else if (i === 2) await this.card();
-        else if (i === 3) { if (await this.saveFlow()) break; }
+        else if (i === 2) await this.skillsMenu();
+        else if (i === 3) await this.card();
+        else if (i === 4) { if (await this.saveFlow()) break; }
         win.el.hidden = false; if (win.detailEl) win.detailEl.hidden = false;
       }
       this.ui.close(win);
@@ -142,10 +146,12 @@ export class Menus {
   }
 
   private async summary(m: Member): Promise<void> {
-    const h = this.h, items = (id: string) => h.items.get(id), max = maxOf(h.db, m, items), n = battleNumbers(h.cfg, m, items);
+    const h = this.h, items = (id: string) => h.items.get(id), max = maxOf(h.db, m, items), n = battleNumbers(h.cfg, m, items, h.db);
     const need = xpToNext(h.cfg, m.level);
     const rows: Row[] = [
       { label: 'LEVEL', right: `${m.level}` },
+      { label: 'CLASS', right: (findClass(h.db, m.abil.cls)?.name ?? '—').toUpperCase() },
+      { label: 'SKILL POINTS', right: `${m.points}` },
       { label: 'HP', right: `${Math.max(0, m.hp)}/${max.hp}` },
       { label: 'MP', right: `${m.mp}/${max.mp}` },
       { label: 'EXP TO NEXT', right: need > 0 ? `${need - m.xp}` : '—' },
@@ -160,73 +166,61 @@ export class Menus {
     return ids.map((id) => { const i = moveInfo(this.h.db, m, id); return { label: i.name, right: i.right.toUpperCase(), detail: i.detail }; });
   }
 
+  /** Their move list, as battles show it: Additions weakest first, then the spells (cheapest first). */
+  moveListRows(m: Member): Row[] {
+    const l = moveList(this.h.db, m);
+    return [...this.moveRows(m, l.additions), ...(l.spells.length ? [{ label: '[ Spells ]', divider: true, disabled: true }, ...this.moveRows(m, l.spells)] : [])];
+  }
+
   async movesMenu(m: Member): Promise<void> {
-    const equip = this.h.cfg.turnBased.moveSlots === 'equip';
-    const rows = (): Row[] => [
-      ...this.moveRows(m, m.moves),
-      ...(equip && m.moves.length < MAX_MOVES && knownMoves(this.h.db, m).length > m.moves.length ? [{ label: '-', detail: 'An empty slot: choose a move for it.' }] : []),
-    ];
-    const win = this.ui.open({ x: 24, y: 6, w: 192, rows: rows(), title: `${m.def.name.toUpperCase()}’S MOVES`, detail: true, cls: 'moves' });
-    this.ui.setRows(win, rows());
+    const rows = this.moveListRows(m);
+    if (!rows.length) { await this.ui.say(`${m.def.name} knows no moves.`); return; }
+    await this.ui.choose({ x: 24, y: 6, w: 192, max: 6, rows, title: `${m.def.name.toUpperCase()}’S MOVES`, detail: true, cls: 'moves' });
+  }
+
+  /* ------------------------------------------------------------------ SKILLS */
+
+  /** The skill trees: a hero, then their trees (◀ ▶), each skill with its rank or cost; A takes the next rank. */
+  async skillsMenu(): Promise<void> {
+    const h = this.h;
+    const k = h.party.length > 1 ? await this.pickMember('Whose skills?', (m) => `${m.points} SP`) : 0;
+    if (k < 0) return;
+    const m = h.party[k], sk = skillsData(h.db.skills);
+    const trees = () => { const t = memberTrees(h.db, m); return [...t.learn.map((id) => ({ id, own: true })), ...t.view.map((id) => ({ id, own: false }))]; };
+    if (!trees().length) { await this.ui.say(`${m.def.name} has no skill trees.`); return; }
+    let p = 0;
+    const nodes = () => sk.nodes.filter((n) => n.tree === trees()[p]?.id).sort((a, b) => a.y - b.y || a.x - b.x);
+    const rows = (): Row[] => nodes().map((n) => {
+      const st = nodeState(h.db, m, n);
+      return { label: n.name, right: st.rank >= st.max ? (st.max > 1 ? `${st.rank}/${st.max}` : 'DONE') : `${st.max > 1 ? `${st.rank}/${st.max} · ` : ''}${st.cost} SP`, disabled: !st.ok,
+        detail: [n.description, st.why].filter(Boolean).join('\n') };
+    });
+    const win = this.ui.open({ x: 8, y: 4, w: 224, max: 6, rows: [], detail: true, cls: 'skills' });
+    const fill = () => {
+      const t = trees()[p], name = sk.trees.find((x) => x.id === t.id)?.name ?? t.id;
+      win.opts.title = `◀ ${name.toUpperCase()}${t.own ? '' : ' (VIEW)'} ▶  ${m.points} SP`;
+      this.ui.setRows(win, rows());
+    };
+    fill();
+    win.onSide = (d) => { p = (p + d + trees().length) % trees().length; win.i = 0; win.top = 0; fill(); h.sound('menuMove'); };
     for (;;) {
       const i = await this.ui.pick(win);
       if (i < 0) break;
-      if (!equip) continue;
-      // Equip: what goes in this slot (any move they know that isn't in the four).
-      const spare = knownMoves(this.h.db, m).filter((id) => !m.moves.includes(id));
-      if (!spare.length) { await this.ui.say(`${m.def.name} knows no other moves.`); continue; }
-      const j = await this.ui.choose({ x: 40, y: 30, w: 176, max: 6, rows: this.moveRows(m, spare), title: 'Use which move?', detail: true });
-      if (j < 0) continue;
-      if (i < m.moves.length) m.moves[i] = spare[j]; else m.moves.push(spare[j]);
-      this.ui.setRows(win, rows());
+      const n = nodes()[i], st = nodeState(h.db, m, n);
+      if (!st.ok) continue;
+      if ((await this.ui.ask(h.t('skill.ask', { name: m.def.name, move: n.name, n: st.cost }))) !== 0) continue;
+      takeNode(h.db, m, n, (id) => h.items.get(id));
+      h.sound('levelUp');
+      await this.ui.say(h.t('skill.done', { name: m.def.name, move: n.name }));
+      fill();
     }
     this.ui.close(win);
   }
 
-  /**
-   * Learning a move (the Learn command, a level): learned at once with a free slot; otherwise, Pokémon's questions.
-   * Forget: the one chosen is gone. Equip: it only leaves the four (still known, chosen again in Party → Moves).
-   */
-  async learn(m: Member, id: string, wasKnown = false): Promise<void> {
-    const sid = moveSpell(id);
-    const d = sid ? null : findAddition(this.h.db, id), name = moveInfo(this.h.db, m, id).name, who = m.def.name;
-    const equip = this.h.cfg.turnBased.moveSlots === 'equip';
-    if (sid ? !spellList(this.h.db).some((x) => x.id === sid) : !d || m.def.noAdditions) return;
-    const known = sid ? wasKnown : !!m.abil.additions && id in m.abil.additions;
-    if (m.moves.includes(id) || (known && !equip)) { if (!sid) await this.ui.say(this.h.t('learn.knows', { name: who, move: name })); return; }
-    // Known from now on (a spell: learnSpell already did it).
-    const forget = (k: string) => { const s2 = moveSpell(k); if (s2) delete m.abil.spells?.[s2]; else delete m.abil.additions?.[k]; };
-    if (!sid) (m.abil.additions ??= {})[id] ??= 0;
-    if (m.moves.length < MAX_MOVES) {
-      m.moves.push(id);
-      this.h.sound('levelUp');
-      await this.ui.say(this.h.t('learn.learned', { name: who, move: name }));
-      return;
-    }
-    await this.ui.say(`${who} is trying to learn ${name}.`);
-    await this.ui.say(`But ${who} can’t use more than ${MAX_MOVES} moves.`);
-    for (;;) {
-      const q = equip ? `Replace a move with ${name}?` : `Delete a move to make room for ${name}?`;
-      if ((await this.ui.ask(q)) === 0) {
-        const i = await this.ui.choose({ x: 24, y: 6, w: 192, rows: [...this.moveRows(m, m.moves), ...this.moveRows(m, [id])], title: equip ? 'Replace which move?' : 'Forget which move?', detail: true });
-        if (i >= 0 && i < m.moves.length) {
-          const old = moveInfo(this.h.db, m, m.moves[i]).name;
-          if (!equip) forget(m.moves[i]);
-          m.moves[i] = id;
-          await this.ui.say(equip ? `${who} put away ${old}.` : `1, 2, and… Poof! ${who} forgot ${old}.`);
-          this.h.sound('levelUp');
-          await this.ui.say(`And… ${who} learned ${name}!`);
-          return;
-        }
-        if (i < 0) continue;
-      }
-      // The new one picked, or no: give up on it?
-      if ((await this.ui.ask(`Stop learning ${name}?`)) === 0) {
-        if (!equip) forget(id);
-        await this.ui.say(equip ? `${who} learned ${name}, but kept their four moves.` : `${who} did not learn ${name}.`);
-        return;
-      }
-    }
+  /** A class trainer: choose one of the classes they've unlocked (-1: none). */
+  async pickClass(m: Member, list: ClassDef[]): Promise<number> {
+    return this.ui.choose({ x: 40, y: 20, w: 160, max: 6, title: `${m.def.name.toUpperCase()}: WHICH CLASS?`, detail: true,
+      rows: list.map((c) => ({ label: c.name, right: c.id === m.abil.cls ? 'NOW' : '', detail: c.description })) });
   }
 
   private async equipMenu(m: Member): Promise<void> {
@@ -240,8 +234,8 @@ export class Menus {
       const i = await this.ui.pick(win);
       if (i < 0) break;
       const slot = SLOT_NAMES[i][0];
-      const bag = inv.slots.flatMap((s) => { const d = s && h.items.get(s.id); return s && d && d.slot === slot ? [d] : []; });
-      const list: Row[] = [...bag.map((d) => ({ label: d.name, icon: this.icon(d), detail: d.description })), ...(m.equip[slot] ? [{ label: 'REMOVE', detail: 'Put it back in the bag.' }] : [])];
+      const bag = [...new Map(inv.slots.flatMap((s) => { const d = s && h.items.get(s.id); return s && d && d.slot === slot ? [[d.id, d] as const] : []; })).values()];
+      const list: Row[] = [...bag.map((d) => ({ label: d.name, icon: this.icon(d), detail: canWear(h.db, m, d) ? d.description : `${m.def.name}'s class can't use this.`, disabled: !canWear(h.db, m, d) })), ...(m.equip[slot] ? [{ label: 'REMOVE', detail: 'Put it back in the bag.' }] : [])];
       if (!list.length) { await this.ui.say('Nothing in the bag goes there.'); continue; }
       const j = await this.ui.choose({ x: 40, y: 30, w: 176, max: 6, rows: list, title: SLOT_NAMES[i][1], detail: true });
       if (j < 0) continue;
@@ -297,9 +291,10 @@ export class Menus {
   }
 
   private async giveGear(d: ItemDef): Promise<void> {
-    const k = await this.pickMember(`Equip ${d.name} on whom?`, (m) => (m.equip[d.slot!] ? 'swap' : ''));
+    const k = await this.pickMember(`Equip ${d.name} on whom?`, (m) => (!canWear(this.h.db, m, d) ? 'can’t' : m.equip[d.slot!] ? 'swap' : ''));
     if (k < 0) return;
     const m = this.h.party[k];
+    if (!canWear(this.h.db, m, d)) { await this.ui.say(`${m.def.name}'s class can't use the ${d.name}.`); return; }
     if (this.equip(m, d.slot!, d.id)) await this.ui.say(this.h.t('item.equipped', { name: m.def.name, item: d.name }));
     else await this.ui.say('There’s no room in the bag for what they had on.');
   }

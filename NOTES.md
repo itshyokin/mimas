@@ -76,7 +76,11 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       (*A Green Slime leaps out!*, *Jordan stands ready.*, *Struck a weakness!*…); ATTACK / ITEMS / SWAP / FLEE;
       diamond party markers; no "Pokémon" in the editor's labels; the Database split into Database and Saturn extras
       views; heroes fight side-on (their character facing the foe, ×2) by default, the mannequin still a choice.
-- [ ] Update 14: classes, growth, skill trees, the move list (see HANDOFF.md).
+- [x] Update 14 (Nov 3): stats come from classes (everyone starts at 10; per-level bonuses with fractions; health and
+      magic dice); Change class can change, unlock or open a class trainer (keeps everything); skill trees in the GBA
+      game (points per level, stat skills, skills that teach Additions and spells; START → SKILLS; old classes' trees
+      to look at); the move list replaces the four moves (Additions weakest first, "[ Spells ]", spells cheapest
+      first; nothing forgotten); gear a class can't use is greyed and untrained gear is weaker. Playtest and ROM.
 - [ ] Update 15: timed Additions with MP. Update 16: save slots, title screen, achievements, credits.
 - [ ] Battles with more than one hero and foe out at once (2 v 2 or 3 v 3): owner is thinking about it.
 - [ ] Music in the ROM (tracker files); support spells' buffs in the ROM; learning moves on level up (a learnset).

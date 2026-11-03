@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 3, 2026, after Update 13; Updates 14-16 planned below)
+# Handoff: where Mimas stands (Nov 3, 2026, after Update 14; Updates 15-16 planned below)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -48,7 +48,7 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Next up: the owner's plan (agreed Nov 3, 2026). Build in this order, one numbered update and build each.
-Update 13 is built (below, kept for reference); 14-16 are not. Owner wants the game NOT too close to Pokémon
+Updates 13 and 14 are built (below, kept for reference); 15-16 are not. Owner wants the game NOT too close to Pokémon
 (copyright worry); mechanics are fine, copied wording and look are what we're removing.
 
 ### Update 13 (BUILT): text, words, Database split, side view
@@ -76,7 +76,7 @@ Update 13 is built (below, kept for reference); 14-16 are not. Owner wants the g
   the foe (right), scaled ×2 (whole steps). The mannequin stays an option (it's drawn from behind, so it would want
   a side pose to match).
 
-### Update 14: classes, growth, skill trees, move list
+### Update 14 (BUILT): classes, growth, skill trees, move list
 - **Stats are class-only.** Every hero starts with 10 in each stat; heroes give no bonuses (grey out heroes' own
   stats / ranks). Each level the class adds its per-level stat bonus (allow fractions, keep the remainder, e.g.
   +1.5 → +1, +2…). Joining at level N = N-1 levels of their starting class's bonuses. Nodes, gear, items and effects
@@ -125,6 +125,25 @@ Update 13 is built (below, kept for reference); 14-16 are not. Owner wants the g
 - **Credits:** reuse Saturn's Credits tab (un-grey it) for a credits roll.
 
 ## Things to know
+- Update 14, classes / growth / skills / move list:
+  - Rules (playtest src/gbaplay/party.ts = ROM game_systems.hpp): Member.tenths (stats ×10, start 100), hpRoll / mpRoll,
+    nodes (skill ranks), points, moves = every move in the order learned. joinClass gives ClassDef.bonus once (abil.joined);
+    growLevel adds ClassDef.perLevel (tenths), rolls hpDie / mpDie (unset 8 / 6) and pointsPerLevel. newMember: class
+    boost, then level − 1 growLevels. max HP = base + Endurance bonus + hpRoll; max MP = base + mpRoll. Node stats add in
+    totalsOf (only the seven stats; Saturn's other skill effects do nothing in GBA mode). Untrained weapon ×¾, untrained
+    armor costs its type's stats, "Can't use" greyed in equip (playtest canWear, ROM gear_skill).
+  - Move list: moveList / battleOrder (playtest) and move_list / move_list_rows (ROM): Additions by summed strike power,
+    spells by MP at the known rank, ties by learn order. TurnBattle.gbaFightMenu is a scrolling list (ChoiceItem.divider,
+    BattleScreen gba-moves CSS), lastMove per fighter; ROM pick() rows have `divider`, member.move_at remembers. The
+    learnset / forget questions and moveSlots are gone (CombatEditor field removed; config field left unused).
+  - Skills: memberTrees / nodeState / takeNode (playtest), member_trees / node_ok / take_node / skills_menu (ROM).
+    Exported in gba_game.json `skills` (nodes sorted per tree by y then x = the page's order; Party trees left out),
+    `classes` (bonus, perLevel ×10, dice, trees, gear), `gearKinds`, items' gearKind, pointsPerLevel, startPoints.
+    MAX_NODES 64 (tools/gba_game.py), classes / trees ≤ 32 (bits).
+  - Change class: Command heroClass op 'pick' (class trainer). ROM op CLASS who op cls silent (gba_events.py; enum in
+    export.py); class_event / pick_class. SAVE_MAGIC is MIMAS08 (old cartridge saves are ignored); playtest saves
+    from before are rebuilt at their level (loadMember).
+  - Database: Classes and Skill trees tabs are on; heroes' Progression curve / Setting up stats are Saturn extras.
 - Update 13, text / views / side view:
   - Lines: src/gba/text.ts is the one list (TEXT_LINES: key, group, label, default versions, `word` for command words);
     db.gbaText holds only overrides (cleanText). gbaLine(db, key, vars) picks a version at random and fills {name}

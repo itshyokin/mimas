@@ -6,7 +6,7 @@
 
 /** Whole tabs the GBA game leaves out. */
 export const MIMAS_OFF_TABS: ReadonlySet<string> = new Set([
-  'classes', 'relations', 'roleplay', 'skills', 'materials', 'shards', 'quests', 'achievements', 'tutorials', 'globals',
+  'relations', 'roleplay', 'materials', 'shards', 'quests', 'achievements', 'tutorials', 'globals',
   'camera', 'time', 'climate', 'mapThemes', 'markers', 'horses', 'messageStyles', 'textColors', 'credits',
 ]);
 
@@ -20,7 +20,8 @@ const OFF: Record<string, Off> = {
       // Mimas battles are always one hero against one foe, on the Pocket Handheld screen, with no timing game.
       'Battle mode', 'Battle screen layout', 'Addition timing', 'Heroes who fight (Single)', 'Most enemies in a battle', 'Turn order', 'Single mode: battles are',
       'Enemies who join (tiles)', 'Campfire safe ground (tiles)', 'Safe after a battle (s)', 'Field of view (°)',
-      'Skill points per level', 'Party skill points per level', 'Skill points at the start',
+      // Update 14: skill points per level and at the start are the GBA game's (the Party tree's aren't).
+      'Party skill points per level',
       'Drops show after', 'Elements show after', 'Numbers show after', 'Pills show',
       // Enemies: the field (action) side and the extras the ROM's battles don't roll.
       'Behaviour', 'Hearing', 'Sight (tiles)', 'Moves by', 'Speed', 'Height (tiles)', 'Height offset (tiles)', 'Weapon sprite', 'Shield',
@@ -44,8 +45,9 @@ const OFF: Record<string, Off> = {
     labels: ['Bolt speed', 'Range (tiles)', 'Charges (turns)', 'A clean cast', 'Ring closes (s)', 'Accuracy %', 'Each rank: magic +%'],
   },
   heroes: {
-    sections: ['Forms', 'Rest preferences', 'Roleplay'],
-    labels: ['Battle height offset (tiles)', 'Class', 'Face art', 'Outfit gender', 'Rerolls', 'Fights as'],
+    // Update 14: stats come from classes (everyone starts at 10), so a hero's own stats and ranks are Saturn's.
+    sections: ['Forms', 'Rest preferences', 'Roleplay', 'Progression curve', 'Setting up stats'],
+    labels: ['Battle height offset (tiles)', 'Face art', 'Outfit gender', 'Rerolls', 'Fights as', 'Stats when they join'],
   },
   menus: {
     sections: ['Window theme', 'Title screen', 'Pause menu', 'Developer console', 'Journal'],

@@ -126,3 +126,24 @@ body.gba-mode .battle.has-backdrop { background-size: 100% 100%; background-posi
 body.gba-mode .battle.has-backdrop .battle-log:not(.focused) .battle-log-hint { background: rgba(248, 248, 248, 0.85); color: #404050; opacity: 1; padding: 1px 6px; border-radius: 4px; }
 /* Battle lines ("Jordan used Quick Strike!") about 1.4× bigger. */
 body.gba-mode .battle.layout-pocket .pocket-text { font-size: calc(var(--u) * 2.5); line-height: 1.4; }
+
+/* Update 14: a heading inside a list ("[ Spells ]"), passed over by the cursor. */
+.gba-row.divider { justify-content: center; cursor: default; color: #707078; padding-left: 0; }
+.gba-row.divider::before { display: none; }
+.gba-row.taken .gba-label { color: #3a7a3a; }
+
+/* Update 14: the move list (Additions, "[ Spells ]", spells) in the command box's place, scrolling, one line a move;
+   the chosen one's details are in the note box. */
+body.gba-mode .battle.layout-pocket.list-mode .battle-cmd.gba-moves { height: var(--cmd-h); padding: calc(var(--u) * 0.8) calc(var(--u) * 1.2); }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .battle-cmd-title { display: none; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .battle-cmd-list { display: flex; flex-direction: column; gap: 0; overflow-y: auto; scrollbar-width: thin; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd { display: flex; align-items: center; gap: calc(var(--u) * 0.8); min-height: calc(var(--u) * 3.4); padding: 0 calc(var(--u) * 1) 0 calc(var(--u) * 2.4); flex: none; position: relative; border-width: 2px; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd-detail { display: none; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd-label { flex: 1; font-size: calc(var(--u) * 1.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd-right { font-size: calc(var(--u) * 1.3); white-space: nowrap; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd-inline-icon img { width: calc(var(--u) * 1.8); height: calc(var(--u) * 1.8); image-rendering: pixelated; display: block; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd[aria-selected="true"]::before { content: '▶'; position: absolute; left: calc(var(--u) * 0.7); top: 50%; transform: translateY(-50%); font-size: calc(var(--u) * 1.2); color: #d04040; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd:disabled:not(.bcmd-divider) { opacity: 0.45; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd-divider { justify-content: center; min-height: calc(var(--u) * 2.6); padding: 0; opacity: 1; }
+body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd-divider .bcmd-label { flex: none; font-size: calc(var(--u) * 1.4); color: #808090; letter-spacing: 0.06em; }
+body.gba-mode .battle.layout-pocket.list-mode:has(.gba-moves) .pocket-heroes { bottom: calc(var(--g) * 2 + var(--cmd-h) + env(safe-area-inset-bottom, 0px)); }

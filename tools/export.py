@@ -1171,7 +1171,7 @@ def main():
     w(f'constexpr int hero_frames = {HERO_COLS};\n\n')
     w('// Event scripts (tools/gba_events.py has the ops). Text is pre-wrapped: lines split by \\n, pages by \\f.\n')
     w('enum op : int16_t { OP_END, OP_TEXT, OP_CHOICE, OP_JUMP, OP_IF, OP_SWITCH, OP_VAR, OP_SELF, OP_GIVE, OP_TAKE, OP_GOLD, '
-      'OP_TRANSFER, OP_WAIT, OP_FADEOUT, OP_FADEIN, OP_BATTLE, OP_PARTY, OP_LEARN, OP_SHOP, OP_SAVE, OP_GAUGE, OP_HEAL };\n')
+      'OP_TRANSFER, OP_WAIT, OP_FADEOUT, OP_FADEIN, OP_BATTLE, OP_PARTY, OP_LEARN, OP_SHOP, OP_SAVE, OP_GAUGE, OP_HEAL, OP_CLASS };\n')
     w('struct condition { uint8_t type; uint8_t op; int16_t a; int16_t b; };\n')
     w('// sprite: -1 none, -2 the player\'s sprite (a stand-in), k = npc_sprites[k]. trigger: 0 action, 1 touch, 2 autorun, 3 none.\n')
     w('// trainer: an index into trainers[] (mimas_game.h), or -1.\n')

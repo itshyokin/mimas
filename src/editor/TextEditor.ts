@@ -10,7 +10,7 @@ import { TEXT_GROUPS, TEXT_LINES, fillLine, type TextLine } from '../gba/text';
 const MAX_LEN = 150;
 
 /** Sample fill-ins for the preview under a line. */
-const SAMPLE = { name: 'Jordan', foe: 'Green Slime', target: 'Green Slime', move: 'Quick Strike', item: 'Potion', n: 12, level: 5 };
+const SAMPLE = { name: 'Jordan', foe: 'Green Slime', target: 'Green Slime', move: 'Quick Strike', item: 'Potion', class: 'Titan', n: 12, level: 5 };
 
 export function gbaTextTab(text: Record<string, string[]>, state: { q: string }, render: () => void): HTMLElement[] {
   const search = h('input', { type: 'text', class: 'gtext-search', placeholder: 'Find a line…', value: state.q, 'aria-label': 'Find a line',
@@ -19,7 +19,7 @@ export function gbaTextTab(text: Record<string, string[]>, state: { q: string },
     'Everything the GBA game says, in the playtest and the ROM. Greyed words are the built-in line: type over it to change it, ',
     'and Reset puts it back. Add versions and one is picked at random each time. Fill-ins: ',
     h('code', {}, '{name}'), ' the hero, ', h('code', {}, '{foe}'), ' the enemy, ', h('code', {}, '{target}'), ' who it happens to, ',
-    h('code', {}, '{move}'), ', ', h('code', {}, '{item}'), ', ', h('code', {}, '{n}'), ' a number, ', h('code', {}, '{level}'), '. ',
+    h('code', {}, '{move}'), ', ', h('code', {}, '{item}'), ', ', h('code', {}, '{class}'), ', ', h('code', {}, '{n}'), ' a number, ', h('code', {}, '{level}'), '. ',
     '“A {foe}” turns into “An” before a vowel.');
 
   const rowOf = (l: TextLine): HTMLElement => {

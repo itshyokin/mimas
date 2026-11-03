@@ -145,6 +145,8 @@ export interface ChoiceItem {
   bars?: { hp: number; maxHp: number; mp: number; maxMp: number; xp?: number };
   /** Mimas's FIGHT buttons: the move's element (its icon and word) and MP cost. */
   move?: { element: string; type: string; mp: number };
+  /** A heading inside a list ("[ Spells ]"): never chosen, the cursor passes over it. */
+  divider?: boolean;
 }
 /** A buff or debuff: an arrow (up or down) over a short tag. */
 export interface BuffChip { tag: string; up: boolean; name: string }
@@ -986,7 +988,8 @@ export class BattleScreen {
   choose(title: string, items: ChoiceItem[], pick: (i: number) => void, back?: () => void, hover?: (i: number) => void, start = 0, bar = false): void {
     // A choice means the fight is on: no results panel can still be showing (one was seen over a later turn).
     if (!this.vic) { for (const el of this.root.querySelectorAll('.battle-victory')) el.remove(); this.leftover = null; }
-    const first = items[start] && !items[start].disabled ? start : Math.max(0, items.findIndex((i) => !i.disabled));
+    const ok = (i: ChoiceItem | undefined) => !!i && !i.divider && (!i.disabled || (this.gbaGrid && !!i.move));
+    const first = ok(items[start]) ? start : Math.max(0, items.findIndex((i) => ok(i)));
     this.mode = { kind: 'list', title, items, index: first, pick, back, hover, bar };
     this.renderList();
     hover?.(first);
@@ -1090,7 +1093,8 @@ export class BattleScreen {
     this.cmdEl.classList.toggle('swap', !m.bar && m.items.some((x) => !!x.bars));
     this.cmdEl.classList.toggle('gba-grid', !!m.bar && this.gbaGrid);
     const note = this.pocketText.querySelector<HTMLElement>('.pt-note');
-    if (note) { const it = m.items[m.index]; note.hidden = !(this.gbaGrid && m.bar && it?.move && it.detail); note.textContent = note.hidden ? '' : it!.detail!; }
+    if (note) { const it = m.items[m.index]; note.hidden = !(this.gbaGrid && it?.move && it.detail); note.textContent = note.hidden ? '' : it!.detail!; }
+    this.cmdEl.classList.toggle('gba-moves', !m.bar && this.gbaGrid && m.items.some((x) => !!x.move));
     if (m.bar) {
       this.descEl.hidden = true;
       // Legend of Dragoon: a row of pictures, the chosen one raised, named underneath.
@@ -1126,8 +1130,8 @@ export class BattleScreen {
     this.cmdList.replaceChildren(...m.items.map((it, i) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'bcmd';
-      b.disabled = !!it.disabled;
+      b.className = it.divider ? 'bcmd bcmd-divider' : 'bcmd';
+      b.disabled = !!it.disabled || !!it.divider;
       b.setAttribute('role', 'option');
       b.setAttribute('aria-selected', String(i === m.index));
       if (dragon) {
@@ -1233,7 +1237,9 @@ export class BattleScreen {
     if (m.kind === 'list') {
       const step = (d: number) => {
         const n = m.items.length;
-        for (let k = 1; k <= n; k++) { const j = (m.index + d * k + n * k) % n; if (!m.items[j].disabled) { m.index = j; break; } }
+        // Mimas's move list: a greyed move can be landed on (OK buzzes); a divider never.
+        const land = (x: ChoiceItem) => !x.divider && (!x.disabled || (this.gbaGrid && !!x.move));
+        for (let k = 1; k <= n; k++) { const j = (m.index + d * k + n * k) % n; if (land(m.items[j])) { m.index = j; break; } }
         uiSound('menuMove');
         this.renderList();
         m.hover?.(m.index);

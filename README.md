@@ -162,6 +162,21 @@ nothing is erased).
   mannequin (from behind), a standing pose, a frame of their sheet or a
   picture of your own are still there to choose.
 - **Title & menus → Party markers**: diamonds by default.
+- **Classes**: every hero starts at 10 in each stat and their class grows
+  them. A class has a one-time **Stat boost** (when a hero first joins it),
+  what **Each level up** adds to each stat (fractions are kept: +1.5 adds 1,
+  then 2…), **Health growth** and **Magic growth** (a roll of 1–4 up to 1–12
+  every level up), what gear it can use, and its **skill trees**. A hero's
+  starting class is set in Heroes; joining at level 5 means four levels of
+  that class. Heroes' own stats and ranks are Saturn extras now.
+- **Change class** (event command): change now, unlock a class, or a *class
+  trainer* where the player picks from the classes they've unlocked. Stats,
+  skills and moves are all kept; the new class's numbers count from the next
+  level. Old classes' trees can be looked at; points are spent only in the
+  current class's trees.
+- **Skill trees** work in the GBA game: skill points each level (Combat →
+  Skill points per level, and at the start), skills that raise stats and
+  teach Additions and spells, parents, ranks, costs and levels.
 
 ### GBA Studio
 
@@ -241,9 +256,11 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
 - **Battles** on a white screen (or the map's battle background): your hero
   side-on at the left facing the foe, panels like Saturn's (name, level,
   gender symbol, element icons, HP, MP and the EXP bar), *Jordan stands
-  ready.* with ATTACK, ITEMS, SWAP and FLEE. ATTACK is the hero's four moves:
-  Additions (every strike landing), spells and guards, each showing its MP
-  cost (any Addition can have one). A guard (an Addition with *Guard* ticked)
+  ready.* with ATTACK, ITEMS, SWAP and FLEE. ATTACK is the hero's move list,
+  every move they know (nothing is ever forgotten): Additions weakest first,
+  then a *[ Spells ]* line and the spells cheapest first, each with its MP
+  (and GUARD for guards); it scrolls, the chosen move's details show below,
+  and the cursor comes back where it was. A guard (an Addition with *Guard* ticked)
   halves damage, keeps ailments off for the round and gives back some health
   (10% unless you set it). A move's line stays up while its animation plays,
   and lines like *Struck a weakness!* move on by themselves (A skips). The
@@ -260,11 +277,15 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   and steps) and the map's own table, plus the *Start battle* command (can
   run, the result variable, lose and continue).
 - **The party**: up to six heroes (the *Party* command adds and removes
-  them). The START menu has PARTY (SUMMARY, MOVES, EQUIP, SWITCH), BAG (item
-  icons, ×n, USE / EQUIP / TOSS), your hero's card, SAVE and EXIT.
-- **Learn** gives moves and spells; a fifth move asks which to forget (or,
-  with *Equip* moves, which to put away). **Shops**, **Save**, **Full rest**
-  and **Change HP / MP** work too. Saves go to the cartridge.
+  them). The START menu has PARTY (SUMMARY with class and skill points,
+  MOVES, EQUIP, SWITCH), BAG (item icons, ×n, USE / EQUIP / TOSS), SKILLS
+  (each hero's trees, left / right between them; A learns a skill), your
+  hero's card, SAVE and EXIT. Gear a hero's class can't use is greyed.
+- **Classes**: stats grow by class each level, with health and magic rolls;
+  **Change class** (change, unlock, or a class trainer to choose from).
+- **Learn** adds a move or spell to the list. **Shops**, **Save**, **Full
+  rest** and **Change HP / MP** work too. Saves go to the cartridge (saves
+  from before Update 14 can't be read).
 - **Enemy moves, types and ailments**: foes use their four moves (or their
   level's moveset, or a fight's own), spells cost their MP; type matchups
   (weakness / resisted / immune / absorbs) and

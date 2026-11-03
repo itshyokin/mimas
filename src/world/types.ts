@@ -445,7 +445,7 @@ export type Command =
   /** Teach a spell (at a rank) or an Addition: to the hero you play (''), a party hero by id, or everyone ('@party'). */
   | { cmd: 'learn'; who: string; spell?: string; rank?: number; addition?: string; silent?: boolean }
   /** Change a hero's class, or let them change to it later (unlock). */
-  | { cmd: 'heroClass'; who: string; op: 'change' | 'unlock'; cls: string; silent?: boolean };
+  | { cmd: 'heroClass'; who: string; /** pick: the player chooses from the classes they've unlocked (a class trainer). */ op: 'change' | 'unlock' | 'pick'; cls: string; silent?: boolean };
 
 export type QuestOp = 'start' | 'objective' | 'complete' | 'fail' | 'reset';
 /** inactive: not started; ready: every objective done, waiting to be handed in. */
@@ -2143,6 +2143,14 @@ export interface ClassDef {
   /** Skill tree ids (Database → Skills). */
   trees: string[];
   color?: string;
+  /**
+   * Mimas: what each level up adds to each stat while a hero is in this class (fractions allowed: +1.5 adds 1, then 2,
+   * the remainder kept). Heroes start at 10 in every stat; their stats come from their classes.
+   */
+  perLevel?: Partial<Record<'str' | 'dex' | 'agi' | 'end' | 'def' | 'mag' | 'mdf', number>>;
+  /** Mimas: health and magic each level up: a roll of 1 to this (4, 6, 8, 10 or 12; unset 8 for health, 6 for magic). */
+  hpDie?: number;
+  mpDie?: number;
 }
 
 /** What a hero has learned and chosen: spell ranks, Additions (with how often each was completed), class. */

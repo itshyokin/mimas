@@ -971,6 +971,23 @@ namespace
                     at += 1;
                     break;
 
+                case mimas::OP_CLASS:
+                {
+                    // Change class: who -2 the hero you play, -1 everyone, else a hero; op 0 change, 1 unlock, 2 pick.
+                    view = text_view();
+                    int who = code[at + 1], op = code[at + 2], cls = code[at + 3];
+                    bool silent = code[at + 4] != 0;
+
+                    for(int i = 0; i < party_count; ++i)
+                    {
+                        if(who == -2 ? i != 0 : (who >= 0 && party[i].hero != who)) { continue; }
+                        class_event(party[i], op, cls, silent);
+                    }
+
+                    at += 5;
+                    break;
+                }
+
                 default:
                     return;
             }
