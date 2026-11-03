@@ -1818,6 +1818,40 @@ struct foe_rt
     return bn::max(25, bn::min(300, m));
 }
 
+// Update 15: one strike's timing. The red frame closes in on the foe over `time` frames; A as it meets the dark one.
+// 0: missed (too early or too late), 1: good, 2: perfect (the middle of the window).
+int qte_strike(bn::fixed_point at, int time, int window)
+{
+    bn::sprite_ptr mark = bn::sprite_items::qte_mark.create_sprite(at);
+    bn::sprite_ptr ring = bn::sprite_items::qte_ring.create_sprite(at);
+    mark.set_bg_priority(0);
+    ring.set_bg_priority(0);
+    ring.set_double_size_mode(bn::sprite_double_size_mode::ENABLED);
+    int half = bn::max(2, window / 2);
+    time = bn::max(1, time);
+
+    for(int t = 0; ; ++t)
+    {
+        // From twice its size down onto the dark frame.
+        ring.set_scale(bn::fixed(1) + bn::fixed(bn::max(0, time - t)) / time);
+        bn::core::update();
+
+        if(bn::keypad::a_pressed())
+        {
+            int err = bn::abs(t + 1 - time);
+            if(err > half) { sfx(mimas::snd_dodge); return 0; }
+            sfx(mimas::snd_swing);
+            return err * 100 <= window * 18 ? 2 : 1;
+        }
+
+        if(t > time + half)
+        {
+            sfx(mimas::snd_dodge);
+            return 0;
+        }
+    }
+}
+
 // The battle's text box (the whole bottom), waiting for A.
 void bsay(const bn::string_view& text)
 {
@@ -2407,9 +2441,42 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
                                 continue;
                             }
 
+                            // Update 15: an Addition's strikes are timed with A (a miss ends the string; a missed first strike
+                            // still lands at half). Each strike landed and completing it give MP back. Automatic: all land.
+                            int32_t done = power * 110 / 100;
+                            bool complete = true;
+
+                            if(a && mimas::timed_additions)
+                            {
+                                done = 0;
+                                int landed = 0;
+                                bn::fixed_point at = sc.foe ? sc.foe->position() : bn::fixed_point(171 - HALF_W, 21 - HALF_H);
+
+                                for(int s = 0; s < a->hits; ++s)
+                                {
+                                    int r = qte_strike(at, a->strikes[s].time, a->strikes[s].window);
+
+                                    if(! r)
+                                    {
+                                        if(s == 0) { done = a->strikes[0].power / 2; }
+                                        break;
+                                    }
+
+                                    ++landed;
+                                    done += a->strikes[s].power * (r == 2 ? 110 : 100) / 100;
+                                    if(a->mp_hit) { hm.mp = int16_t(bn::min(max_mp(hm), hm.mp + a->mp_hit)); sc.draw_hero(); }
+                                    sc.blink(sc.foe);
+                                }
+
+                                complete = landed == a->hits;
+                                hits = bn::max(1, landed);
+                            }
+
+                            if(a && complete && a->mp_done) { hm.mp = int16_t(bn::min(max_mp(hm), hm.mp + a->mp_done)); sc.draw_hero(); }
+
                             sc.play_move(a ? a->hit : mimas::fx_hit_plain, a ? a->burst : -1, el, true);
                             int mult = type_mult(el, e.elements, e.immune, e.absorb);
-                            int32_t dmg = int32_t(attack_of(hm)) * power / 100 * 110 / 100;
+                            int32_t dmg = int32_t(attack_of(hm)) * done / 100;
                             dmg = spread(dmg);
                             bool crit = rng.get_int(100) < th.crit;
                             if(crit) { dmg = dmg * 3 / 2; }
@@ -2433,7 +2500,7 @@ int battle(world& w, const foe_spec* foes, int foe_count, bool can_run, bool wil
 
                             if(crit && dmg) { sfx(mimas::snd_crit); bsay_auto(txt(mimas::T_battle_crit)); }
                             say_type(mult, e.name);
-                            if(a && dmg && sc.f.hp > 0) { give_ailment(sc.f.st, a->inflict, a->chance, e.resists, e.name); sc.draw_foe(); }
+                            if(a && complete && dmg && sc.f.hp > 0) { give_ailment(sc.f.st, a->inflict, a->chance, e.resists, e.name); sc.draw_foe(); }
                         }
                         else
                         {

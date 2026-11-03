@@ -79,7 +79,9 @@ body.gba-mode .battle .pt-stats { background: #f8f8f8; color: #303038; border-co
 body.gba-mode .battle .pt-stats div { color: #303038; }
 body.gba-mode .battle .pocket-pick { background: #f8f8f8; color: #303038; }
 /* Moves play without button prompts (for now): no rings or buttons over the battle. */
-body.gba-mode .qte, body.gba-mode .qte-pads, body.gba-mode .spell-seq { display: none !important; }
+/* Update 15: Additions are timed with A (the ring closes on the foe); spells play by themselves. One touch button. */
+body.gba-mode .spell-seq { display: none !important; }
+body.gba-mode .qte-pad:not(.pad-A) { display: none; }
 
 /* Move animations over the fighters (Mimas), crisp pixels above the battle. */
 .gba-fx { position: fixed; z-index: 50; pointer-events: none; image-rendering: pixelated; }
@@ -147,3 +149,11 @@ body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd:disabled:not(.bc
 body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd-divider { justify-content: center; min-height: calc(var(--u) * 2.6); padding: 0; opacity: 1; }
 body.gba-mode .battle.layout-pocket .battle-cmd.gba-moves .bcmd-divider .bcmd-label { flex: none; font-size: calc(var(--u) * 1.4); color: #808090; letter-spacing: 0.06em; }
 body.gba-mode .battle.layout-pocket.list-mode:has(.gba-moves) .pocket-heroes { bottom: calc(var(--g) * 2 + var(--cmd-h) + env(safe-area-inset-bottom, 0px)); }
+/* The timing frame: a square that closes in on the foe, a fixed one where to press. */
+body.gba-mode .qte-mark, body.gba-mode .qte-ring { width: calc(var(--u) * 13); height: calc(var(--u) * 13); border-radius: calc(var(--u) * 0.8); }
+body.gba-mode .qte-mark { border: max(2px, calc(var(--u) * 0.35)) solid #303038; box-shadow: 0 0 0 max(1px, calc(var(--u) * 0.2)) #f8f8f8; }
+body.gba-mode .qte-ring { border: max(2px, calc(var(--u) * 0.45)) solid #d04040; box-shadow: 0 0 0 max(1px, calc(var(--u) * 0.2)) #f8f8f8; }
+body.gba-mode .qte-btn { width: calc(var(--u) * 4.4); height: calc(var(--u) * 4.4); font-size: calc(var(--u) * 2.4); top: calc(var(--u) * -9); background: #f8f8f8; color: #303038; border: max(2px, calc(var(--u) * 0.3)) solid #303038; font-family: inherit; }
+body.gba-mode .qte.perfect .qte-mark { border-color: #e0a020; }
+body.gba-mode .qte.hit .qte-mark { border-color: #3a8a4a; }
+body.gba-mode .qte.miss .qte-mark { border-color: #d04040; }

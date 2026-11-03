@@ -154,9 +154,9 @@ class GbaGame {
     this.inventory = new Inventory((id) => this.items.get(id));
     this.state.inventory = this.inventory;
     this.cfg = combatConfig(this.db.combat);
-    // Pokémon-style battles: the Pocket Handheld layout on the flat screen, one hero out at a time (the rest of the
-    // party can be sent in), the Additions as the FIGHT moves with no button prompts.
-    this.cfg.turnBased = { ...this.cfg.turnBased, layout: 'pocket', mode: 'single', singleParty: MAX_PARTY, additions: 'choose', additionTiming: 'auto', heroLocked: false, gba: true };
+    // GBA battles: the Pocket Handheld layout on the flat screen, one hero out at a time (the rest of the party can be
+    // sent in), the Additions in the move list, timed with A (Database → Combat → Addition timing; spells aren't timed).
+    this.cfg.turnBased = { ...this.cfg.turnBased, layout: 'pocket', mode: 'single', singleParty: MAX_PARTY, additions: 'choose', heroLocked: false, gba: true };
     // The hero, and everyone set to start in the party.
     const heroes = this.db.heroes?.length ? this.db.heroes : [mainHero(this.db)];
     this.party = heroes.filter((h, i) => i === 0 || h.startsInParty).slice(0, MAX_PARTY).map((h) => newMember(this.db, h, Math.max(1, h.joinLevel ?? 1), this.cfg));

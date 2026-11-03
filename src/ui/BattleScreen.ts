@@ -234,7 +234,8 @@ export class BattleScreen {
   /** Called once the screen closes (the battle ended or was abandoned). */
   onClosed: (() => void) | null = null;
   private readonly onQteKey = (e: KeyboardEvent): void => {
-    const b = QTE_KEYS[e.code];
+    // (Mimas: the GBA's A is Z on the keyboard too.)
+    const b = QTE_KEYS[e.code] ?? (this.gbaGrid && e.code === 'KeyZ' ? 'A' : undefined);
     if (this.seq && b && !e.repeat) { e.preventDefault(); e.stopPropagation(); this.seqPress(b); return; }
     if (!this.qte || !b || e.repeat) return;
     e.preventDefault(); e.stopPropagation();
@@ -1494,8 +1495,10 @@ export class BattleScreen {
     glyph.className = 'qte-btn';
     this.qteEl.append(mark, ring, glyph);
     // In the middle of the screen (the camera closes in on the strikes there), clear of the stat blocks.
-    this.qteEl.style.left = '50%';
-    this.qteEl.style.top = '45%';
+    // Mimas: right over the foe, the ring closing in around them.
+    const fr = this.gbaGrid ? f.el.getBoundingClientRect() : null, rr = this.root.getBoundingClientRect();
+    this.qteEl.style.left = fr && fr.width ? `${fr.left - rr.left + fr.width / 2}px` : '50%';
+    this.qteEl.style.top = fr && fr.height ? `${fr.top - rr.top + fr.height * 0.55}px` : '45%';
     this.qteEl.hidden = false;
     this.padsEl.hidden = auto;
     this.qte = { target, strikes, auto, i: 0, t: 0, onStrike, done, ring, pressed: [] };

@@ -783,7 +783,8 @@ export class TurnBattle {
     this.screen.animate(b.key, 'pose', color);
     if (s.sound) this.host.voice?.(s.sound);
     const who = this.entry(b).who ?? 0, foe = (targets.find((t) => t.side === 'enemy') ?? this.foes.find(isUp))?.key ?? '';
-    this.later(this.hold(0.5), () => this.screen.startSequence(seq, s.seqTime ?? 0.8 * seq.length + 1.2, this.cfg.additionTiming === 'auto',
+    // (Mimas: spells aren't timed one on one: the sequence plays itself.)
+    this.later(this.hold(0.5), () => this.screen.startSequence(seq, s.seqTime ?? 0.8 * seq.length + 1.2, this.cfg.additionTiming === 'auto' || !!this.cfg.gba,
       (_i, ok) => {
         if (!ok) { this.host.sound('block'); return; }
         this.host.sound('menuMove');
@@ -863,19 +864,21 @@ export class TurnBattle {
       if (a.mp) { b.mp = Math.max(0, b.mp - a.mp); this.refresh(b); }
       const element = a.element ?? b.attackElement, inflicts = a.inflicts ?? b.inflicts;
       const fxEnd = performance.now() + (this.host.effect?.(a.look ?? {}, 'addition', t.key, element) ?? 0) * 1000;
-      this.screen.startQte(t.key, a.strikes.map((x) => ({ button: x.button, time: x.time, window: x.window })), this.cfg.additionTiming === 'auto',
+      // Mimas: the windows are as wide as Database → Combat → Timing window says (generous by default).
+      const wide = this.cfg.gba ? (this.cfg.timingWindow ?? 160) / 100 : 1;
+      this.screen.startQte(t.key, a.strikes.map((x) => ({ button: x.button, time: x.time, window: x.window * wide })), this.cfg.additionTiming === 'auto',
         (i: number, r: QteResult) => {
           const st = a.strikes[i];
-          // Mimas: no timing game, every strike lands the same (no Perfect / Weak popups, like the ROM).
-          if (this.cfg.gba) r = 'good';
           if (r === 'miss') {
-            this.screen.popup(t.key, i === 0 ? 'Weak' : 'Missed', 'info');
+            if (!this.cfg.gba) this.screen.popup(t.key, i === 0 ? 'Weak' : 'Missed', 'info');
             // A first strike missed still lands, weakly.
             if (i === 0) power += b.attack * st.power * a.damage * 0.5;
             return;
           }
           landed++;
-          if (r === 'perfect') this.screen.popup(t.key, 'Perfect!', 'info');
+          if (r === 'perfect' && !this.cfg.gba) this.screen.popup(t.key, 'Perfect!', 'info');
+          // Mimas: magic back for each strike landed (Legend of Dragoon).
+          if (a.mpPerHit && b.mp < b.maxMp) { b.mp = Math.min(b.maxMp, b.mp + a.mpPerHit); this.refresh(b); }
           // EXP for each strike (more for a perfect one), like Legend of Dragoon's SP.
           if (!this.cfg.gba) this.expPop(b, this.host.strikeExp?.(this.entry(b).who ?? 0, t.key, r) ?? 0);
           this.screen.animate(b.key, 'strike');
@@ -900,6 +903,7 @@ export class TurnBattle {
   /** An Addition's string has ended: its damage lands, the call-out, then back to their place. */
   private finishAddition(b: Battler, a: BattleAddition, t: Battler, complete: boolean, power: number, land: () => void): void {
     land();
+    if (complete && a.mpComplete && b.mp < b.maxMp) { b.mp = Math.min(b.maxMp, b.mp + a.mpComplete); this.screen.popup(b.key, `+${a.mpComplete} MP`, 'mp'); this.refresh(b); }
     if (complete) {
       this.expPop(b, this.host.strikeExp?.(this.entry(b).who ?? 0, t.key, 'complete') ?? 0);
       if (a.sound) this.host.voice?.(a.sound); else this.host.attackVoice?.(this.entry(b).who ?? 0);

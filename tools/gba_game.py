@@ -214,7 +214,7 @@ def ui_tiles(gfx, bars=None):
 
 def clean(gfx):
     for f in os.listdir(gfx):
-        if f.split('.')[0].startswith(('enemy_', 'hback_', 'hface_', 'icon_', 'ui_tiles', 'ui_palette', 'cursor', 'fx_', 'fxpal_', 'exclaim', 'elicon_', 'gender', 'rustle')):
+        if f.split('.')[0].startswith(('enemy_', 'hback_', 'hface_', 'icon_', 'ui_tiles', 'ui_palette', 'cursor', 'fx_', 'fxpal_', 'exclaim', 'elicon_', 'gender', 'rustle', 'qte_')):
             os.remove(os.path.join(gfx, f))
 
 
@@ -298,6 +298,21 @@ def exclaim_sprite(gfx):
     put_pal(im, [(255, 0, 255), (248, 248, 248), (48, 48, 56), (208, 48, 48)] + [(0, 0, 0)] * 12)
     im.save(os.path.join(gfx, 'exclaim.bmp'))
     write_json(os.path.join(gfx, 'exclaim.json'), {'type': 'sprite', 'height': 16})
+
+
+def qte_sprites(gfx):
+    """Update 15: the timing frames, 64 x 64: the one that closes in on the foe (red, white edged) and the fixed one
+    where to press (dark, white edged). The ROM scales the closing one with the sprite's affine matrix."""
+    for name, colour, inset in (('qte_ring', 3, 4), ('qte_mark', 2, 6)):
+        im = Image.new('P', (64, 64), 0)
+        for y in range(64):
+            for x in range(64):
+                d = min(x, y, 63 - x, 63 - y) - inset
+                if 0 <= d <= 3:
+                    im.putpixel((x, y), 1 if d in (0, 3) else colour)
+        put_pal(im, [(255, 0, 255), (248, 248, 248), (48, 48, 56), (208, 64, 64)] + [(0, 0, 0)] * 12)
+        im.save(os.path.join(gfx, name + '.bmp'))
+        write_json(os.path.join(gfx, name + '.json'), {'type': 'sprite', 'height': 64})
 
 
 # The gender symbols on a hero's panel, 8 x 8: male (blue), female (red).
@@ -449,6 +464,7 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     fx_made = effect_sheets(public, gba, effects, gfx)
     fx_index = {e['id']: k for k, e in enumerate(effects) if fx_made[k]}
     exclaim_sprite(gfx)
+    qte_sprites(gfx)
     gender_sprite(gfx)
     rustle_sprite(public, gba, gfx)
     element_icons(public, gfx)
@@ -470,6 +486,7 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     for el in ELEMENTS:
         w(f'#include "bn_sprite_palette_items_fxpal_{el}.h"\n')
     w('#include "bn_sprite_items_exclaim.h"\n')
+    w('#include "bn_sprite_items_qte_ring.h"\n#include "bn_sprite_items_qte_mark.h"\n')
     w('#include "bn_sprite_items_gender.h"\n')
     w('#include "bn_sprite_items_rustle.h"\n')
     for k in range(len(ELEMENTS)):
@@ -501,8 +518,14 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
       '    int16_t gear[4]; bool starts; uint8_t join_level; bool no_additions; const bn::sprite_item* back; const bn::sprite_item* face; int8_t elements[2];\n'
       '    int8_t gender; };   // gender: 0 male, 1 female, -1 none shown\n')
     w('// power: the strikes\' powers added up, x100. inflict: an ailment (-1 none) and its chance. hit / burst: effects (-1 none).\n')
+    w('// A strike (Update 15): its power x100, when the frame closes (frames) and its window (frames, wide as Combat says).\n')
+    w('struct strike_def { int16_t power; uint8_t time; uint8_t window; };\n')
     w('struct addition_def { const char* name; const char* description; uint8_t hits; int16_t power; int8_t element; int8_t inflict; uint8_t chance; int8_t hit; int8_t burst;\n'
-      '    int16_t mp; int8_t guard; };   // guard: a guarding move\'s health back in % (-1: not a guard)\n')
+      '    int16_t mp; int8_t guard;   // guard: a guarding move\'s health back in % (-1: not a guard)\n'
+      '    strike_def strikes[8]; int16_t mp_hit; int16_t mp_done; };   // mp_hit / mp_done: MP back for each strike landed / completing it\n')
+    timed = game.get('timing', 'press') != 'auto'
+    wide = max(50, min(400, int(game.get('timingWindow', 160) or 160)))
+    w(f'// Additions are timed with A (false: Automatic, every strike lands).\nconstexpr bool timed_additions = {"true" if timed else "false"};\n')
     w('struct spell_rank { int16_t power; int16_t mp; };\n')
     w('// kind: 0 damage, 1 heal, 2 support (the ROM casts it as a small heal for now). power x10.\n')
     w('struct spell_def { const char* name; const char* description; uint8_t kind; bool all; uint8_t rank_count; spell_rank ranks[5];\n'
@@ -628,10 +651,14 @@ def export(root, public, data, gfx, inc, db, gba, maps, comp):
     arows = []
     for a in additions:
         inf, ch = inflict_of(a)
-        arows.append(f'{{ {c_str(a.get("name"))}, {c_str(a.get("description", ""))}, {int(a.get("hits", 1))}, {i16(float(a.get("power", 1)) * 100)}, '
+        st = (a.get('strikes') or [{'power': float(a.get('power', 1)) / max(1, int(a.get('hits', 1))), 'time': 0.7, 'window': 0.24}] * int(a.get('hits', 1)))[:8]
+        sts = ', '.join(f'{{ {i16(float(x.get("power", 1)) * 100)}, {max(8, min(250, round(float(x.get("time", 0.7)) * 60)))}, '
+                        f'{max(4, min(250, round(float(x.get("window", 0.24)) * 60 * wide / 100)))} }}' for x in st)
+        arows.append(f'{{ {c_str(a.get("name"))}, {c_str(a.get("description", ""))}, {len(st)}, {i16(float(a.get("power", 1)) * 100)}, '
                      f'{el_index.get(a.get("element") or "neutral", 0)}, {inf}, {ch}, {fx_of(a.get("hit", "fx_slash"))}, {fx_of(a.get("burst"))}, '
-                     f'{i16(a.get("mp", 0) or 0)}, {int(a["guard"]) if a.get("guard") is not None else -1} }}')
-    w('constexpr addition_def additions[] = {\n    ' + (',\n    '.join(arows) or '{ "", "", 1, 100, 0, -1, 0, -1, -1, 0, -1 }') + '\n};\n')
+                     f'{i16(a.get("mp", 0) or 0)}, {int(a["guard"]) if a.get("guard") is not None else -1}, {{ {sts} }}, '
+                     f'{i16(a.get("mpPerHit", 0) or 0)}, {i16(a.get("mpComplete", 0) or 0)} }}')
+    w('constexpr addition_def additions[] = {\n    ' + (',\n    '.join(arows) or '{ "", "", 1, 100, 0, -1, 0, -1, -1, 0, -1, { { 100, 42, 23 } }, 0, 0 }') + '\n};\n')
     w(f'constexpr int addition_count = {len(additions)};\n')
     srows = []
     for s in spells:

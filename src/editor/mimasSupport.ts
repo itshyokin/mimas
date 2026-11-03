@@ -17,8 +17,8 @@ const OFF: Record<string, Off> = {
   combat: {
     sections: ['Sword, bow and spells on the map', 'Forges (anvils)', 'Stealth and levels', 'Bestiary', 'Element stones', 'Senses', 'Impact', 'Tint'],
     labels: [
-      // Mimas battles are always one hero against one foe, on the Pocket Handheld screen, with no timing game.
-      'Battle mode', 'Battle screen layout', 'Addition timing', 'Heroes who fight (Single)', 'Most enemies in a battle', 'Turn order', 'Single mode: battles are',
+      // Mimas battles are always one hero against one foe, on the Pocket Handheld screen (Additions are timed: Update 15).
+      'Battle mode', 'Battle screen layout', 'Heroes who fight (Single)', 'Most enemies in a battle', 'Turn order', 'Single mode: battles are',
       'Enemies who join (tiles)', 'Campfire safe ground (tiles)', 'Safe after a battle (s)', 'Field of view (°)',
       // Update 14: skill points per level and at the start are the GBA game's (the Party tree's aren't).
       'Party skill points per level',
@@ -38,7 +38,7 @@ const OFF: Record<string, Off> = {
   },
   additions: {
     sections: ['Action mode', 'Mastery', 'Stat boost', 'Weapons and armor'],
-    labels: ['Button', 'Window (s)', 'Time to press them (s)', 'Highest rank', 'Completions per rank', 'Each rank: power +%', 'Each rank: window +%', 'Each rank: damage +%'],
+    labels: ['Button', 'Time to press them (s)', 'Highest rank', 'Completions per rank', 'Each rank: power +%', 'Each rank: window +%', 'Each rank: damage +%'],
   },
   spells: {
     sections: ['Action mode', 'Spell addition', 'Skill trees'],

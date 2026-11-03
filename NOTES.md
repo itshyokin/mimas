@@ -81,7 +81,10 @@ Tick them off as they're built. Saturn's own notes are in docs/saturn/NOTES.md.
       game (points per level, stat skills, skills that teach Additions and spells; START → SKILLS; old classes' trees
       to look at); the move list replaces the four moves (Additions weakest first, "[ Spells ]", spells cheapest
       first; nothing forgotten); gear a class can't use is greyed and untrained gear is weaker. Playtest and ROM.
-- [ ] Update 15: timed Additions with MP. Update 16: save slots, title screen, achievements, credits.
+- [x] Update 15 (Nov 3): timed Additions (a frame closes on the foe, A on time; a miss ends the string; perfect +10%),
+      MP back per hit landed and for completing (per Addition), Timing window % and Automatic in Database → Combat;
+      spells untimed; no mastery. Playtest and ROM.
+- [ ] Update 16: save slots, title screen, achievements, credits.
 - [ ] Battles with more than one hero and foe out at once (2 v 2 or 3 v 3): owner is thinking about it.
 - [ ] Music in the ROM (tracker files); support spells' buffs in the ROM; learning moves on level up (a learnset).
 - [ ] Surf on water (needs a key item / ability), one-way passability arrows.

@@ -76,6 +76,9 @@ export interface BattleAddition {
   /** Mimas: magic it costs, and (a guard move) the health it gives back (%). */
   mp?: number;
   guard?: number;
+  /** Mimas: MP back for each strike landed, and for completing it. */
+  mpPerHit?: number;
+  mpComplete?: number;
 }
 
 /** A spell being charged: what it is, at which rank, on whom, and the caster's turns until it goes off. */

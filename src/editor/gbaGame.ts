@@ -47,6 +47,7 @@ export function romGameData(db: Database, gba: GbaData): unknown {
     // Database → Menus → Bars: the ROM's health / EXP colours and whether the meters have round ends.
     bars: { shape: db.menus?.barShape ?? (db.menus?.barsSquare ? 'rect' : 'pill'), hp: db.menus?.bars?.hp ?? null, xp: db.menus?.bars?.xp ?? null },
     partyDamage: tb.partyDamage, enemyDamage: tb.enemyDamage, flee: tb.flee,
+    timing: tb.additionTiming, timingWindow: tb.timingWindow,
     maxLevel,
     xp: Array.from({ length: maxLevel - 1 }, (_, i) => xpToNext(cfg, i + 1)),
     base: { hp: base.hp, mp: base.mp },
@@ -83,7 +84,9 @@ export function romGameData(db: Database, gba: GbaData): unknown {
       const fx = moveEffects({ effect: d.effect, burst: d.burst, element: d.element, inflicts: d.inflicts }, 'addition');
       return { id: d.id, name: d.name, description: d.description ?? '', hits: d.strikes.length, power: d.strikes.reduce((s, x) => s + x.power, 0),
         element: d.element ?? 'neutral', inflicts: inflicts(d.inflicts), hit: fx.hit, burst: fx.burst,
-        mp: d.mp ?? 0, guard: d.guard ? d.guardHeal ?? 10 : null };
+        mp: d.mp ?? 0, guard: d.guard ? d.guardHeal ?? 10 : null,
+        // Update 15: each strike's power, ring time and window (seconds), and the MP it gives back.
+        strikes: d.strikes.slice(0, 8).map((x) => ({ power: x.power, time: Math.max(0.25, x.time ?? 0.7), window: Math.max(0.06, x.window ?? 0.24) })), mpPerHit: d.mpPerHit ?? 0, mpComplete: d.mpComplete ?? 0 };
     }),
     spells: spellList(db).map((s) => ({ id: s.id, name: s.name, kind: s.kind, targets: s.targets ?? 'one', description: s.description ?? '',
       element: s.element ?? 'neutral', inflicts: inflicts(s.inflicts), ...moveEffects({ effect: s.effect, burst: s.burst, element: s.element, inflicts: s.inflicts }, s.kind === 'bolt' ? 'spell' : 'heal'),

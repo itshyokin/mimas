@@ -213,8 +213,9 @@ export function battleMoves(db: Database, m: Member): BattleAddition[] {
     const uses = m.abil.additions?.[id] ?? 0, rank = additionRank(d, uses), bonus = additionBonus(d, rank);
     return [{ id: d.id, name: d.name, sound: d.sound, rank, maxRank: d.maxRank ?? 5, toNext: additionToNext(d, uses), damage: bonus.damage,
       element: d.element, inflicts: d.inflicts, look: { effect: d.effect, burst: d.burst, element: d.element, inflicts: d.inflicts }, mp: d.mp, guard: d.guard ? (d.guardHeal ?? 10) : undefined,
-      description: d.description,
-      strikes: d.strikes.map((x) => ({ power: x.power, button: x.button ?? 'A', time: Math.max(0.25, Math.min(0.45, x.time ?? 0.45)), window: Math.max(0.06, (x.window ?? 0.24) * bonus.window) })) } as BattleAddition];
+      description: d.description, mpPerHit: d.mpPerHit ?? 0, mpComplete: d.mpComplete ?? 0,
+      // Every strike is timed with A (the GBA's button), its ring and window as the Database sets them.
+      strikes: d.strikes.map((x) => ({ power: x.power, button: 'A', time: Math.max(0.25, x.time ?? 0.7), window: Math.max(0.06, (x.window ?? 0.24) * bonus.window) })) } as BattleAddition];
   });
 }
 

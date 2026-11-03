@@ -1901,6 +1901,8 @@ export interface TurnBasedData {
   additions?: 'set' | 'choose';
   /** Additions' timing: pressed by the player, or automatic (every strike lands; for accessibility). */
   additionTiming?: 'press' | 'auto';
+  /** Mimas: how wide the timing windows are, in % of each strike's own (unset 160: generous). */
+  timingWindow?: number;
   /**
    * Mimas (GBA): Additions are the heroes' moves, four at most. 'forget' (default, Pokémon): learning a fifth asks
    * which to forget, and that one is gone. 'equip': nothing is forgotten; the new one takes a slot and the heroes
@@ -2129,6 +2131,9 @@ export interface AdditionDef {
   /** Mimas: a guard, not an attack: half damage and no ailments until the next turn, and some health back (`guardHeal` %, default 10). */
   guard?: boolean;
   guardHeal?: number;
+  /** Mimas: MP back for each strike landed, and for completing it (every strike). */
+  mpPerHit?: number;
+  mpComplete?: number;
 }
 
 /** A class: the skill trees its members learn from. Changing class keeps everything already learned. */

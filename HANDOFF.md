@@ -1,4 +1,4 @@
-# Handoff: where Mimas stands (Nov 3, 2026, after Update 14; Updates 15-16 planned below)
+# Handoff: where Mimas stands (Nov 3, 2026, after Update 15; Update 16 planned below)
 
 To pick this up in a new session: attach `itshyokin/mimas` and say *"Read HANDOFF.md, NOTES.md and README.md,
 then continue with the next update."*
@@ -48,7 +48,7 @@ screen; then the ROM compiles Saturn events. Sound: Saturn's chip.ts (Game Boy c
 sounds) → the GBA's DMG channels; effect files → Maxmod samples; music → tracker files (.xm / .mod).
 
 ## Next up: the owner's plan (agreed Nov 3, 2026). Build in this order, one numbered update and build each.
-Updates 13 and 14 are built (below, kept for reference); 15-16 are not. Owner wants the game NOT too close to Pokémon
+Updates 13-15 are built (below, kept for reference); 16 is not. Owner wants the game NOT too close to Pokémon
 (copyright worry); mechanics are fine, copied wording and look are what we're removing.
 
 ### Update 13 (BUILT): text, words, Database split, side view
@@ -101,7 +101,7 @@ Updates 13 and 14 are built (below, kept for reference); 15-16 are not. Owner wa
   so "Better Quick Hit" (stronger) sits below "Quick Hit". Spells sorted by MP cost (cheaper / weaker at the top),
   ties in the order learned. Enemies keep their up-to-4 moves.
 
-### Update 15: timed Additions (Legend of Dragoon) with MP
+### Update 15 (BUILT): timed Additions (Legend of Dragoon) with MP
 - Bring back Saturn's timing-based Additions (currently cfg.additionTiming 'auto' + gba.css hides the QTE): a frame
   closes in around the target, press on time for each strike; a miss ends the combo. Playtest and ROM. Generous
   windows, adjustable, and an "Automatic" choice (for touch-control lag on Android).
@@ -125,6 +125,17 @@ Updates 13 and 14 are built (below, kept for reference); 15-16 are not. Owner wa
 - **Credits:** reuse Saturn's Credits tab (un-grey it) for a credits roll.
 
 ## Things to know
+- Update 15, timed Additions:
+  - Playtest: TurnBattle.doAddition runs Saturn's startQte in GBA mode too (no forced 'auto' in GbaGame any more);
+    windows × cfg.timingWindow / 100 (TurnBasedData.timingWindow, default 160); every strike's button is A
+    (party.ts battleMoves; Z works as A in BattleScreen.onQteKey); the frame sits over the foe (startQte, gbaGrid);
+    gba.css styles it square and shows one touch pad. AdditionDef.mpPerHit / mpComplete (BattleAddition too):
+    per landed strike in onStrike, on completion in finishAddition. No Perfect / Missed popups in GBA mode. Spells:
+    startSequence auto when cfg.gba.
+  - ROM: addition_def.strikes[8] { power x100, time frames, window frames (already × timingWindow) }, mp_hit, mp_done;
+    timed_additions (Combat → Addition timing). qte_strike() (game_systems.hpp) scales the qte_ring sprite (affine,
+    double size) from 2 to 1 over the qte_mark at the foe; good 100%, perfect (within 18% of the window) 110%, auto =
+    every strike 110% as before. Ailments only on a completed string. Sprites from gba_game.py qte_sprites().
 - Update 14, classes / growth / skills / move list:
   - Rules (playtest src/gbaplay/party.ts = ROM game_systems.hpp): Member.tenths (stats ×10, start 100), hpRoll / mpRoll,
     nodes (skill ranks), points, moves = every move in the order learned. joinClass gives ClassDef.bonus once (abil.joined);

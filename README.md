@@ -260,7 +260,15 @@ Files: `public/data/gba.json` (palettes, tiles, sprites) and the pictures in
   every move they know (nothing is ever forgotten): Additions weakest first,
   then a *[ Spells ]* line and the spells cheapest first, each with its MP
   (and GUARD for guards); it scrolls, the chosen move's details show below,
-  and the cursor comes back where it was. A guard (an Addition with *Guard* ticked)
+  and the cursor comes back where it was.
+- **Timed Additions** (Legend of Dragoon style): for each strike a red frame
+  closes in on the foe; press A as it meets the dark frame. On time, the
+  strike lands (dead centre: a little stronger); too early or too late ends
+  the string (a missed first strike still lands at half). Each strike landed
+  and completing the whole string can give MP back (Database → Additions →
+  *MP per hit landed* / *MP for completing it*). Database → Combat sets
+  *Addition timing* (or Automatic, every strike lands: good for touch-screen
+  lag) and *Timing window %* (160, generous, by default). Spells aren't timed. A guard (an Addition with *Guard* ticked)
   halves damage, keeps ailments off for the round and gives back some health
   (10% unless you set it). A move's line stays up while its animation plays,
   and lines like *Struck a weakness!* move on by themselves (A skips). The
